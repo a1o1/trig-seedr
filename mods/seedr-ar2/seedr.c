@@ -683,6 +683,27 @@ static void draw_title(void *bmp, uint8_t *p, const char *what, int n)
     text_at(bmp, 2, 1, line, CORE_TEXT_INVERT);
 }
 
+/* the name, centred, with a small sprout drawn in pixels after it */
+static void draw_footer(void *bmp, uint8_t *p)
+{
+    static const char *const sprout[7] = {   /* 7 wide: two leaves on a stem, in the ground */
+        "##...##",
+        "#.#.#.#",
+        ".##.##.",
+        "...#...",
+        "...#...",
+        ".#####.",
+        "#######",
+    };
+    int w = core_text_width(CORE_FONT_MAIN, "Trig Seedr"), x = (128 - (w + 4 + 7)) / 2, r, c;
+    text_at(bmp, x, 52, "Trig Seedr", 0);
+    x += w + 4;
+    for (r = 0; r < 7; r++)
+        for (c = 0; c < 7; c++)
+            if (sprout[r][c] == '#')
+                dot(p, x + c, 50 + r);
+}
+
 static void draw_view(void *bmp, uint8_t *p, int n)
 {
     char line[48], *o;
@@ -745,15 +766,28 @@ static void draw_view(void *bmp, uint8_t *p, int n)
     } else
         o = put(o, "-");
     *o = 0;
-    text_at(bmp, 2, 39, line, 0);
-    o = put(line, "F");
-    o = hex4(o, s->flags);
-    o = put(o, " DN");
-    o = num(o, trk.default_note);
-    o = put(o, " DV");
-    o = num(o, defvel);
-    *o = 0;
-    text_at(bmp, 2, 50, line, 0);
+    text_at(bmp, 2, 38, line, 0);
+    {
+        /* the flag word and the track defaults on the right of the same line; the defaults drop
+         * out when a long retrig text leaves no room */
+        char right[24];
+        int h = core_font_height(CORE_FONT_MAIN), lw = core_text_width(CORE_FONT_MAIN, line);
+        o = put(right, "F");
+        o = hex4(o, s->flags);
+        o = put(o, " DN");
+        o = num(o, trk.default_note);
+        o = put(o, " DV");
+        o = num(o, defvel);
+        *o = 0;
+        if (2 + lw + 6 + core_text_width(CORE_FONT_MAIN, right) > 127) {
+            o = put(right, "F");
+            o = hex4(o, s->flags);
+            *o = 0;
+        }
+        core_text_draw(bmp, CORE_FONT_MAIN, 126, 64 - h - 38, CORE_ALIGN_RIGHT, right);
+    }
+    box(p, 0, 47, 127, 47, 1);                  /* the divider */
+    draw_footer(bmp, p);
 }
 
 /* one knob's label and value, in a 32-pixel column, two rows of four */
