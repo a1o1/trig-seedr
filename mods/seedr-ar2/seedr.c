@@ -1,9 +1,11 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 /* seedr (trig-seedr): an offline pattern generator for the Analog Rytm MKII (OS 1.74), on the current track.
  *
- *   TRIG held + PAGE  open / close (closing keeps an audition's result). Stock uses every
- *                     FUNC + key (FUNC + PLAY MODE is its KIT menu); TRIG + PAGE does nothing
- *                     in stock 1.74 (checked in analog-emu)
+ *   TRIG              stock: TRIG page, TRIG again: EUCLIDEAN; TRIG on the EUCLIDEAN page opens
+ *                     seedr, as a third TRIG page; TRIG on seedr closes it and stock goes back to
+ *                     its TRIG page. A parameter page key (SRC, SMPL, FLTR, AMP, LFO, FX) or a
+ *                     menu key closes it too. Closing keeps an audition's result.
+ *   TRIG held + PAGE  opens it from anywhere (a shortcut; stock does nothing with it)
  *   PAGE              VIEW -> GEN 1 -> GEN 2 -> GEN 3 -> GROOVE -> ROTATE -> VIEW
  *   VIEW              read-only steps: LEFT / RIGHT a step, UP / DOWN 16 steps
  *   GEN 1..3          knobs A..H set the parameters; FUNC + knob sets a range's low end.
@@ -41,6 +43,31 @@
 
 #define K_FUNC 0x80
 #define K_TRIG 0x30
+/* keys that leave the TRIG page in stock: the parameter pages, FX, the menu keys */
+static const uint8_t leave_keys[] = { 0x31, 0x32, 0x33, 0x34, 0x35, 0x10, 0xb0, 0xb5, 0x11, 0x12, 0x13, 0x14 };
+
+/* Stock's TRIG page view (ParametersSeqNoteView, 1.74's vtable 0x401e3148) keeps its sub-page at +0x8c:
+ * 0 TRIG, 1 EUCLIDEAN (TRIG cycles it, 0x4003ab90; a TRIG from another page starts at 0). It is on
+ * the view controller's list while the TRIG page shows: +28 the first node, +20 the end; a node's +0
+ * the next, +8 its view (elekloader core-ar2 screen.c, sidecar-mods 0026). -1: not showing. */
+#define VT_TRIG_VIEW 0x401e3148u
+static void *ui_ctrl;                   /* the view controller, from ev_tick */
+static int trig_subpage(void)
+{
+    const uint8_t *c = (const uint8_t *)ui_ctrl;
+    const uint32_t *n;
+    int k;
+    if (!c)
+        return -1;
+    n = *(const uint32_t *const *)(c + 28);
+    for (k = 0; k < 16 && n && (const uint8_t *)n != c + 20; k++) {
+        const uint32_t *v = (const uint32_t *)n[2];
+        if (v && v[0] == VT_TRIG_VIEW)
+            return *(const int32_t *)((const uint8_t *)v + 0x8c);
+        n = (const uint32_t *)n[0];
+    }
+    return -1;
+}
 #define K_PAGE 0x84
 #define K_LEFT 0x40
 #define K_RIGHT 0x41
@@ -66,7 +93,7 @@ void *memcpy(void *dst, const void *src, unsigned long n)
 enum { P_VIEW, P_GEN1, P_GEN2, P_GEN3, P_GROOVE, P_ROT, P_COUNT };
 enum { A_NONE, A_GEN, A_GROOVE, A_ROT };
 
-static volatile int open, func_held, trig_held, page, cursor;
+static volatile int open, func_held, trig_down, page, cursor, swallow_trig;
 static struct gen_track trk, work, orig;
 static struct gen_params prm;
 static int seed_ui = 1;                 /* -1 = FREE */
@@ -570,15 +597,36 @@ int gr_key(void *brain, void *ev)
         init();
     if (k == K_FUNC)
         func_held = down;                       /* FUNC always goes on to stock too */
-    if (k == K_TRIG)
-        trig_held = down;                       /* TRIG too (stock opens its TRIG page) */
-    if (k == K_PAGE && trig_held) {
-        if (down) {
-            open = !open;
-            if (!open)
-                keep();
+    if (k == K_TRIG) {
+        trig_down = down;
+        if (!down && swallow_trig) {            /* the release of the press that opened seedr */
+            swallow_trig = 0;
+            return 1;
         }
+        if (down && !open && trig_subpage() == 1) {
+            open = 1;                           /* the third TRIG page */
+            swallow_trig = 1;
+            return 1;
+        }
+        if (down && open) {
+            open = 0;                           /* and stock goes on from EUCLIDEAN to TRIG */
+            keep();
+        }
+        return 0;
+    }
+    if (k == K_PAGE && trig_down) {           /* the shortcut: opens, never closes */
+        if (down)
+            open = 1;
         return 1;
+    }
+    if (open && down) {
+        unsigned i;
+        for (i = 0; i < sizeof leave_keys; i++)
+            if (k == leave_keys[i]) {
+                open = 0;                       /* another page or a menu: seedr closes */
+                keep();
+                return 0;
+            }
     }
     if (!open)
         return 0;
@@ -658,6 +706,7 @@ int gr_enc(void *brain, void *ev)
 void gr_tick(void *ctrl)
 {
     ticks++;
+    ui_ctrl = ctrl;
     if (auditioning) {
         unsigned obj, pat;
         int n = rt_current(&obj, &pat);

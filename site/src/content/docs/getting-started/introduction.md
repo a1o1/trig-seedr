@@ -3,7 +3,7 @@ title: Introduction
 sidebar: { order: 1 }
 ---
 
-Trig Seedr adds pages to the Analog Rytm MKII's screen that write patterns for you. It runs on the Rytm itself, as a mod for [elekloader](https://github.com/elekloader/elekloader), on OS 1.74.
+Trig Seedr writes pattern seeds for Elektron machines: pages on the machine's own screen that write patterns for you. The first version is for the Analog Rytm MKII; the Analog Four MKII and the Syntakt are planned next. It runs on the Rytm itself, as a mod for [elekloader](https://github.com/elekloader/elekloader), on OS 1.74.
 
 Everything it writes is ordinary Rytm data (trigs, velocities, lengths, micro timing, conditions, retrigs, sample locks), written through the OS's own routines. The patterns play, save and reload on a stock OS, and you can edit them by hand as usual.
 
@@ -19,4 +19,4 @@ Every algorithm is an **audition**. The first YES snapshots the track; each YES 
 
 ## Status
 
-Version 0.3 runs in [analog-emu](https://github.com/trigcondition/analog-emu), a whole-device emulator running the stock OS, where 33 scripted checks pass. It has **not yet been run on a unit**. If you try it on yours, keep the stock OS and a way to reflash it over DIN MIDI at hand.
+Version 0.3 runs in [analog-emu](https://github.com/trigcondition/analog-emu), a whole-device emulator running the stock OS, where 38 scripted checks pass. It has **not yet been run on a unit**. To try it on yours, see [Flashing](../flashing/).

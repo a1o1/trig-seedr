@@ -6,22 +6,22 @@
 [![Device](https://img.shields.io/badge/Analog%20Rytm%20MKII-OS%201.74-black.svg)](docs/firmware-notes-os174.md)
 [![elekloader](https://img.shields.io/badge/elekloader-core--ar2%200.13-purple.svg)](https://github.com/elekloader/elekloader)
 [![Language](https://img.shields.io/badge/C99-freestanding%20ColdFire-informational.svg)](lib/)
-[![Tests](https://img.shields.io/badge/tests-175%20host%20%7C%2033%20emulator-brightgreen.svg)](tools/README.md)
+[![Tests](https://img.shields.io/badge/tests-175%20host%20%7C%2038%20emulator-brightgreen.svg)](tools/README.md)
 [![Emulator](https://img.shields.io/badge/tested%20in-analog--emu-lightgrey.svg)](https://github.com/trigcondition/analog-emu)
 [![Grooves](https://img.shields.io/badge/Grooves-Ableton%20.agr%20%7C%20MIDI-yellowgreen.svg)](#grooves)
 [![AI](https://img.shields.io/badge/AI-Claude%20Opus%205.5-purple.svg)](https://www.anthropic.com/claude)
 [![Website](https://img.shields.io/badge/Website-a1o1.github.io%2Ftrig--seedr-4d9bff.svg)](https://a1o1.github.io/trig-seedr/)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
 
-Offline pattern algorithms for the Analog Rytm MKII (OS 1.74), as an [elekloader](https://github.com/elekloader/elekloader) mod: a generator with an audition undo, Ableton grooves for micro timing and velocity, sample locks per trig, and rotation of a track or the whole pattern.
+Pattern seeds for Elektron machines. trig-seedr is a set of offline pattern algorithms, as firmware mods. The first is for the Analog Rytm MKII (OS 1.74), as an [elekloader](https://github.com/elekloader/elekloader) mod; the Analog Four MKII and the Syntakt are planned next. On the Rytm it has a generator with an audition undo, Ableton grooves for micro timing and velocity, sample locks per trig, and rotation of a track or the whole pattern.
 
-<a id="status"></a>**Status: works in the emulator (analog-emu, 33 scripted checks), not yet run on a unit.** Flashing modified firmware is at your own risk; keep the stock OS and a way to reflash it (DIN MIDI) at hand.
+<a id="status"></a>**Status: works in the emulator (analog-emu, 38 scripted checks), not yet run on a unit.** Flashing modified firmware is at your own risk; keep the stock OS and a way to reflash it (DIN MIDI) at hand.
 
 trig-seedr is an independent project. It is not affiliated with or endorsed by Elektron or Ableton; their product names are used only to say what it works with. No firmware, and nothing derived from Ableton's content, is included: you build against your own copy of the stock OS, and generate groove tables from your own Live installation.
 
 ## What it does
 
-Hold **TRIG** and press **PAGE** to open it on the current track; **PAGE** steps through its pages:
+It is a third page behind the **TRIG** key: **TRIG** (stock's TRIG page), **TRIG** (EUCLIDEAN), **TRIG** (trig-seedr), **TRIG** again back to stock. **TRIG held + PAGE** opens it from anywhere. **PAGE** steps through its pages:
 
 | Page | What |
 |---|---|
@@ -69,7 +69,8 @@ Expected next to this repository (or set `WORKSPACE`):
 ```sh
 make -C lib test coldfire                 # host tests (sanitizers) and a ColdFire build check
 python3 tools/test_groove2h.py PATH/TO/Live/Core\ Library/Grooves   # the .agr / MIDI reader
-sh tools/test_seedr.sh                    # build, patch the OS, run the emulator checks (PART=1..6: one part)
+sh tools/test_seedr.sh                    # build, patch the OS, run the emulator checks (PART=1..7: one part)
+sh tools/build_release.sh                 # the firmware to flash: build/trig-seedr-0.3-os1.74.syx (docs/flashing.md)
 ```
 
 `test_seedr.sh` writes `build/seedr.syx` (the patched OS). It contains Elektron's firmware: keep it to yourself.

@@ -12,7 +12,7 @@ cd ../analog-emu
 ```
 
 - A new card first shows **FILE SYSTEM OK, PRESS Y/N TO CLOSE**; every other key is ignored until you close it with NO.
-- Click a key to press it; **shift-click** latches it (for TRIG + PAGE, FUNC + YES). Drag or scroll on a knob to turn it; the arrow keys nudge the last knob touched.
+- Click a key to press it; **shift-click** latches it (for FUNC + YES). Click **TRIG** three times to open Trig Seedr. Drag or scroll on a knob to turn it; the arrow keys nudge the last knob touched.
 - `--snapshot` saves the machine when you close the window (or press F5). Delete the `.snap` after rebuilding the firmware: it holds the old mod's memory.
 
 ## Samples

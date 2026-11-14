@@ -9,6 +9,7 @@ E=${WORKSPACE:-$(cd "$R/.." && pwd)}                  # the folder holding elekl
 T=$R/tools; W=$R/build; mkdir -p $W
 STOCK=${STOCK:-"$E/Official Firmwares/Analog-Rytm_MKII_OS1.74_dist/Analog-Rytm_MKII_OS1.74.syx"}
 B=${B:-$CARGO_TARGET_DIR/release}; FW=$W/seedr.syx
+# Opening seedr: TRIG held + PAGE (the shortcut, whatever stock shows); part 7 checks the TRIG cycle
 P=${PART:-all}   # PART=1: build + generate/audition; 2: GROOVE, regenerate; 3: save paths; 4: sample locks; 5: ROTATE (2..5 resume from 1's snapshots);
 #                6: the lock-row refusal (its own test build, RT_ROWS_MAX 0)
 part() { [ "$P" = all ] || [ "$P" = "$1" ]; }
@@ -46,7 +47,7 @@ if part 1; then
 $B/dtcard gr-test.img format > /dev/null
 $B/dtboot $FW --instr 5.6G --card gr-test.img --press NO@4.2G --press NO@4.6G --press NO@5.0G --press NO@5.4G --save gr0.snap > /dev/null
 check "boot: empty track      " gr0.snap "$ORIG"
-run gr0.snap gr1.snap --instr 1.5G --press TRIG@5.8G:0.4G --press PAGE@5.95G --press PAGE@6.4G --press YES@6.7G
+run gr0.snap gr1.snap --instr 1.5G --press TRIG@5.80G:0.4G --press PAGE@5.95G --press PAGE@6.4G --press YES@6.7G
 DTEMU_FW=$FW $B/dtpeek gr1.snap fb | python3 $T/fb2png.py $W/seedr-gen1.png 4 > /dev/null
 check "YES, seed 1            " gr1.snap "$($T/genref 1)"
 run gr1.snap gr2.snap --instr 0.9G --nudge 6:1@7.3G --press YES@7.6G
@@ -69,7 +70,7 @@ if part 3; then
 mark() { python3 $T/emucmp.py $B/dtpeek $FW $1 | tail -1; }
 # 1. SAVE PATTERN (YES + SCENE), generate seed 3 over it, RELOAD PATTERN (NO + SCENE): back to seed 2
 run gr5.snap ts0.snap --instr 1.0G --press YES@10.5G:0.4G --press SCNE@10.65G
-run ts0.snap ts1.snap --instr 2.8G --press TRIG@11.5G:0.4G --press PAGE@11.65G --nudge 6:1@12.4G --press YES@12.7G \
+run ts0.snap ts1.snap --instr 2.8G --press TRIG@11.50G:0.4G --press PAGE@11.65G --nudge 6:1@12.4G --press YES@12.7G \
     --press FUNC@13.1G:0.4G --press YES@13.25G --press NO@13.9G
 check "seed 3 over a saved ptn " ts1.snap "$($T/genref 3)"
 run ts1.snap ts2.snap --instr 1.0G --press NO@14.3G:0.4G --press SCNE@14.45G
@@ -85,7 +86,7 @@ SAVEAS=$(python3 $T/presses.py 5700 "NO*6" GLOBAL "UP*9" YES "UP*2" DOWN YES "F+
 $B/dtboot $FW --load gr0.snap --card mk-test.img --instr 4.0G $SAVEAS --save mk0.snap > /dev/null
 run mk0.snap mk1.snap --instr 1.0G --press NO@9.7G --press NO@9.8G --press NO@9.9G --press NO@10.0G
 m1=$(mark mk1.snap)
-run mk1.snap mk2.snap --instr 2.0G --press TRIG@10.7G:0.4G --press PAGE@10.85G --press PAGE@11.3G --press YES@11.6G \
+run mk1.snap mk2.snap --instr 2.0G --press TRIG@10.70G:0.4G --press PAGE@10.85G --press PAGE@11.3G --press YES@11.6G \
     --press FUNC@12.0G:0.4G --press YES@12.15G --press NO@12.4G
 m2=$(mark mk2.snap)
 if [ "$m1" = "modified 0" ] && [ "$m2" = "modified 1" ]; then echo "PASS modified mark: 0 after SAVE PROJECT AS, 1 after generate + keep"
@@ -95,7 +96,7 @@ fi
 
 if part 2; then
 # ---- GROOVE (gr5: seed 2 kept, page closed on GEN 1; clock 10.4 G). grooves[1] = MPC 16 57 (Live's Swing MPC 3000 16ths 57): odd steps late
-run gr5.snap gv1.snap --instr 1.8G --press TRIG@10.5G:0.4G --press PAGE@10.65G --press PAGE@11.0G --press PAGE@11.15G --press PAGE@11.3G \
+run gr5.snap gv1.snap --instr 1.8G --press TRIG@10.50G:0.4G --press PAGE@10.65G --press PAGE@11.0G --press PAGE@11.15G --press PAGE@11.3G \
     --nudge 0:1@11.5G --press YES@11.8G
 DTEMU_FW=$FW $B/dtpeek gv1.snap fb | python3 $T/fb2png.py $W/seedr-groove.png 4 > /dev/null
 check "GROOVE: MPC 16 57 on seed 2" gv1.snap "$($T/genref 2 16 1 100 0 0 0 0 1)"
@@ -118,7 +119,7 @@ fi
 fi
 if part 2; then
 # Regenerate: YES with no knob turned since the last YES takes the next seed (gr5: seed 2 kept)
-run gr5.snap rg1.snap --instr 1.4G --press TRIG@10.5G:0.4G --press PAGE@10.65G --press YES@11.2G
+run gr5.snap rg1.snap --instr 1.4G --press TRIG@10.50G:0.4G --press PAGE@10.65G --press YES@11.2G
 check "reopen, YES: seed 3     " rg1.snap "$($T/genref 3)"
 run rg1.snap rg2.snap --instr 0.4G --press YES@11.9G
 check "YES again: seed 4       " rg2.snap "$($T/genref 4)"
@@ -128,7 +129,7 @@ fi
 if part 4; then
 # Sample locks (GEN 3): SMP 100 %, slots 1..8, on gr5 (seed 2 kept, page GEN 1; clock 10.4 G).
 # The nudges (8 value steps each) take time: YES well after them.
-run gr5.snap sl1.snap --instr 3.2G --press TRIG@10.5G:0.4G --press PAGE@10.65G --press PAGE@11.0G --press PAGE@11.2G \
+run gr5.snap sl1.snap --instr 3.2G --press TRIG@10.50G:0.4G --press PAGE@10.65G --press PAGE@11.0G --press PAGE@11.2G \
     --nudge 0:1:8@11.5Gx13/0.05G --press YES@13.4G
 DTEMU_FW=$FW $B/dtpeek sl1.snap fb | python3 $T/fb2png.py $W/seedr-gen3.png 4 > /dev/null
 check "SMP 100% 1-8, seed 2    " sl1.snap "$($T/genref 2 16 0 0 0 0 0 0 1 50 100 1 8)"
@@ -141,7 +142,7 @@ check "smp SAVE + RELOAD PATTERN" sl4.snap "$($T/genref 3 16 0 0 0 0 0 0 1 50 10
 fi
 if part 5; then
 # ROTATE (gr5: seed 2 kept, page GEN 1, closed; clock 10.4 G). PAGE x4: GEN 2, GEN 3, GROOVE, ROTATE
-run gr5.snap rt1.snap --instr 2.0G --press TRIG@10.5G:0.4G --press PAGE@10.65G --press PAGE@11.0G --press PAGE@11.15G \
+run gr5.snap rt1.snap --instr 2.0G --press TRIG@10.50G:0.4G --press PAGE@10.65G --press PAGE@11.0G --press PAGE@11.15G \
     --press PAGE@11.3G --press PAGE@11.45G --nudge 0:1@11.7G --nudge 0:1@11.8G --press YES@12.2G
 DTEMU_FW=$FW $B/dtpeek rt1.snap fb | python3 $T/fb2png.py $W/seedr-rotate.png 4 > /dev/null
 check "ROTATE +3, whole steps  " rt1.snap "$($T/genref 2 16 0 0 0 0 0 0 1 50 0 1 8 3)"
@@ -160,7 +161,7 @@ if [ "$(sd rt5.snap)" = "$(sd gr5.snap)" ]; then echo "PASS rotate ALL NO: SD ba
 check "rotate ALL NO: BD back  " rt5.snap "$($T/genref 2)"
 # whole steps carry their locks: part 4's kept take with sample locks (sl4, page GEN 3, clock 16.8 G), +1
 if [ -f sl4.snap ]; then
-run sl4.snap rt6.snap --instr 1.2G --press TRIG@16.9G:0.4G --press PAGE@17.05G --press PAGE@17.4G --press PAGE@17.55G --press YES@17.8G
+run sl4.snap rt6.snap --instr 1.2G --press TRIG@16.90G:0.4G --press PAGE@17.05G --press PAGE@17.4G --press PAGE@17.55G --press YES@17.8G
 check "ROTATE +1 carries SMP locks" rt6.snap "$($T/genref 3 16 0 0 0 0 0 0 1 50 100 1 8 1)"
 fi
 fi
@@ -176,9 +177,32 @@ python3 -c "import json,sys; j=json.load(open(sys.argv[1])); j['id']='seedr'; j[
 FN=$W/seedr-norows.syx
 $B/dtcard nr-test.img format > /dev/null
 $B/dtboot $FN --instr 5.6G --card nr-test.img --press NO@4.2G --press NO@4.6G --press NO@5.0G --press NO@5.4G --save nr0.snap > /dev/null
-$B/dtboot $FN --load nr0.snap --instr 2.45G --press TRIG@5.8G:0.4G --press PAGE@5.95G --press PAGE@6.4G --press PAGE@6.55G --press PAGE@6.7G \
+$B/dtboot $FN --load nr0.snap --instr 2.45G --press TRIG@5.80G:0.4G --press PAGE@5.95G --press PAGE@6.4G --press PAGE@6.55G --press PAGE@6.7G \
     --nudge 0:1:8@6.9G --press YES@7.9G --save nr1.snap > /dev/null
 DTEMU_FW=$FN $B/dtpeek nr1.snap fb | python3 $T/fb2png.py $W/seedr-norows.png 4 > /dev/null
 got=$(python3 $T/emucmp.py $B/dtpeek $FN nr1.snap | sed -n '1p;4p' | tr '\n' '|')
 if [ "$got" = "$ORIG|slock -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1|" ]; then echo "PASS no lock rows: nothing written ($W/seedr-norows.png)"; else echo "FAIL no lock rows: $got"; fi
+fi
+if part 7; then
+# The keys (gr5: closed with NO over the EUCLIDEAN page; clock 10.4 G): TRIG on EUCLIDEAN opens seedr, TRIG
+# again closes it (stock: TRIG page), TRIG: EUCLIDEAN, TRIG: seedr; a page key closes it. Checked on the screen:
+# seedr's title bar starts "GEN"/"VIEW"/..., stock's with the page name; compared as text from dtpeek fb.
+title() { DTEMU_FW=$FW $B/dtpeek $1 fb | sed -n 1,5p | md5sum | cut -c1-8; }
+run gr5.snap kq1.snap --instr 0.5G --press TRIG@10.5G
+run kq1.snap kq2.snap --instr 0.5G --press TRIG@11.0G
+run kq2.snap kq3.snap --instr 0.5G --press TRIG@11.5G
+run kq3.snap kq4.snap --instr 0.5G --press TRIG@12.0G
+run kq4.snap kq5.snap --instr 0.5G --press SRC@12.5G
+python3 - $B/dtpeek $FW kq1.snap kq2.snap kq3.snap kq4.snap kq5.snap <<'PY'
+import os, subprocess, sys
+dtpeek, fw, snaps = sys.argv[1], sys.argv[2], sys.argv[3:]
+def bar(s):   # the title bar's first rows, as text
+    out = subprocess.run([dtpeek, s, 'fb'], env=dict(os.environ, DTEMU_FW=fw), capture_output=True, text=True).stdout
+    return out.splitlines()[:5]
+b = [bar(s) for s in snaps]
+want = [('seedr', b[0] == b[3]), ('stock TRIG', b[1] != b[0]), ('stock EUCLIDEAN', b[2] != b[1] and b[2] != b[0]),
+        ('seedr again', b[3] == b[0]), ('SRC closes it', b[4] != b[3])]
+for name, ok in want:
+    print(('PASS' if ok else 'FAIL') + ' keys: ' + name)
+PY
 fi

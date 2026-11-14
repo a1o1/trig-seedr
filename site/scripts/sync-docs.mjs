@@ -13,6 +13,7 @@ const pages = [
   ['docs/firmware-notes-os174.md', 'developers/firmware-notes.md', 'Firmware notes (OS 1.74)', 3],
   ['tools/README.md', 'developers/tools-and-tests.md', 'Tools and tests', 4],
   ['CONTRIBUTING.md', 'developers/contributing.md', 'Contributing', 5],
+  ['docs/flashing.md', 'getting-started/flashing.md', 'Flashing a unit', 4],
 ];
 for (const [src, dst, title, order] of pages) {
   let md = readFileSync(join(repo, src), 'utf8');

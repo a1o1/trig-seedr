@@ -1,6 +1,6 @@
 # trig-seedr: requirements (v1.0, 2026-11-14)
 
-Scope: offline, destructive pattern algorithms (applied to a track on a key press, with an audition undo) for the Analog Rytm MKII OS 1.74, mono only, as an elekloader mod. Later devices: Analog Four MKII, Syntakt.
+Scope: pattern seeds for Elektron machines. Offline, destructive pattern algorithms (applied to a track on a key press, with an audition undo) for the Analog Rytm MKII OS 1.74, mono only, as an elekloader mod first. Later devices: Analog Four MKII, Syntakt (D10); the library (`lib/`) is device-neutral, the device layer is per machine.
 
 ## Decisions
 
@@ -22,7 +22,7 @@ Scope: offline, destructive pattern algorithms (applied to a track on a key pres
 | D14 | **Timing and velocity, separate amounts**, after Live's Groove Pool (plus QUANT and RANDOM). |
 | D15 | **YES regenerates.** A YES with no knob turned since that page's last YES moves to the next seed (a new take, also right after FUNC + YES); after a knob turn it keeps the seed, so the change is heard on the same take. |
 | D16 | **Sample-slot locks per trig** (GEN 3): a share of the generated trigs get a p-lock of the sample slot, from a slot-number range (low–high). |
-| D17 | **Open / close with TRIG held + PAGE.** Stock 1.74 uses every FUNC + key combination (FUNC + PLAY MODE is its KIT menu); TRIG held + PAGE does nothing in stock (checked in analog-emu). |
+| D17 | **Open as a third TRIG page.** Stock cycles TRIG → EUCLIDEAN with the TRIG key; TRIG on the EUCLIDEAN page opens trig-seedr, TRIG again goes back to stock's TRIG page; a parameter page or menu key closes it. TRIG held + PAGE opens it from anywhere. (Every FUNC + key is used in stock 1.74; FUNC + PLAY MODE is its KIT menu.) |
 | D18 | **Leaving mid-audition keeps the take.** Changing track or pattern, or closing the page, while a take is auditioned keeps it, as FUNC + YES would. |
 
 ## 1. Algorithms
@@ -127,7 +127,7 @@ Only steps with a trig change; µtime is clamped to ±23. Limits: a step is take
 - **R4 Live.** Works stopped or playing; the result plays from the next step.
 - **R5 Lock budget.** The trig-page fields are per-track arrays, not lock rows. GEN 3's sample locks use one row per track; GEN checks for room first. GROOVE adds no rows; ROTATE moves existing locks with whole steps.
 - **R6 Stock-compatible output.** Everything written is ordinary Rytm data: it plays and saves on a stock OS.
-- **R7 UI.** One page per algo, knobs A..H + YES; opened with TRIG held + PAGE (D17).
+- **R7 UI.** One page per algo, knobs A..H + YES; opened as a third TRIG page, after EUCLIDEAN (D17).
 - **R8 Safety.** Touch only the tracks in scope; mark the project modified after APPLY.
 - **R9 Euclid mode.** GENERATOR, GROOVE and ROTATE (TRACK) refuse on a track in Euclid mode; ROTATE ALL skips such tracks.
 
@@ -135,13 +135,13 @@ Only steps with a trig change; µtime is clamped to ±23. Limits: a step is take
 
 | Option | How | Status |
 |---|---|---|
-| A. Behind the TRIG key, after EUCLID (target) | TRIG page 1 → EUCLID → GEN 1 … | needs a core-ar2 contribution: `core_view_pages` does not cover the TRIG view |
-| B. Mod-drawn page opened by a key combination (now) | `ev_key` opens it, `ev_draw` draws it, `ev_enc` takes the knobs | TRIG held + PAGE (D17) |
+| A. Behind the TRIG key, after EUCLIDEAN (now) | TRIG → EUCLIDEAN → trig-seedr → TRIG | done in the mod: `ev_key` takes the TRIG press that would leave EUCLIDEAN, read from stock's TRIG view (+0x8c) on the view list |
+| B. A key combination | TRIG held + PAGE | kept as a shortcut |
 
 ## 8. Open
 
-1. The TRIG view's page list (option A).
-2. A first run on a unit.
+1. A first run on a unit (`docs/flashing.md`).
+2. core-ar2 0.13 (its screen calls) on a unit.
 3. A4 MKII: FUNC + YES / NO are pattern save / reload there, so KEEP needs another key.
 
 ## 9. Later

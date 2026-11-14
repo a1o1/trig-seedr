@@ -3,13 +3,19 @@ title: Keys and pages
 sidebar: { order: 1 }
 ---
 
-Hold **TRIG** and press **PAGE** to open Trig Seedr on the current track (the same again closes it). **PAGE** steps through its pages:
+Trig Seedr is a third page behind the **TRIG** key, after the Euclidean page:
+
+**TRIG** (stock's TRIG page) → **TRIG** (EUCLIDEAN) → **TRIG** (Trig Seedr) → **TRIG** (back to stock's TRIG page)
+
+**TRIG held + PAGE** opens it from any page. A parameter page key (SRC, SMPL, FLTR, AMP, LFO, FX) or a menu key closes it. **PAGE** steps through its pages:
 
 **VIEW → GEN 1 → GEN 2 → GEN 3 → GROOVE → ROTATE → VIEW**
 
 | Key | What it does |
 |---|---|
-| TRIG held + PAGE | open / close (closing keeps a take) |
+| TRIG on the EUCLIDEAN page | open |
+| TRIG on Trig Seedr | close (stock's TRIG page) |
+| TRIG held + PAGE | open, from anywhere |
 | PAGE | the next page |
 | knobs A–H | the page's settings |
 | FUNC + knob | the low end of a range (VEL, LEN, NOTE, RATE, SMPL); SEED in steps of 100 |

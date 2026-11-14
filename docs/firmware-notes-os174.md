@@ -70,7 +70,8 @@ Removing a trig through the stock routine leaves the SYN/SMP/ENV state bits on t
 
 ## 5. Other findings
 
-- **Keys:** stock 1.74 uses every FUNC + key combination (FUNC + PLAY MODE opens the KIT menu). TRIG held + PAGE does nothing in stock. FUNC + YES / FUNC + NO do nothing on the Rytm main screen (pattern save / reload are YES / NO + SCENE).
+- **Keys:** stock 1.74 uses every FUNC + key combination (FUNC + PLAY MODE opens the KIT menu). TRIG held + PAGE does nothing in stock.
+- **The TRIG page:** its view is a ParametersSeqNoteView (vtable 0x401e3148); +0x8c is the sub-page, 0 TRIG, 1 EUCLIDEAN, cycled by the TRIG key (0x4003ab90). While the page shows, the view is on the view controller's list (ev_tick's ctrl: +28 the first node, +20 the end; a node's +0 the next, +8 its view). Coming back to TRIG from another page within about half a second keeps the sub-page; later it starts at TRIG. FUNC + YES / FUNC + NO do nothing on the Rytm main screen (pattern save / reload are YES / NO + SCENE).
 - **Knobs:** `ev_enc` gives the knob as 0..7 (A..H) and raw encoder counts. Stock ignores the first two turn events of a knob idle for ~2 s and takes 4 counts per value step.
 - **Modified mark:** byte 0x405c8e4e; 1 on a fresh, never-saved project, cleared by a project save, set again after an edit.
 - **Sidecar's OS 1.73 addresses** near 0x400c0000 sit 0x6c later in 1.74; its data tables near 0x401c5000, 0x218 later. Each address used here was checked in the 1.74 disassembly.
