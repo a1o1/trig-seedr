@@ -41,7 +41,7 @@
 
 /* the home page */
 .ts-hero { text-align: center; padding: 1.5rem 0 0; }
-.ts-hero .ts-logo { width: min(92%, 560px); height: auto; }
+.ts-hero .ts-logo { display: block; margin: 0 auto; width: min(92%, 560px); height: auto; }
 .ts-hero .ts-rule { display: flex; align-items: center; gap: 1rem; justify-content: center; margin: 1rem auto 0; max-width: 36rem;
   font-size: clamp(.75rem, 2.6vw, 1rem); letter-spacing: .45em; font-weight: 600; color: var(--sl-color-gray-2); }
 .ts-hero .ts-rule::before, .ts-hero .ts-rule::after { content: ''; flex: 1; height: 1px; background: var(--sl-color-gray-4); }
