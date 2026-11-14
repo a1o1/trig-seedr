@@ -1,0 +1,21 @@
+# built firmware and emulator state: contain Elektron's OS
+build/
+*.syx
+*.snap
+*.img
+*.lock.json
+# elekloader build outputs, objects, host test binaries
+mods/*/out/
+*.o
+lib/test_gen
+lib/test_groove
+tools/genref
+__pycache__/
+# groove tables derived from Ableton's files
+mods/seedr-ar2/grooves-live.h
+# the test build made by tools/test_seedr.sh (PART=6)
+mods/seedr-norows-test/
+# early prototype, superseded by seedr's VIEW page
+mods/stepview-ar2/
+tools/test_stepview.sh
+.DS_Store
