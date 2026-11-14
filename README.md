@@ -19,6 +19,14 @@ Hold **TRIG** and press **PAGE** to open it on the current track; **PAGE** steps
 | GROOVE | a groove's micro timing and velocity on the track's trigs: TIME, VEL, QUANT, RAND, SHIFT |
 | ROTATE | moves whole steps (with their locks) or one field, on this track or every track |
 
+Screens, from the emulator (a generated BD take being auditioned):
+
+| | |
+|---|---|
+| ![VIEW](docs/screens/view.png) VIEW | ![GEN 1](docs/screens/gen1.png) GEN 1 |
+| ![GEN 2](docs/screens/gen2.png) GEN 2 | ![GEN 3](docs/screens/gen3.png) GEN 3 |
+| ![GROOVE](docs/screens/groove.png) GROOVE | ![ROTATE](docs/screens/rotate.png) ROTATE |
+
 - **YES** applies. The first YES snapshots the track (or tracks); each YES after it starts again from that original, so you audition takes. YES with no knob turned since the last YES moves to the next seed.
 - **NO** goes back to the original; **FUNC + YES** keeps the take. Leaving the page, the track or the pattern keeps it too.
 - Ranges (VEL, LEN, NOTE, RATE, SMPL): a knob sets the high end, **FUNC** + knob the low end.
