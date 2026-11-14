@@ -1,0 +1,74 @@
+/* Trig Seedr: the Rytm's LCD (light pixels on near-black) with one blue accent. */
+:root {
+  --ts-blue: #4d9bff;
+  --ts-lcd: #10141c;
+  --sl-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --sl-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* dark theme (Starlight's default): blue-tinted greys, a bright blue for contrast on black */
+  --sl-color-white: #ffffff;
+  --sl-color-gray-1: #e9edf3;
+  --sl-color-gray-2: #c3cad6;
+  --sl-color-gray-3: #8a94a6;
+  --sl-color-gray-4: #576173;
+  --sl-color-gray-5: #343b48;
+  --sl-color-gray-6: #1a1f28;
+  --sl-color-black: #0c0f15;
+  --sl-color-accent-low: #0c2647;
+  --sl-color-accent: #4d9bff;
+  --sl-color-accent-high: #b3d4ff;
+}
+:root[data-theme='light'] {
+  --sl-color-white: #0c0f15;
+  --sl-color-gray-1: #1a1f28;
+  --sl-color-gray-2: #343b48;
+  --sl-color-gray-3: #576173;
+  --sl-color-gray-4: #8a94a6;
+  --sl-color-gray-5: #c3cad6;
+  --sl-color-gray-6: #e9edf3;
+  --sl-color-gray-7: #f5f7fa;
+  --sl-color-black: #ffffff;
+  --sl-color-accent-low: #d8e8fd;
+  --sl-color-accent: #1a66d1;
+  --sl-color-accent-high: #0d3f86;
+}
+
+/* the pixel logo: the word in the text colour, the sprout in blue */
+.ts-logo rect.w { fill: var(--sl-color-white); }
+.ts-logo rect.s { fill: var(--sl-color-accent); }
+.ts-title { display: flex; align-items: center; text-decoration: none; }
+.ts-title .ts-logo { height: 1.6rem; width: auto; }
+
+/* the home page */
+.ts-hero { text-align: center; padding: 1.5rem 0 0; }
+.ts-hero .ts-logo { width: min(92%, 560px); height: auto; }
+.ts-hero .ts-rule { display: flex; align-items: center; gap: 1rem; justify-content: center; margin: 1rem auto 0; max-width: 36rem;
+  font-size: clamp(.75rem, 2.6vw, 1rem); letter-spacing: .45em; font-weight: 600; color: var(--sl-color-gray-2); }
+.ts-hero .ts-rule::before, .ts-hero .ts-rule::after { content: ''; flex: 1; height: 1px; background: var(--sl-color-gray-4); }
+.ts-hero .ts-tag { color: var(--sl-color-gray-2); margin: 1.2rem auto 0; font-size: 1.1rem; max-width: 38rem; }
+.ts-hero .ts-version { color: var(--sl-color-gray-3); font-size: .85rem; letter-spacing: .08em; margin-top: .5rem; }
+.ts-cta { display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; margin-top: 1.4rem; }
+.ts-btn { display: inline-block; padding: .6rem 1.4rem; border-radius: 999px; border: 1px solid var(--sl-color-gray-4);
+  color: var(--sl-color-white); text-decoration: none; font-weight: 600; }
+.ts-btn.primary { background: var(--sl-color-accent); border-color: var(--sl-color-accent); color: var(--sl-color-black); }
+.ts-btn:hover { border-color: var(--sl-color-accent); }
+
+/* screens, framed like the Rytm's display */
+.ts-screens { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1.25rem; margin: 2rem 0; }
+.ts-screens figure { margin: 0; }
+.ts-screens img, .ts-screen { width: 100%; height: auto; display: block; image-rendering: pixelated;
+  border: 6px solid #05070a; border-radius: 6px; box-shadow: 0 0 0 1px var(--sl-color-gray-5); background: var(--ts-lcd); }
+.ts-screens figcaption { margin-top: .5rem; font-size: .85rem; color: var(--sl-color-gray-3); }
+.ts-screens figcaption b { color: var(--sl-color-white); letter-spacing: .08em; }
+
+.ts-note { color: var(--sl-color-gray-3); font-size: .85rem; text-align: center; max-width: 42rem; margin: 2rem auto 0; }
+.ts-keys kbd { font-family: var(--sl-font-mono); font-size: .8em; padding: .1em .45em; border-radius: .3em;
+  border: 1px solid var(--sl-color-gray-4); background: var(--sl-color-gray-6); color: var(--sl-color-white); }
+
+/* the home page carries its own logo: hide the page title band */
+main:has(.ts-hero) .content-panel:first-child { display: none; }
+main:has(.ts-hero) .content-panel { border-top: 0; }
+
+/* screenshots in the docs pages: the same LCD frame, at a readable size */
+.sl-markdown-content img { max-width: min(100%, 34rem); height: auto; image-rendering: pixelated;
+  border: 6px solid #05070a; border-radius: 6px; box-shadow: 0 0 0 1px var(--sl-color-gray-5); }

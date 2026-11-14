@@ -19,3 +19,9 @@ mods/seedr-norows-test/
 mods/stepview-ar2/
 tools/test_stepview.sh
 .DS_Store
+# the website: dependencies, build output, and the developer pages copied from docs/ at build time
+site/node_modules/
+site/dist/
+site/.astro/
+site/src/content/docs/developers/
+site/src/assets/screens/

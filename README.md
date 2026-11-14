@@ -10,6 +10,7 @@
 [![Emulator](https://img.shields.io/badge/tested%20in-analog--emu-lightgrey.svg)](https://github.com/trigcondition/analog-emu)
 [![Grooves](https://img.shields.io/badge/Grooves-Ableton%20.agr%20%7C%20MIDI-yellowgreen.svg)](#grooves)
 [![AI](https://img.shields.io/badge/AI-Claude%20Opus%205.5-purple.svg)](https://www.anthropic.com/claude)
+[![Website](https://img.shields.io/badge/Website-a1o1.github.io%2Ftrig--seedr-4d9bff.svg)](https://a1o1.github.io/trig-seedr/)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
 
 Offline pattern algorithms for the Analog Rytm MKII (OS 1.74), as an [elekloader](https://github.com/elekloader/elekloader) mod: a generator with an audition undo, Ableton grooves for micro timing and velocity, sample locks per trig, and rotation of a track or the whole pattern.
@@ -44,7 +45,7 @@ Screens, from the emulator (a generated BD take being auditioned):
 - Ranges (VEL, LEN, NOTE, RATE, SMPL): a knob sets the high end, **FUNC** + knob the low end.
 - Everything written is ordinary Rytm data: it plays, saves and reloads on a stock OS.
 
-Details: [`docs/requirements.md`](docs/requirements.md). Firmware notes: [`docs/firmware-notes-os174.md`](docs/firmware-notes-os174.md).
+Website: [a1o1.github.io/trig-seedr](https://a1o1.github.io/trig-seedr/). Details: [`docs/requirements.md`](docs/requirements.md). Firmware notes: [`docs/firmware-notes-os174.md`](docs/firmware-notes-os174.md).
 
 ## Layout
 

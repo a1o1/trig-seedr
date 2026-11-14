@@ -1,0 +1,8 @@
+---
+// The header: the LCD logo (pixel for pixel as on the Rytm), linking home.
+import PixelLogo from './PixelLogo.astro';
+const { siteTitleHref } = Astro.locals.starlightRoute;
+---
+<a href={siteTitleHref} class="ts-title" aria-label="Trig Seedr, home" translate="no">
+  <PixelLogo scale={3} />
+</a>

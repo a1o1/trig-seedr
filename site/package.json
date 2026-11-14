@@ -1,0 +1,19 @@
+{
+  "name": "trig-seedr-site",
+  "version": "0.3.0",
+  "private": true,
+  "description": "trig-seedr's website (Astro Starlight), published to GitHub Pages.",
+  "license": "GPL-2.0-or-later",
+  "type": "module",
+  "engines": { "node": ">=22.12.0" },
+  "scripts": {
+    "sync": "node scripts/sync-docs.mjs",
+    "dev": "npm run sync && astro dev",
+    "build": "npm run sync && astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "0.42.6",
+    "astro": "7.4.0"
+  }
+}
