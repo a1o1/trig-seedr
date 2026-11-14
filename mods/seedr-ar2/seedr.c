@@ -683,7 +683,7 @@ static void draw_title(void *bmp, uint8_t *p, const char *what, int n)
     text_at(bmp, 2, 1, line, CORE_TEXT_INVERT);
 }
 
-/* the name, centred, with a small sprout drawn in pixels after it */
+/* the name, at the left, with a small sprout drawn in pixels after it */
 static void draw_footer(void *bmp, uint8_t *p)
 {
     static const char *const sprout[7] = {   /* 7 wide: two leaves on a stem, in the ground */
@@ -695,7 +695,7 @@ static void draw_footer(void *bmp, uint8_t *p)
         ".#####.",
         "#######",
     };
-    int w = core_text_width(CORE_FONT_MAIN, "Trig Seedr"), x = (128 - (w + 4 + 7)) / 2, r, c;
+    int w = core_text_width(CORE_FONT_MAIN, "Trig Seedr"), x = 2, r, c;
     text_at(bmp, x, 52, "Trig Seedr", 0);
     x += w + 4;
     for (r = 0; r < 7; r++)
