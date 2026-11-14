@@ -1,8 +1,20 @@
 # trig-seedr
 
+[![License: GPL v2+](https://img.shields.io/badge/License-GPL%20v2%2B-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/Version-v0.3.0-blue.svg)](https://github.com/a1o1/trig-seedr/releases)
+[![Status](https://img.shields.io/badge/Status-emulator%20only-orange.svg)](#status)
+[![Device](https://img.shields.io/badge/Analog%20Rytm%20MKII-OS%201.74-black.svg)](docs/firmware-notes-os174.md)
+[![elekloader](https://img.shields.io/badge/elekloader-core--ar2%200.13-purple.svg)](https://github.com/elekloader/elekloader)
+[![Language](https://img.shields.io/badge/C99-freestanding%20ColdFire-informational.svg)](lib/)
+[![Tests](https://img.shields.io/badge/tests-175%20host%20%7C%2033%20emulator-brightgreen.svg)](tools/README.md)
+[![Emulator](https://img.shields.io/badge/tested%20in-analog--emu-lightgrey.svg)](https://github.com/trigcondition/analog-emu)
+[![Grooves](https://img.shields.io/badge/Grooves-Ableton%20.agr%20%7C%20MIDI-yellowgreen.svg)](#grooves)
+[![AI](https://img.shields.io/badge/AI-Claude%20Opus%205.5-purple.svg)](https://www.anthropic.com/claude)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
+
 Offline pattern algorithms for the Analog Rytm MKII (OS 1.74), as an [elekloader](https://github.com/elekloader/elekloader) mod: a generator with an audition undo, Ableton grooves for micro timing and velocity, sample locks per trig, and rotation of a track or the whole pattern.
 
-**Status: works in the emulator (analog-emu, 33 scripted checks), not yet run on a unit.** Flashing modified firmware is at your own risk; keep the stock OS and a way to reflash it (DIN MIDI) at hand.
+<a id="status"></a>**Status: works in the emulator (analog-emu, 33 scripted checks), not yet run on a unit.** Flashing modified firmware is at your own risk; keep the stock OS and a way to reflash it (DIN MIDI) at hand.
 
 trig-seedr is an independent project. It is not affiliated with or endorsed by Elektron or Ableton; their product names are used only to say what it works with. No firmware, and nothing derived from Ableton's content, is included: you build against your own copy of the stock OS, and generate groove tables from your own Live installation.
 
@@ -101,6 +113,10 @@ trig-seedr builds on, and learned from, these open source projects:
 | [Capstone](https://www.capstone-engine.org/), [Unicorn](https://www.unicorn-engine.org/) | BSD-3 / GPL-2.0 | disassembly and function-level emulation in `tools/` |
 
 No code from the projects under other licences is included; each is credited for what it documented or made possible.
+
+## Contributing
+
+Commit messages follow Conventional Commits; scopes, checks and the commit hook: [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## License
 
