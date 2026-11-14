@@ -1,6 +1,6 @@
 # trig-seedr: requirements (v1.0, 2026-11-14)
 
-Scope: offline, destructive (Hapax ALGO style) pattern algorithms for the Analog Rytm MKII OS 1.74, mono only, as an elekloader mod. Later devices: Analog Four MKII, Syntakt.
+Scope: offline, destructive pattern algorithms (applied to a track on a key press, with an audition undo) for the Analog Rytm MKII OS 1.74, mono only, as an elekloader mod. Later devices: Analog Four MKII, Syntakt.
 
 ## Decisions
 
@@ -25,17 +25,16 @@ Scope: offline, destructive (Hapax ALGO style) pattern algorithms for the Analog
 | D17 | **Open / close with TRIG held + PAGE.** Stock 1.74 uses every FUNC + key combination (FUNC + PLAY MODE is its KIT menu); TRIG held + PAGE does nothing in stock (checked in analog-emu). |
 | D18 | **Leaving mid-audition keeps the take.** Changing track or pattern, or closing the page, while a take is auditioned keeps it, as FUNC + YES would. |
 
-## 1. The Hapax ALGO set (reference)
+## 1. Algorithms
 
-Algos are offline: applied to the pattern (or a selection) on a press. Source: squarp.net/hapax/manual/modealgos.
-
-| Algo | Tracks | Parameters | Here |
-|---|---|---|---|
-| GENERATOR | poly, drum | Quantize 1/1..1/64; Length 1..64 steps (max, hold: min); Velocity 0..127 (max, hold: min); Density 0..100% (hold: Mono / Poly 2-4); Pitch C0..G10 (max, hold: min; poly only) | v1 |
-| CURVES | poly, drum, autom | Wave SINE TRI RAMP SQUA RAND PERLIN; Amplitude; Destination KEYS VELO LENG CHAN ROLL MATH uTIME; Repeat x1..x128; Steps INF, 1..256; Phase; Seed 0..9999; Valleys | later |
-| SHUFFLE | poly | Mode STEP / PART; Probability 0..100%; Destination; Interval 8BARS..1/64 | deferred |
-| SYMMETRY | poly | Mode TIME / KEYS; Duplicate OFF / ON | dropped |
-| EVERY N | drum | Grid 1/1..1/64; N 1..16; Accent velocity min/max; Ghost velocity min/max | dropped |
+| Algo | What | Here |
+|---|---|---|
+| GENERATOR | random trigs on a grid at a density, with velocity, length, note, micro timing, accents, conditions, retrigs and sample locks from ranges | v1 |
+| ROTATE | moves whole steps or one field, on a track or the whole pattern | v1 |
+| GROOVE | a groove's micro timing and velocity on the existing trigs | v1 |
+| CURVES | waveforms onto a field or a parameter | later |
+| SHUFFLE | random reordering of steps or fields | deferred |
+| SYMMETRY, EVERY N | mirrored patterns; accent / ghost every N steps | dropped |
 
 ## 2. What a Rytm step can hold
 

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
-/* seedr (trig-seedr): a Hapax-style GENERATOR for the Analog Rytm MKII (OS 1.74), on the current track.
+/* seedr (trig-seedr): an offline pattern generator for the Analog Rytm MKII (OS 1.74), on the current track.
  *
  *   TRIG held + PAGE  open / close (closing keeps an audition's result). Stock uses every
  *                     FUNC + key (FUNC + PLAY MODE is its KIT menu); TRIG + PAGE does nothing

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
-/* gen: Hapax-style offline pattern algorithms (GENERATOR, ROTATE) on a device-independent track.
+/* gen: offline pattern algorithms (GENERATOR, ROTATE) on a device-independent track.
  *
  * No device code and no C library: the same file builds for the host (tests) and for a ColdFire
  * mod. A device layer copies a track into `struct gen_track`, runs an algorithm, and writes the

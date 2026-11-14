@@ -5,7 +5,7 @@
  "category": "Sequencer",
  "license": "GPL-2.0-or-later",
  "author": "Alan O'Leary",
- "description": "A Hapax-style GENERATOR on the current track. TRIG held + PAGE opens it; PAGE steps VIEW (read-only steps), GEN 1 (grid, density, velocity, length, note, micro timing, seed, rotate) GEN 2 (accents, conditions, retrigs) GEN 3 (sample locks), ROTATE (steps or one field, this track or all) and GROOVE (a groove's micro timing and velocity: timing, velocity, quantize, random, shift, seed). YES generates or applies, and while auditioning generates again from the original; NO goes back to the original; FUNC + YES keeps the result. Writes go through the OS's own step routines.",
+ "description": "An offline pattern generator on the current track. TRIG held + PAGE opens it; PAGE steps VIEW (read-only steps), GEN 1 (grid, density, velocity, length, note, micro timing, seed, rotate) GEN 2 (accents, conditions, retrigs) GEN 3 (sample locks), ROTATE (steps or one field, this track or all) and GROOVE (a groove's micro timing and velocity: timing, velocity, quantize, random, shift, seed). YES generates or applies, and while auditioning generates again from the original; NO goes back to the original; FUNC + YES keeps the result. Writes go through the OS's own step routines.",
  "device": "analog-rytm-mk2",
  "os": "1.74",
  "sources": ["seedr.c", "../../lib/gen.c", "../../lib/groove.c"],
