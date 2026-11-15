@@ -44,7 +44,7 @@ Files that exist only locally and must stay untracked: `trig-seedr/build/`, `mod
 Differences to keep in mind on the Mac:
 
 - Homebrew's cross compiler is a newer gcc (16.x) than the reference (14.2). The mod's bytes can differ. The emulator checks decide whether behaviour is the same; if a check passes on one system and fails on the other, report it instead of working around it. **Release `.syx` files are built in Linux** until that changes.
-- The scripts were written and run on Linux. Look for GNU-only commands before trusting a failure (one helper in `tools/test_seedr.sh` uses `md5sum`).
+- The scripts were written and run on Linux. Look for GNU-only commands before trusting a failure (`tools/build_release.sh` falls back from `sha256sum` to `shasum`).
 - Point the scripts at the Mac's emulator: `export B=~/dev/github/elektron/analog-emu/target/release`.
 
 ## 4. Variables the scripts use
@@ -71,7 +71,7 @@ Differences to keep in mind on the Mac:
 ```sh
 make -C lib test              # host tests with sanitizers (either system)
 make -C lib coldfire          # cross build, no undefined symbols (needs the cross compiler)
-sh tools/test_seedr.sh        # build the mod, patch the stock OS, run the emulator checks; PART=n for one part
+sh tools/run_tests.sh         # build the mod, patch the stock OS, run every check (host and emulator); NAME... for some
 sh tools/build_release.sh     # the firmware to flash (Linux)
 ```
 
@@ -79,7 +79,7 @@ The window on the Mac, for trying a build by hand:
 
 ```sh
 cd ~/dev/github/elektron/analog-emu
-target/release/rytm ../trig-seedr/build/seedr.syx --card gen-samples.img
+target/release/rytm ../trig-seedr/build/emu/seedr.syx --card gen-samples.img
 ```
 
 A fresh card shows FILE SYSTEM OK dialogs: close them with NO before anything else responds.
@@ -95,7 +95,7 @@ python3 --version && cc --version | head -1
 ls "$B"/dtboot "$B"/dtpeek "$B"/dtcard     # after setting B (Mac) or sourcing env.sh (Linux)
 ls "$WORKSPACE/Official Firmwares/Analog-Rytm_MKII_OS1.74_dist/Analog-Rytm_MKII_OS1.74.syx"
 make -C lib test && make -C lib coldfire
-PART=1 sh tools/test_seedr.sh              # every line should start with PASS
+sh tools/run_tests.sh 00 01                # every line should start with PASS
 ```
 
 If the cross compiler or the emulator binaries are missing, say so and ask before installing anything.

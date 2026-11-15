@@ -15,8 +15,8 @@ cost you anything, with the recovery route below ready.
 ## Build
 
 ```sh
-sh tools/test_seedr.sh          # all parts should pass
-sh tools/build_release.sh       # -> build/trig-seedr-0.3-os1.74.syx, OS version field TS03
+sh tools/run_tests.sh           # every file should pass
+sh tools/build_release.sh       # -> build/trig-seedr-0.4-os1.74.syx, OS version field TS04
 ```
 
 `build_release.sh` builds core-ar2 and seedr, patches them into your stock OS and has elekloader verify the result
@@ -29,18 +29,19 @@ As for any OS update:
 
 1. Connect the Rytm over USB and open Elektron Transfer.
 2. Select the Rytm and **Connect**.
-3. Drag `trig-seedr-0.3-os1.74.syx` onto **Drop files here**.
+3. Drag `trig-seedr-0.4-os1.74.syx` onto **Drop files here**.
 4. Press **YES** on the Rytm. Don't turn it off until the update is done and it has restarted.
 
 ## First checks on the unit
 
-1. GLOBAL > SYSTEM > OS INFO shows the version **TS03**.
+1. GLOBAL > SYSTEM > OS INFO shows the version **TS04**.
 2. The Rytm plays as before: load a project, play a pattern, turn some knobs.
 3. **TRIG**, **TRIG** (EUCLIDEAN), **TRIG**: trig-seedr's page. **TRIG** again: back to stock's TRIG page.
-4. On a scratch pattern: PAGE to GEN 1, **YES** (a take), **YES** (the next seed), **NO** (the original back),
-   **YES**, **FUNC + YES** (kept). The steps change on the grid and play.
+4. On a scratch pattern with an empty track: **YES** (a take: an empty track starts on RAND), **YES** (the next
+   seed), **NO** (the original back), **YES**, **FUNC + YES** (kept). The steps change on the grid and play.
 5. Save the project, power off and on: the kept take is there.
-6. GROOVE, GEN 3 (with samples in the project) and ROTATE, the same way.
+6. LEFT / RIGHT through the pages; TIME (a groove), LOCK (with samples in the project) and TOOLS (ROTATE ALL), the
+   same way. While seedr is open, PAGE and the TRIG keys work as on stock.
 
 Please note what you saw, good or bad, in an issue: the unit, the OS version, the steps and what happened.
 

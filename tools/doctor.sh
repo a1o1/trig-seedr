@@ -23,8 +23,8 @@ for d in elekloader analog-emu; do [ -d "$E/$d" ] && ok "$d: $E/$d" || miss "$d:
 if command -v "${ELEKLOADER_CROSS}gcc" > /dev/null 2>&1; then
     v=$(${ELEKLOADER_CROSS}gcc -dumpversion)
     ok "cross compiler: $(command -v "${ELEKLOADER_CROSS}gcc") $v"
-    [ "${v%%.*}" -ge 15 ] && warn "gcc $v defaults to C23: core-ar2 0.13 needs -std=gnu17 (tools/emu.sh adds it;" \
-        "tools/test_seedr.sh does not, and links the core-0.13.elemod already in elekloader's out/)"
+    [ "${v%%.*}" -ge 15 ] && warn "gcc $v defaults to C23: core-ar2 0.13 needs -std=gnu17 (tools/emu.sh adds it, so" \
+        "tools/run_tests.sh and tools/build_release.sh build; a plain elekloader build of core-ar2 fails)"
     [ "${v%%.*}" -ne 14 ] && warn "the reference compiler is gcc 14.2 (Linux); release builds are made there"
 else
     miss "cross compiler: ${ELEKLOADER_CROSS}gcc (docs/dev-environment.md sections 2, 3)"
@@ -54,7 +54,7 @@ for l in "$W"/*.lock "$W"/fix/*.lock; do
     if [ -n "$p" ] && kill -0 "$p" 2>/dev/null; then ok "lock held by process $p: $l"; else warn "stale lock (taken over on the next run): $l"; fi
 done
 n=$(find "$E/analog-emu" -maxdepth 1 \( -name '*.snap' -o -name '*.img' \) 2>/dev/null | wc -l | tr -d ' ')
-[ "$n" -gt 0 ] && warn "analog-emu/ holds $n snapshots and card images from tools/test_seedr.sh or by hand (tools/run_tests.sh writes none there)"
+[ "$n" -gt 0 ] && warn "analog-emu/ holds $n snapshots and card images from release 0.3's test script or by hand (tools/run_tests.sh writes none there)"
 
 if [ "$1" = --host ]; then
     if make -C "$R/lib" test > "$W/doctor-test.log" 2>&1; then ok "make -C lib test: $(grep -c 'failed' "$W/doctor-test.log") test programs, none failed"

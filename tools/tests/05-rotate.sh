@@ -1,37 +1,49 @@
 #!/bin/sh
-# Release 0.3's part 5: ROTATE whole steps, one field, every track (SD moves too), NO; whole steps
-# carry sample locks.
+# Release 0.3's part 5 on version 1: SOURCE = TRACK with PLACE ROT (0.3's ROTATE, whole steps), the
+# field rotation (FLD VEL by trig), TOOLS' ROTATE ALL over every track (SD moves too) and NO; whole
+# steps carry their sample locks.
 R=$(cd "$(dirname "$0")/../.." && pwd); . "$R/tools/emu.sh"; . "$T/tests/fixtures.sh"
 emu_init 05-rotate
 emu_build
 emu_fixture kept2 fix_kept2
-SD0=$(emu_cmp 1 16 1)
+save_orig kept2
+K="orig=$D/kept2.txt"
+SD0=$(emu_dump 1)
+emu_dump 1 > "$D/sd0.txt"
 emu_open
-emu_page ROTATE
-emu_knob ROTATE STEPS 3
+emu_page RHYTHM
+emu_knob RHYTHM A:src:one 0
+emu_page PLACE
+emu_knob PLACE A:rot 3
 emu_yes
 emu_shot rotate
-check_gen "ROTATE +3, whole steps" "$(genref 2 16 0 0 0 0 0 0 1 50 0 1 8 3)"
+check_take "SOURCE = TRACK, ROT +3: whole steps" src=track rot=3 "$K"
 emu_no
-check_gen "NO: seed 2" "$(genref 2)"
-emu_knob ROTATE WHAT 1
+check_take "NO: seed 2" "$K"
+emu_knob PLACE A:rot 0
+emu_knob PLACE F:fld:one 1
+emu_knob PLACE G:frot 3
 emu_yes
-check_gen "ROTATE +3 VEL (by trig)" "$(GENREF_ROT='3 1 0' genref 2)"
+check_take "FLD VEL, FROT +3, by trig" src=track fld=vel frot=3 "$K"
 emu_no
-emu_knob ROTATE ALL 1
-emu_knob ROTATE WHAT 0
+emu_page TOOLS
+emu_knob TOOLS STEPS 3
 emu_yes
-check_gen "ROTATE ALL +3: BD" "$(genref 2 16 0 0 0 0 0 0 1 50 0 1 8 3)"
-emu_check "ROTATE ALL +3: SD moved" \
-    "$(python3 -c "import sys; v=sys.argv[1].split(); print(' '.join(v[(i-3)%16] for i in range(16))+' ')" "$SD0")" \
-    "$(emu_cmp 1 16 1)"
+check_take "ROTATE ALL +3: BD" src=track rot=3 "$K"
+emu_check "ROTATE ALL +3: SD" "$(seedref src=track rot=3 track=1 orig="$D/sd0.txt")" "$(emu_dump 1)"
 emu_no
-emu_check "NO: SD back" "$SD0" "$(emu_cmp 1 16 1)"
-check_gen "NO: BD back" "$(genref 2)"
+emu_check "NO: SD back" "$SD0" "$(emu_dump 1)"
+check_take "NO: BD back" "$K"
 # whole steps carry their locks: 04's kept take with sample locks, +1
 emu_fixture smp3 fix_smp3
+save_orig smp3
 emu_open
-emu_page ROTATE
+emu_page RHYTHM
+emu_knob RHYTHM A:src:one 0
+emu_page LOCK
+emu_knob LOCK B:lane1.pct 0
+emu_page PLACE
+emu_knob PLACE A:rot 1
 emu_yes
-check_smp "ROTATE +1 carries the sample locks" "$(genref 3 16 0 0 0 0 0 0 1 50 100 1 8 1)"
+check_take "ROT +1 carries the sample locks" src=track rot=1 orig="$D/smp3.txt"
 emu_done

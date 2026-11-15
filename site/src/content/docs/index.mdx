@@ -1,25 +1,26 @@
 ---
 title: Trig Seedr
-description: "Pattern seeds for Elektron machines: offline pattern algorithms (generate, groove, lock and rotate, with an audition undo). Now on the Analog Rytm MKII (OS 1.74); the Analog Four MKII and Syntakt are planned."
+description: "Pattern seeds for Elektron machines: offline pattern algorithms (a recipe per track: generate or shape, lock, groove and rotate, with an audition undo). Now on the Analog Rytm MKII (OS 1.74); the Analog Four MKII and Syntakt are planned."
 template: splash
 tableOfContents: false
 editUrl: false
 ---
 import PixelLogo from '../../components/PixelLogo.astro';
 import { Image } from 'astro:assets';
+import take from '../../assets/screens/take.png';
+import rhythm from '../../assets/screens/rhythm.png';
+import place from '../../assets/screens/place.png';
+import dynamics from '../../assets/screens/dynamics.png';
+import lock from '../../assets/screens/lock.png';
+import trig from '../../assets/screens/trig.png';
+import time from '../../assets/screens/time.png';
 import view from '../../assets/screens/view.png';
-import gen1 from '../../assets/screens/gen1.png';
-import gen2 from '../../assets/screens/gen2.png';
-import gen3 from '../../assets/screens/gen3.png';
-import meter from '../../assets/screens/meter.png';
-import groove from '../../assets/screens/groove.png';
-import rotate from '../../assets/screens/rotate.png';
 
 <div class="ts-hero">
   <PixelLogo scale={10} />
   <div class="ts-rule">PATTERN SEEDS FOR ELEKTRON MACHINES</div>
-  <p class="ts-tag">Generate a track's trigs, conditions, retrigs and sample locks; push them around with a groove from Ableton Live; rotate a track or the whole pattern. Press YES for a take, YES again for the next one, NO to go back.</p>
-  <p class="ts-version">v0.3 · Analog Rytm MKII OS 1.74 (Analog Four MKII and Syntakt planned) · an elekloader mod · emulator-tested, ready for a first unit</p>
+  <p class="ts-tag">A recipe per track: generate trigs or start from the ones there, place them, then set velocity, notes, parameter locks, trig conditions, retrigs and a groove from Ableton Live. Press YES for a take, YES again for the next one, NO to go back.</p>
+  <p class="ts-version">v0.4 · Analog Rytm MKII OS 1.74 (Analog Four MKII and Syntakt planned) · an elekloader mod · emulator-tested, ready for a first unit</p>
   <div class="ts-cta">
     <a class="ts-btn primary" href="getting-started/introduction/">Get started</a>
     <a class="ts-btn" href="using/pages/">The pages</a>
@@ -28,13 +29,14 @@ import rotate from '../../assets/screens/rotate.png';
 </div>
 
 <div class="ts-screens">
+  <figure><Image src={take} alt="TAKE page" /><figcaption><b>TAKE</b> · the seed, and how much of each take the next one keeps</figcaption></figure>
+  <figure><Image src={rhythm} alt="RHYTHM page" /><figcaption><b>RHYTHM</b> · the track's own trigs, or new ones: grid, density, bias to the beat</figcaption></figure>
+  <figure><Image src={place} alt="PLACE page" /><figcaption><b>PLACE</b> · rotate, skip the first steps, rotate one field</figcaption></figure>
+  <figure><Image src={dynamics} alt="DYNAMICS page" /><figcaption><b>DYNAMICS</b> · velocity, shapes by position, accents</figcaption></figure>
+  <figure><Image src={lock} alt="LOCK page" /><figcaption><b>LOCK</b> · two lanes of parameter locks</figcaption></figure>
+  <figure><Image src={trig} alt="TRIG page" /><figcaption><b>TRIG</b> · trig conditions and retrigs</figcaption></figure>
+  <figure><Image src={time} alt="TIME page" /><figcaption><b>TIME</b> · micro timing and velocity from a groove</figcaption></figure>
   <figure><Image src={view} alt="VIEW page" /><figcaption><b>VIEW</b> · the track's steps and the fields of one step</figcaption></figure>
-  <figure><Image src={gen1} alt="GEN 1 page" /><figcaption><b>GEN 1</b> · grid, density, velocity, length, note, micro timing, seed</figcaption></figure>
-  <figure><Image src={gen2} alt="GEN 2 page" /><figcaption><b>GEN 2</b> · accents, trig conditions, retrigs</figcaption></figure>
-  <figure><Image src={gen3} alt="GEN 3 page" /><figcaption><b>GEN 3</b> · sample-slot locks per trig</figcaption></figure>
-  <figure><Image src={meter} alt="METER page" /><figcaption><b>METER</b> · the beat: skip the 1, trigs and velocity by position</figcaption></figure>
-  <figure><Image src={groove} alt="GROOVE page" /><figcaption><b>GROOVE</b> · micro timing and velocity from a groove</figcaption></figure>
-  <figure><Image src={rotate} alt="ROTATE page" /><figcaption><b>ROTATE</b> · whole steps or one field, one track or all</figcaption></figure>
 </div>
 
 <p class="ts-note">Trig Seedr is an independent project, not affiliated with or endorsed by Elektron or Ableton; their product names say what it works with. It contains no firmware: you build it against your own copy of the stock OS. Flashing modified firmware is at your own risk.</p>

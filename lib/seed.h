@@ -216,7 +216,7 @@ struct seed_tool {
     int16_t steps;                    /* ROTATE ALL: -63..63 */
 };
 
-/* a groove (TIME GRV), as lib/groove.h's tables: per step the micro timing at 100 % in 1/24
+/* a groove (TIME GRV), as tools/groove2h.py writes them: per step the micro timing at 100 % in 1/24
  * step and the groove's velocity there (0: no groove note, the step's velocity stays) */
 #define SEED_GROOVE_NAME 21
 struct seed_groove {
@@ -427,7 +427,9 @@ int seed_map_level(int part, int x, int y, int step);
 
 /* A field's value for the trig at `step`, the index-th trig of the track, from v (values.c, 0.2).
  * `slot` is SEED_SLOT(layer, purpose, 0): RANGE draws slot + step, LIST its item i from
- * slot + 0x100 + i, NOISE its seed from slot + 0x200. */
+ * slot + 0x100 + i, NOISE its seed from slot + 0x200. These three return the value and cannot
+ * report an error (a value may be negative, so SEED_E_NA is a valid value): a stage checks the
+ * source is built (seed_have_list, seed_have_noise) and refuses before it calls them. */
 int seed_value(const struct seed_values *v, const struct seed_take *k, uint32_t slot, int step, int index);
 int seed_value_list(const struct seed_values *v, const struct seed_take *k, uint32_t slot, int index);  /* values_list.c (F6) */
 int seed_value_noise(const struct seed_values *v, const struct seed_take *k, uint32_t slot, int step);  /* noise.c (F7) */

@@ -21,11 +21,12 @@ and an m68k-elf cross compiler (binutils and gcc, C only), with `ELEKLOADER_CROS
 
 ```sh
 make -C lib test coldfire        # the algorithms: host tests (sanitizers) and a ColdFire build check
-sh tools/test_seedr.sh           # builds the mod, patches the OS into build/seedr.syx, runs the emulator checks
+sh tools/run_tests.sh            # builds the mod, patches the OS into build/emu/seedr.syx, runs every check
 ```
 
-`build/seedr.syx` contains Elektron's firmware: keep it to yourself.
+`build/emu/seedr.syx` contains Elektron's firmware: keep it to yourself. The details of each system (the Mac, the
+Linux shell) are in the developer pages' Development environment.
 
 ## Grooves
 
-Out of the box the GROOVE page has five MPC-style swing amounts. To build in your own Live grooves, see [Grooves](../../using/groove/).
+Out of the box the TIME page has five MPC-style swing amounts. To build in your own Live grooves, see [Grooves](../../using/groove/).

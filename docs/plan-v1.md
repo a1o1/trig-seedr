@@ -38,10 +38,10 @@ Workspace `~/dev/github/elektron` on the Mac (`~/mnt/elektron` in the folder's L
 | `.toolchains/` | Linux Rust and the m68k-elf cross compiler |
 
 - In the Linux shell: `. ~/mnt/elektron/.toolchains/env.sh` first. It sets `ELEKLOADER_CROSS=m68k-elf-` and `CARGO_TARGET_DIR` (Linux emulator binaries in `.toolchains/target-linux/release`). `analog-emu/target/` holds the Mac build: do not run or overwrite it from Linux.
-- `make -C lib test` (host, ASan / UBSan), `make -C lib coldfire` (no undefined symbols), `sh tools/test_seedr.sh` (emulator; `PART=n` for one part).
+- `make -C lib test` (host, ASan / UBSan), `make -C lib coldfire` (no undefined symbols), `sh tools/run_tests.sh` (every check: `00-host` runs the `make` targets of `lib/`, `device/` and the page tables, then the emulator files; `NAME...` for some).
 - One git worktree per task. Claude Code creates them under `.claude/worktrees/<name>/` (git-ignored) on a branch of their own. Inside a worktree `export WORKSPACE=~/dev/github/elektron` (the test scripts otherwise look for `elekloader/` beside the checkout). `.worktreeinclude` copies the local-only `grooves-live.h` into each worktree; it stays untracked.
 - New worktrees branch from the default branch **on the remote**. A task's prerequisites must be merged and pushed to `main` before its agent starts.
-- Known hazards, fixed in task 0.5: the test script writes snapshots and card images into `analog-emu/`; `elekloader/mods/core-ar2/out` is shared. Until then, do not run two emulator suites at once.
+- Since task 0.5 each checkout's suite writes only under its own `build/emu/` (core-ar2 included), so suites in two worktrees run side by side. Release 0.3's `tools/test_seedr.sh`, which wrote into `analog-emu/` and elekloader's `out/`, was removed at G0.
 
 ## 4. Files and owners
 
@@ -55,18 +55,26 @@ Workspace `~/dev/github/elektron` on the Mac (`~/mnt/elektron` in the folder's L
 | `lib/place.c`, `place_sync.c`, `place_mask.c` | ROT, SKIP, field rotation; SYNC; MASK | 0.2, F5, F4 |
 | `lib/dyn.c`, `dyn_rank.c`, `dyn_noise.c` | range, shapes, accent; RANK / TOP; NOISE | 0.2, F1, F7 |
 | `lib/values.c`, `values_list.c`, `noise.c` | range; lists and orders; value noise | 0.2, F6, F7 |
-| `lib/trig.c`, `timing.c`, `timing_drift.c`, `groove.c` | conditions, retrigs; random and groove timing; drift | 0.2, 0.2, F8, existing |
+| `lib/trig.c`, `timing.c`, `timing_drift.c` | conditions, retrigs; random and groove timing; drift | 0.2, 0.2, F8 |
+| `lib/groove.h` | a shim: `gen_groove` = `seed_groove`, for groove tables made before 0.4 | lead |
 | `lib/vary.c`, `score.c` | PHRS, CVAR; candidate scoring | F9, F11 |
 | `lib/test_<module>.c`, `test_props.c`, `golden/` | host tests, invariants, frozen vectors | each owner; 0.5 for the framework |
-| `device/rytm_ar2.h` | device layer | 0.4 only |
-| `mods/seedr-ar2/seedr.c` | keys, navigation, audition, recipe store, drawing | 0.3 only |
+| `lib/props.h`, `lib/tests.h` | the property-test framework (random tracks and recipes, I1–I3, I6); host-test helpers | lead (from 0.5, 0.2) |
+| `device/rytm_ar2.h`, `rytm_params.h` | device layer; the lockable parameters and track fields as data (shared with `tools/seedref.c`) | 0.4, then the lead |
+| `device/Makefile`, `test_rytm_ar2.c`, `cf_rytm_ar2.c` | the device layer's host test and ColdFire check | 0.4, then the lead |
+| `mods/seedr-ar2/seedr.c` | keys, navigation, audition, recipe store, drawing | 0.3, then the lead |
+| `mods/seedr-ar2/pages.h`, `test_pages.c`, `Makefile` | the page-table types and their host test | 0.3, then the lead |
+| `mods/seedr-ar2/mod.json` | the mod's sources and metadata | lead; a workstream adding a `lib/` file adds its line to `sources` and says so in its status file |
 | `mods/seedr-ar2/pages.c` | every page's knob table | 0.3 creates all; owners edit only their page's rows |
 | `mods/seedr-ar2/preview.c`, `view.c` | preview strip; VIEW | F10 |
-| `tools/seedref.c`, `tools/emu.sh`, `tools/tests/NN-<name>.sh`, `tools/run_tests.sh` | reference renderer, emulator helpers, one test file per workstream | 0.5; each owner adds its test file |
+| `tools/seedref.c`, `tools/emu.sh`, `emu.py`, `golden.sh`, `doctor.sh`, `run_tests.sh`, `tests/fixtures.sh` | reference renderer, emulator helpers, golden vectors, environment check | 0.5, then the lead |
+| `tools/tests/NN-<name>.sh` | one test file per task: `00`..`11` are M0's; F1..F11 use `21`..`31` (F1 `21-rank.sh`, F5 `25-sync.sh`, …) | each owner adds its file |
+| `docs/screens/` | screenshots: the top level is what the README and the site show; `docs/screens/<id>/` a task's own | each owner |
+| `docs/firmware-notes-os174.md`, `docs/dev-environment.md`, `docs/release-<version>.md` | firmware findings, the environment, release notes | lead (findings by request in a status file) |
 | `docs/v1/<layer>.md` | user-facing text per layer | each owner |
 | `docs/status/<id>.md` | state, decisions taken, how to test, open points | each owner |
 
-`lib/gen.c` and `lib/gen.h` are retired at the end of M0 (kept until gate G0 for comparison).
+`lib/gen.c`, `lib/gen.h`, `lib/groove.c`, `tools/genref.c` and `tools/test_seedr.sh` were retired at gate G0 (task 0.6).
 
 ## 5. M0 Foundation
 

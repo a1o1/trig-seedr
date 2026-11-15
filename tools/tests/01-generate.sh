@@ -1,6 +1,6 @@
 #!/bin/sh
-# Release 0.3's part 1: build; boot empty; YES seed 1; seed 2 from the original; NO; FUNC + YES;
-# closing keeps; a take equals a fresh generate. Leaves fixture "kept2" for the other files.
+# Release 0.3's part 1 on version 1: build; boot empty; YES seed 1; seed 2 from the original; NO;
+# FUNC + YES; closing keeps; each take as tools/seedref renders it. Leaves fixture "kept2".
 R=$(cd "$(dirname "$0")/../.." && pwd); . "$R/tools/emu.sh"; . "$T/tests/fixtures.sh"
 emu_init 01-generate
 emu_build

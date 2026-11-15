@@ -1,73 +1,84 @@
 ---
-title: Generator (GEN 1–3, METER)
+title: The layers (RHYTHM to TRIG)
 sidebar: { order: 2 }
 ---
 
-GENERATOR replaces the track's steps, over the track's current length, with a new take. Other tracks are not touched.
+A take is the track's recipe rendered in this order: **RHYTHM** decides which steps have trigs, **PLACE** where they end up, then **DYNAMICS**, **NOTE**, **LOCK**, **TRIG** and **TIME** set the trigs' fields. Each page owns its fields: changing one page's settings changes only those fields. A page at 0 (or DEF) leaves them as they are.
 
-## GEN 1: rhythm and notes
+Every share knob (DENS, ACC, COND, RTRG, a lane's %) gives each step a key and takes the steps with the highest keys. Raising the knob adds trigs to the ones already chosen; lowering it removes them in reverse. So turning a share up and down moves through one family of takes.
 
-![GEN 1](../../../assets/screens/gen1.png)
+Ranges: a knob sets the high end, **FUNC** + knob the low end. Turning an end of a DEF range below its minimum goes back to DEF.
 
-| Knob | Name | Range | What |
-|---|---|---|---|
-| A | GRID | 1/16, 1/8, 1/4, 1/2 | trigs only land on the grid |
-| B | DENS | 0–100 % | share of grid positions that get a trig (an exact count) |
-| C | VEL | 1–127 | velocity range |
-| D | LEN | 1/128 … 8/1, INF | note length range; DEF leaves the track default. The bottom line shows the range while you turn it |
-| E | NOTE | −24…+24 | offset from the track's default note |
-| F | UTIM | 0–100 % | random micro timing, up to ±23/24 of a step |
-| G | SEED | FREE, 0–9999 | which take; FREE picks a new one every time |
-| H | ROT | −N…+N | rotate the result before writing |
+## RHYTHM
 
-## GEN 2: Elektron extras
-
-![GEN 2](../../../assets/screens/gen2.png)
-
-| Knob | Name | What |
-|---|---|---|
-| A | ACC | share of trigs with an accent |
-| B | COND | share of trigs with a trig condition |
-| C | CTYP | which conditions: X % (probability), A:B, 1ST, FILL, MIX |
-| D | CVAL | X %: the probability range; A:B: the cycle (2–8) |
-| E | RTRG | share of trigs with a retrig |
-| F | RATE | retrig rate range (1/1 … 1/80) |
-| G | RCUR | retrig velocity curve: negative fades the repeats out, positive in |
-
-## GEN 3: sample locks
-
-![GEN 3](../../../assets/screens/gen3.png)
-
-| Knob | Name | What |
-|---|---|---|
-| A | SMP% | share of trigs that get a sample-slot lock. At 0 the track's sample locks are left alone; above 0 GENERATOR replaces them |
-| B | SMPL | the slot range a locked trig picks from (0 = OFF) |
-
-Sample locks use one of the pattern's 72 lock rows per track, however many trigs carry them. If none is free, GENERATOR shows **NO LOCK ROWS LEFT** and writes nothing: stock would otherwise keep the new lock only until the next save.
-
-## METER: the beat
-
-![METER](../../../assets/screens/meter.png)
-
-METER tells GENERATOR where the beat is, so trigs and velocities can follow it or avoid it. Each step has a weight from its place in a 4-beat bar: the bar's first step 4, the half bar 3, the other beats 2, the half beat (the "&") 1, the rest (the "e" and "a") 0.
+![RHYTHM](../../../assets/screens/rhythm.png)
 
 | Knob | Name | Range | What |
 |---|---|---|---|
-| A | BEAT | 1–16 | steps per beat: 4 for 1/16 steps in 4/4, 3 or 6 for triplet and 6/8 feels |
-| B | SKIP | 0–63 | the first SKIP steps are cleared and get no trig, to leave room (a kick on another track, say) |
-| C | BIAS | −100…+100 % | where trigs land: + favours strong steps, − weak ones (syncopation); DENS still sets the exact count |
-| D | VSHP | FLAT, STRONG, WEAK, OFF, NOT 1, NOTBAR | which steps play loudest within the VEL range |
-| E | VAMT | 0–100 % | how much of the shape: 0 random within VEL, 100 the shape alone |
+| A | SRC | TRACK, RAND | TRACK: the trigs on the track; RAND: new trigs from the seed |
+| B | GRID | 1/16, 1/8, 1/4, 1/2 | RAND: trigs only on every step, every 2nd, 4th or 8th |
+| C | DENS | 0–100 % | RAND: the share of grid steps with a trig, exactly (50 % of 16 grid steps is 8 trigs) |
+| D | BIAS | −100…+100 % | RAND: + puts trigs on the strong steps of the beat (the bar's first step, the half bar, the beats, the "&"), − on the weak ones; 0 ignores position |
 
-The velocity shapes, from loudest to softest:
+With SRC = TRACK the track's trigs keep everything they carry, parameter locks included; the later pages change only what they are set to change.
 
-| VSHP | Loud | Soft |
-|---|---|---|
-| FLAT | (random within VEL) | |
-| STRONG | the bar's first step, then the half bar, the beats, the "&" | the "e" and "a" |
-| WEAK | the "e" and "a" | the bar's first step |
-| OFF | the "&" (the "e" and "a" in the middle) | the beats |
-| NOT 1 | everything off the beat | every beat (steps 1, 5, 9, 13 …) |
-| NOTBAR | everything else | the bar's first step (1, 17, 33, 49) |
+## PLACE
 
-SKIP, BIAS and VSHP refer to where the steps end up, after GEN 1's ROT. At their defaults (SKIP 0, BIAS 0, VAMT 0) GENERATOR gives the same takes as before METER existed. The Rytm's accent flag is still GEN 2's ACC.
+![PLACE](../../../assets/screens/place.png)
+
+| Knob | Name | Range | What |
+|---|---|---|---|
+| A | ROT | −63…+63 | rotate whole steps (with their locks) by this many steps; swing stays with the position |
+| E | SKIP | 0–64 | the first SKIP steps are left empty |
+| F, G, H | FLD, FROT, FMOD | | rotate one field against the trigs: [Rotating](../rotate/) |
+
+SKIP and the velocity shapes refer to where steps end up after ROT.
+
+## DYNAMICS
+
+![DYNAMICS](../../../assets/screens/dynamics.png)
+
+| Knob | Name | Range | What |
+|---|---|---|---|
+| A | VEL | DEF, 1–127 | a random velocity in the range; DEF: the trig's own velocity (a new trig: the track's default) |
+| B | SHAPE | FLAT, STRONG, WEAK, OFF, NOT 1, NOTBAR, EVRY | which steps play loudest. STRONG: by metric weight; WEAK: the reverse; OFF: the "&" loudest, the beats softest; NOT 1: every beat soft; NOTBAR: the bar's first step soft; EVRY: every N-th trig loud |
+| C | AMT | 0–100 % | how far velocities follow the shape (with VEL = DEF the shape runs from half the trig's velocity up to it) |
+| D | N | 1–64 | EVRY: every N-th trig, counted from the first |
+| E | ACC | 0–100 % | the share of trigs with the accent flag; at 0 the flags are left as they are |
+| G | HUM | 0–100 | a random velocity spread per step, up to ±32 at 100 |
+
+## NOTE
+
+![NOTE](../../../assets/screens/note.png)
+
+| Knob | Name | Range | What |
+|---|---|---|---|
+| A | LEN | DEF, 0–127 | the length code (14 = 1/16, 127 = INF), random in the range |
+| C | NOTE | DEF, −24…+24 | semitones from the track's default note, random in the range |
+
+## LOCK
+
+![LOCK](../../../assets/screens/lock.png)
+
+Two lanes, each a parameter lock on a parameter of your choice; **UP / DOWN** picks the lane.
+
+| Knob | Name | Range | What |
+|---|---|---|---|
+| A | PARM | SMP, TUN, FIN, … | the parameter: the SMPL, FLTR and AMP pages and the LFO's speed, fade, phase and depth. Lane 1 starts on SMP (the sample slot), lane 2 on FRQ (filter frequency) |
+| B | % | 0–100 % | the share of trigs that get a lock; at 0 the lane is left as it is. Above 0 the lane is cleared on every step and the chosen trigs get a value |
+| C | RNGE | 0–127 | the values, random in the range (SMP: the slot, 0 = OFF) |
+
+A lock the pattern has no room for (the Rytm keeps 72 lock rows per pattern) is refused before anything is written: the screen says NO LOCK ROWS LEFT.
+
+## TRIG
+
+![TRIG](../../../assets/screens/trig.png)
+
+| Knob | Name | Range | What |
+|---|---|---|---|
+| A | COND | 0–100 % | the share of trigs with a trig condition; at 0 conditions are left as they are |
+| B | CTYP | X%, A:B, 1ST, FILL, MIX | the kind of condition (MIX: any of the four) |
+| C | CVAL | 1 %…100 %; 2–8 | X%: the probability range; A:B: the cycle length B (A is random) |
+| D | RTRG | 0–100 % | the share of trigs with a retrig |
+| E | RATE | 1/1…1/80 | the retrig rate range |
+| F | RCUR | −128…+127 | the retrig velocity curve |

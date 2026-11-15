@@ -121,7 +121,7 @@ emu_build() {
     emu_unlock "$_build_m"
     export DTEMU_FW=$FW
     [ -n "$EMU_QUIET" ] || grep '^BUILT' "$_build_m/build.log" | tail -1 | sed "s|^BUILT $R/|  built |"
-    if emu_has prm; then EMU_PROFILE=r03; else EMU_PROFILE=v1; fi
+    EMU_PROFILE=v1
 }
 
 # emu_has SYMBOL: the build has it
@@ -254,11 +254,12 @@ seedref() {
     "$W/seedref" "$@"
 }
 
-# emu_recipe TRACK KEY=VALUE...: writes those recipe settings (seedref's keys) into the mod's
-# recipe store for TRACK before the next run, and marks the track's recipe as set (profile v1)
+# emu_recipe TRACK KEY=VALUE...: writes a whole recipe (the defaults, SOURCE = TRACK, with those
+# settings: seedref's keys) into the mod's recipe store for TRACK before the next run, and marks
+# the track's recipe as set
 emu_recipe() {
     _rec_t=$1; shift
-    _rec_f=$(seedref --fields "$@") || emu_die "recipe: $*"
+    _rec_f=$(seedref --recipe "$@") || emu_die "recipe: $*"
     _rec_ifs=$IFS; IFS='
 '
     for _rec_l in $_rec_f; do
@@ -271,22 +272,21 @@ emu_recipe() {
     fi
 }
 
-# ---- profiles: what the harness knows of a mod build. r03 is release 0.3's seedr.c (PAGE
-# cycles VIEW GEN1 GEN2 GEN3 METER GROOVE ROTATE). v1 is the version 1 framework (task 0.3):
-# LEFT / RIGHT and the recipe store; the symbols it expects are a request in docs/status/0.5.md. ----
+# ---- profiles: what the harness knows of a mod build. v1 is the version 1 framework (tasks 0.3,
+# 0.6): LEFT / RIGHT, the recipe store recipe[] and recipe_set, open, page, tool. (Release 0.3's
+# profile, r03, was removed with lib/gen.c at gate G0.) ----
 
 emu_struct() {
     case $EMU_PROFILE:$1 in
-    r03:prm) echo lib/gen.h:gen_params ;;
-    r03:gprm) echo lib/groove.h:gen_groove_params ;;
     v1:recipe) echo lib/seed.h:seed_recipe ;;
+    v1:tool) echo lib/seed.h:seed_tool ;;
+    v1:shared) echo lib/seed.h:seed_shared ;;
     *) echo "?" ;;
     esac
 }
 
 emu_pages() {
     case $EMU_PROFILE in
-    r03) echo VIEW GEN1 GEN2 GEN3 METER GROOVE ROTATE ;;
     v1) echo TAKE RHYTHM PLACE DYNAMICS NOTE LOCK TRIG TIME VIEW TOOLS ;;
     esac
 }
@@ -296,25 +296,7 @@ emu_pages() {
 # (its value does not move by 1 a step)
 emu_knob_of() {
     case $EMU_PROFILE:$1:$2 in
-    r03:GEN1:GRID) echo 0 prm.grid - one ;;   r03:GEN1:DENS) echo 1 prm.dens ;;
-    r03:GEN1:VEL) echo 2 prm.vel_hi ;;        r03:GEN1:VLO) echo 2 prm.vel_lo F ;;
-    r03:GEN1:NOTE) echo 4 prm.note_hi ;;      r03:GEN1:UTIM) echo 5 prm.utim ;;
-    r03:GEN1:SEED) echo 6 seed_ui ;;          r03:GEN1:ROT) echo 7 prm.rot ;;
-    r03:GEN2:ACC) echo 0 prm.acc ;;           r03:GEN2:COND) echo 1 prm.cond ;;
-    r03:GEN2:CTYP) echo 2 prm.ctyp ;;         r03:GEN2:CVAL) echo 3 prm.cval_hi ;;
-    r03:GEN2:RTRG) echo 4 prm.rtrg ;;         r03:GEN2:RATE) echo 5 prm.rate_hi ;;
-    r03:GEN2:RCUR) echo 6 prm.rcur ;;
-    r03:GEN3:SMP) echo 0 prm.smp ;;           r03:GEN3:SMPL) echo 1 prm.smp_hi ;;
-    r03:GEN3:SLO) echo 1 prm.smp_lo F ;;
-    r03:METER:BEAT) echo 0 prm.beat ;;        r03:METER:SKIP) echo 1 prm.skip ;;
-    r03:METER:BIAS) echo 2 prm.bias ;;        r03:METER:VSHP) echo 3 prm.vshp ;;
-    r03:METER:VAMT) echo 4 prm.vamt ;;
-    r03:GROOVE:GRV) echo 0 gsel ;;            r03:GROOVE:TIME) echo 1 gprm.timing ;;
-    r03:GROOVE:GVEL) echo 2 gprm.velocity ;;  r03:GROOVE:QUANT) echo 3 gprm.quant ;;
-    r03:GROOVE:RAND) echo 4 gprm.random ;;    r03:GROOVE:SHFT) echo 5 gprm.shift ;;
-    r03:GROOVE:GSEED) echo 6 gseed_ui ;;
-    r03:ROTATE:STEPS) echo 0 rot_steps ;;     r03:ROTATE:ALL) echo 1 rot_all - one ;;
-    r03:ROTATE:WHAT) echo 2 rot_what ;; r03:ROTATE:GRID) echo 3 rot_grid - one ;;
+    v1:TOOLS:STEPS) echo 1 tool.steps ;;
     # v1: KNOB is LETTER:KEY, the knob and the seedref key it sets (emu_knob RHYTHM B:dens 58);
     # a .lo key is the low end, FUNC + knob. Enum and grid knobs: LETTER:KEY:one.
     v1:*:[A-H]:*)
@@ -334,7 +316,7 @@ emu_open() {
     [ "$(emu_get open)" = 1 ] || emu_die "open: the mod did not open"
 }
 
-# emu_page NAME: the page key (r03: PAGE, v1: RIGHT) until the mod's page is NAME
+# emu_page NAME: RIGHT until the mod's page is NAME
 emu_page() {
     _page_i=0 _page_want=
     for _page_p in $(emu_pages); do
@@ -344,7 +326,7 @@ emu_page() {
     [ -n "$_page_want" ] || emu_die "page $1: not a page of profile $EMU_PROFILE"
     _page_k=$(((_page_want - $(emu_get page) + _page_i) % _page_i))
     [ $_page_k -eq 0 ] && return 0
-    _page_key=PAGE; [ "$EMU_PROFILE" = v1 ] && _page_key=RIGHT
+    _page_key=RIGHT
     _page_a= _page_t=100
     while [ $_page_k -gt 0 ]; do
         _page_a="$_page_a --press $_page_key@+${_page_t}M"
@@ -394,7 +376,7 @@ emu_keep() { emu_keys F+YES; }
 # emu_dump [TRACK [LENGTH]]: the track in seedref's dump format (LENGTH: default the track's)
 emu_dump() { emu_py dump "$EMU_SNAP" "${1:-0}" "${2:-0}"; }
 # emu_cmp LINE [LENGTH [TRACK]]: a line of release 0.3's comparison format (tools/emucmp.py, as
-# tools/genref prints it): 1 trigs and velocities, 2 flag words, 3 µtimes, 4 sample locks, 5 the mark
+# 0.3's genref printed it; 03-save and 10-pages use it): 1 trigs and velocities, 2 flag words, 3 µtimes, 4 sample locks, 5 the mark
 emu_cmp() { python3 "$T/emucmp.py" "$DTPEEK" "$FW" "$EMU_SNAP" "${2:-16}" "${3:-0}" | sed -n "${1}p"; }
 
 # emu_shot NAME: the screen as build/emu/<test>/NAME.png
@@ -451,13 +433,13 @@ emu_fixture_save() {
     emu_unlock "$_fixs_f"
 }
 
-# emu_cc NAME SOURCE...: a host program in build/emu (tools/genref, tools/seedref), rebuilt when a
+# emu_cc NAME SOURCE...: a host program in build/emu (tools/seedref), rebuilt when a
 # source changes
 emu_cc() {
     _cc_n=$1; shift
     emu_lock "$W/$_cc_n"
     if [ ! -x "$W/$_cc_n" ] || [ -n "$(find "$@" -newer "$W/$_cc_n" 2>/dev/null | head -1)" ] ||
-       [ -n "$(find "$R/lib" -name '*.h' -newer "$W/$_cc_n" | head -1)" ]; then
+       [ -n "$(find "$R/lib" "$R/device" "$R/mods/seedr-ar2" -name '*.h' -newer "$W/$_cc_n" | head -1)" ]; then
         cc -std=c99 -O2 -Wall -o "$W/$_cc_n" "$@" || { emu_unlock "$W/$_cc_n"; emu_die "cc $_cc_n"; }
     fi
     emu_unlock "$W/$_cc_n"
