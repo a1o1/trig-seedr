@@ -1,7 +1,7 @@
 # trig-seedr
 
 [![License: GPL v2+](https://img.shields.io/badge/License-GPL%20v2%2B-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-v0.4.1-blue.svg)](https://github.com/a1o1/trig-seedr/releases)
+[![Version](https://img.shields.io/badge/Version-v0.5.0-blue.svg)](https://github.com/a1o1/trig-seedr/releases)
 [![Status](https://img.shields.io/badge/Status-emulator%20only-orange.svg)](#status)
 [![Device](https://img.shields.io/badge/Analog%20Rytm%20MKII-OS%201.74-black.svg)](docs/firmware-notes-os174.md)
 [![elekloader](https://img.shields.io/badge/elekloader-core--ar2%200.13-purple.svg)](https://github.com/elekloader/elekloader)
@@ -23,18 +23,21 @@ trig-seedr is an independent project. It is not affiliated with or endorsed by E
 
 It is a third page behind the **TRIG** key: **TRIG** (stock's TRIG page), **TRIG** (EUCLIDEAN), **TRIG** (trig-seedr), **TRIG** again back to stock. **TRIG held + PAGE** opens it from anywhere. **LEFT / RIGHT** step through its pages; **PAGE** and the TRIG keys stay stock's.
 
-| Page | What (0.4) |
+| Page | What (0.5) |
 |---|---|
-| TAKE | SEED (the take number), VARY (how much of a take the next seed keeps), BEAT |
-| RHYTHM | SRC: TRACK (the trigs on the track) or RAND (GRID, DENS, BIAS towards strong or weak steps) |
-| PLACE | ROT (whole steps), SKIP (leave the first steps empty), FLD / FROT / FMOD (rotate one field against the trigs) |
-| DYNAMICS | VEL, SHAPE + AMT (velocity by position: STRONG, WEAK, OFF, NOT 1, NOTBAR, EVRY), ACC (accent flags), HUM |
-| NOTE | LEN, NOTE |
-| LOCK | two lanes of parameter locks, each on a parameter you choose (lane 1: the sample slot, lane 2: filter frequency): %, RNGE |
+| TAKE | SEED, VARY (how much of a take the next seed keeps), PHRS (a phrase of takes over the pages: AAAB, ABAC, …), CVAR (two takes written as alternating trig conditions), METR and BEAT, QUAL (the best of several candidates) |
+| RHYTHM | SRC: TRACK (the trigs on the track), RAND (GRID, DENS, BIAS, ROLE: KICK, BACK, HAT, PERC), EUCLID (as stock's Euclidean mode), MAP (a map of drum patterns, credited in the acknowledgements: PART, DENS, X, Y, CHAOS), COPY (another track's trigs) |
+| PLACE | ROT, SYNC (anticipation onto the weaker step before), MASK (AVOID or ONLY another track's trigs), SKIP, FLD / FROT / FMOD (rotate one field against the trigs) |
+| DYNAMICS | VEL, SHAPE + AMT (STRONG, WEAK, OFF, NOT 1, NOTBAR, RANK, NOISE, EVRY, MAP), ACC with AMOD (RAND or TOP), HUM |
+| NOTE | LEN with LMOD (RANGE or LEGATO), NOTE from a RANGE, a LIST (UP, DOWN, PING, PNG2, ODD, RAND) or NOISE |
+| LOCK | two lanes of parameter locks, each on a parameter you choose, values from a RANGE, a LIST or NOISE |
 | TRIG | trig conditions (X%, A:B, 1ST, FILL, mixed), retrigs (share, rate, velocity curve) |
-| TIME | a groove's micro timing and velocity (GRV, TIME, GVEL, QUANT, SHFT), random micro timing (RAND) |
+| TIME | a groove's micro timing and velocity (GRV, TIME, GVEL, QUANT, SHFT), random micro timing (RAND), correlated drift (DRFT) |
 | VIEW | the track's steps and the fields of the step under the cursor (read only) |
 | TOOLS | ROTATE ALL: every track's whole steps, with their own YES |
+
+Every page but VIEW shows a preview of the take in its bottom strip before YES. Each feature has its own page on
+the site and in [`docs/v1/`](docs/v1/).
 
 Screens, from the emulator:
 
@@ -52,7 +55,7 @@ Screens, from the emulator:
 - Ranges (VEL, LEN, NOTE, RNGE, CVAL, RATE): a knob sets the high end, **FUNC** + knob the low end.
 - Everything written is ordinary Rytm data: it plays, saves and reloads on a stock OS.
 
-What changed from 0.3: [`docs/release-0.4.md`](docs/release-0.4.md). Website: [a1o1.github.io/trig-seedr](https://a1o1.github.io/trig-seedr/). Version 1's design and plan: [`docs/design-v1.md`](docs/design-v1.md), [`docs/plan-v1.md`](docs/plan-v1.md). Firmware notes: [`docs/firmware-notes-os174.md`](docs/firmware-notes-os174.md).
+What changed: [`docs/release-0.5.md`](docs/release-0.5.md), [`docs/release-0.4.md`](docs/release-0.4.md). Website: [a1o1.github.io/trig-seedr](https://a1o1.github.io/trig-seedr/). Version 1's design and plan: [`docs/design-v1.md`](docs/design-v1.md), [`docs/plan-v1.md`](docs/plan-v1.md). Firmware notes: [`docs/firmware-notes-os174.md`](docs/firmware-notes-os174.md).
 
 ## Layout
 
@@ -77,7 +80,7 @@ Expected next to this repository (or set `WORKSPACE`), as [`docs/dev-environment
 sh tools/doctor.sh                        # the environment
 make -C lib test coldfire                 # the engine: host tests (sanitizers) and a ColdFire build check
 sh tools/run_tests.sh                     # every check: host, then the emulator (00..11; NAME... for some)
-sh tools/build_release.sh                 # the firmware to flash: build/trig-seedr-0.4-os1.74.syx (docs/flashing.md)
+sh tools/build_release.sh                 # the firmware to flash: build/trig-seedr-0.5-os1.74.syx (docs/flashing.md)
 python3 tools/test_groove2h.py PATH/TO/Live/Core\ Library/Grooves   # the .agr / MIDI reader
 ```
 

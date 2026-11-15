@@ -14,6 +14,18 @@ const pages = [
   ['tools/README.md', 'developers/tools-and-tests.md', 'Tools and tests', 4],
   ['CONTRIBUTING.md', 'developers/contributing.md', 'Contributing', 5],
   ['docs/flashing.md', 'getting-started/flashing.md', 'Flashing a unit', 4],
+  // the version 1 features' user text, one page each (written by the workstream that built it)
+  ['docs/v1/meter.md', 'features/meter.md', 'Meters and roles', 1],
+  ['docs/v1/euclid.md', 'features/euclid.md', 'EUCLID', 2],
+  ['docs/v1/map.md', 'features/map.md', 'MAP', 3],
+  ['docs/v1/copy-mask.md', 'features/copy-mask.md', 'COPY and MASK', 4],
+  ['docs/v1/sync.md', 'features/sync.md', 'SYNC', 5],
+  ['docs/v1/lists.md', 'features/lists.md', 'Value lists and LEGATO', 6],
+  ['docs/v1/noise.md', 'features/noise.md', 'Noise', 7],
+  ['docs/v1/drift.md', 'features/drift.md', 'Drift', 8],
+  ['docs/v1/vary.md', 'features/vary.md', 'Phrases and CVAR', 9],
+  ['docs/v1/score.md', 'features/score.md', 'QUAL', 10],
+  ['docs/v1/preview.md', 'features/preview.md', 'The preview strip and VIEW', 11],
 ];
 for (const [src, dst, title, order] of pages) {
   let md = readFileSync(join(repo, src), 'utf8');

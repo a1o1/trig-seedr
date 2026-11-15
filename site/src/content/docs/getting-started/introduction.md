@@ -19,4 +19,4 @@ Every algorithm is an **audition**. The first YES snapshots the track; each YES 
 
 ## Status
 
-Version 0.4 runs in [analog-emu](https://github.com/trigcondition/analog-emu), a whole-device emulator running the stock OS, where every scripted check passes (`tools/run_tests.sh`). It has **not yet been run on a unit**. To try it on yours, see [Flashing](../flashing/).
+Version 0.5 runs in [analog-emu](https://github.com/trigcondition/analog-emu), a whole-device emulator running the stock OS, where every scripted check passes (`tools/run_tests.sh`). It has **not yet been run on a unit**. To try it on yours, see [Flashing](../flashing/).

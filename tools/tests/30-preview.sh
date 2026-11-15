@@ -202,6 +202,12 @@ cost() {
 : > "$D/cost.txt"
 # shellcheck disable=SC2086
 cost "64 steps, most layers on" $HEAVY
+# the worst case for value lists (F6's open point): NOTE and both lanes 16-item lists in RAND order at
+# VARY 90, where every draw may walk back up to 64 takes
+# shellcheck disable=SC2086
+cost "64 steps, most layers, three 16-item lists, VARY 90" $HEAVY vary=90 note.src=list note.len=16 note.order=rand \
+    lane1.pct=100 lane1=1:100 lane1.src=list lane1.len=16 lane1.order=rand \
+    lane2.pct=100 lane2=0:127 lane2.src=list lane2.len=16 lane2.order=rand
 emu_run --poke 407ddba8=10000200            # 16 steps
 cost "16 steps, RANDOM only" src=random seed=7
 # seedr's whole screen, idle on RHYTHM (no render: a compare per draw), against stock's TRIG page

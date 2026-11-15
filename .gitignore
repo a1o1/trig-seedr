@@ -26,6 +26,7 @@ site/node_modules/
 site/dist/
 site/.astro/
 site/src/content/docs/developers/
+site/src/content/docs/features/
 site/src/assets/screens/
 site/src/content/docs/getting-started/flashing.md
 

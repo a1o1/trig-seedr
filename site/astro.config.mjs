@@ -21,6 +21,7 @@ export default defineConfig({
       sidebar: [
         { label: 'Getting started', items: [{ autogenerate: { directory: 'getting-started' } }] },
         { label: 'Using Trig Seedr', items: [{ autogenerate: { directory: 'using' } }] },
+        { label: 'Features', items: [{ autogenerate: { directory: 'features' } }] },
         { label: 'Developers', items: [{ autogenerate: { directory: 'developers' } }] },
         { label: 'About', items: [{ autogenerate: { directory: 'about' } }] },
       ],
