@@ -26,3 +26,6 @@ site/.astro/
 site/src/content/docs/developers/
 site/src/assets/screens/
 site/src/content/docs/getting-started/flashing.md
+
+# Claude Code worktrees (one per parallel task)
+.claude/worktrees/

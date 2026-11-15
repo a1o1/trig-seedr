@@ -18,7 +18,7 @@ The rule that makes parallel work possible: **M0 creates every enum value, recip
 2. **Never put Alan's email address** in commits, files or requests to outside services.
 3. Do not look for tools that decrypt Ableton's protected `.agr` files.
 4. No "Mutable Instruments" and no "Grids" in product names, pages or the mod's metadata; credit in the acknowledgements only. Map data keeps its GPL-3.0-or-later header.
-5. Conventional Commits (`CONTRIBUTING.md`); one workstream per branch `feat/<id>-<name>`; nothing is pushed to `main` except by the lead after the gates in section 7.
+5. Conventional Commits (`CONTRIBUTING.md`); one task per branch (Claude Code names a worktree's branch `worktree-<name>`; use the task id as the name, e.g. `f5-sync`); nothing is pushed to `main` except by the lead after the gates in section 7.
 6. Get a missing tool working before reaching for a workaround. Ask Alan one question at a time.
 7. Factual wording in docs: no weasel words, no hyperbole.
 
@@ -37,7 +37,8 @@ Workspace `~/dev/github/elektron` on the Mac (`~/mnt/elektron` in the folder's L
 
 - In the Linux shell: `. ~/mnt/elektron/.toolchains/env.sh` first. It sets `ELEKLOADER_CROSS=m68k-elf-` and `CARGO_TARGET_DIR` (Linux emulator binaries in `.toolchains/target-linux/release`). `analog-emu/target/` holds the Mac build: do not run or overwrite it from Linux.
 - `make -C lib test` (host, ASan / UBSan), `make -C lib coldfire` (no undefined symbols), `sh tools/test_seedr.sh` (emulator; `PART=n` for one part).
-- One git worktree per workstream, outside the main checkout, with `WORKSPACE` pointing at the workspace folder. Git needs permission to delete files in the folder (its lock files).
+- One git worktree per task. Claude Code creates them under `.claude/worktrees/<name>/` (git-ignored) on a branch of their own. Inside a worktree `export WORKSPACE=~/dev/github/elektron` (the test scripts otherwise look for `elekloader/` beside the checkout). `.worktreeinclude` copies the local-only `grooves-live.h` into each worktree; it stays untracked.
+- New worktrees branch from the default branch **on the remote**. A task's prerequisites must be merged and pushed to `main` before its agent starts.
 - Known hazards, fixed in task 0.5: the test script writes snapshots and card images into `analog-emu/`; `elekloader/mods/core-ar2/out` is shared. Until then, do not run two emulator suites at once.
 
 ## 4. Files and owners
@@ -124,7 +125,7 @@ The lead merges in the order workstreams pass; after each merge the others rebas
 ## 9. Regression policy
 
 - **Kept:** every behaviour 0.3's emulator checks cover (generation, audition, keep, NO, save paths, lock rows, groove, rotate, sample locks, the key cycle), re-expressed in 0.5 and required at G0.
-- **Changed on purpose at 0.4:** what a seed produces (A5); the page set and navigation (V10); ROT's relation to BIAS (design section 4). These are listed in the 0.4 release notes.
+- **Changed on purpose at 0.4:** what a seed produces (design V11); the page set and navigation (V10); ROT's relation to BIAS (design section 4). These are listed in the 0.4 release notes.
 - **From 0.4 on:** golden vectors and gate rule 4 hold results fixed.
 
 ## 10. Risks
@@ -137,6 +138,22 @@ The lead merges in the order workstreams pass; after each merge the others rebas
 | core-ar2 0.13 has not run on a unit | Alan's first flash of 0.3; findings go to the lead before 0.6 |
 | Contract changes ripple through parallel work | only the lead edits `seed.h`; requests go through `docs/status/` |
 
-## 11. Starting an agent
+## 11. Starting agents
 
-> You are working on trig-seedr. Read `docs/design-v1.md`, then `docs/plan-v1.md`. Your task is **<id>** in section 5 or 6. Work in your own worktree on branch `feat/<id>-<name>`; edit only the files that task owns (section 4); follow the hard rules (section 2). Keep `docs/status/<id>.md` current. You are done when the task's "done when" and the gates in section 7 are met; then report what you built, the test results and anything the lead must decide.
+Parallel work means separate sessions, one per task, each in its own worktree. Two ways (Claude Code on the Mac, in the repository):
+
+```sh
+# A. one screen: dispatch a prompt per task; each becomes a background session in its own worktree
+claude agents --model opus
+
+# B. one terminal per task
+claude --worktree m0-engine  --model opus
+claude --worktree m0-pages   --model opus
+```
+
+Order for M0: the lead does task 0.1 alone and it is merged and pushed; then 0.2–0.5 are started together; then the lead does 0.6. For M1, start the workstreams of a release group together once gate G0 is on `main`.
+
+The prompt for each session:
+
+
+> You are working on trig-seedr. Read `docs/design-v1.md`, then `docs/plan-v1.md`. Your task is **<id>** in section 5 or 6. Work in your own worktree and its branch; edit only the files that task owns (section 4); follow the hard rules (section 2). Keep `docs/status/<id>.md` current. You are done when the task's "done when" and the gates in section 7 are met; then report what you built, the test results and anything the lead must decide.

@@ -1,6 +1,6 @@
 # trig-seedr: design for version 1
 
-Status: agreed direction, 2026-11-15. Decisions V1–V10 are settled. Section 13 lists assumptions that still need Alan's answer; the plan (`plan-v1.md`) says which work each one gates. Background: `requirements.md` (what 0.3 does, D1–D21) and the research notes (project doc `research-generation-ideas.md`).
+Status: agreed direction, 2026-11-15. Decisions V1–V11 are settled. Section 13 lists assumptions that still need Alan's answer; the plan (`plan-v1.md`) says which work each one gates. Background: `requirements.md` (what 0.3 does, D1–D21) and the research notes (project doc `research-generation-ideas.md`).
 
 ## 1. Goal
 
@@ -20,6 +20,7 @@ One coherent product that holds all nine researched ideas: preview, Barlow ranki
 | V8 | **Elektron-sequencer generic.** Terms and keys common to Elektron's sequencers; device-only items become instances of generic ones (sample slot = a lock on a chosen parameter); a device states its capabilities and layers it lacks are not shown. |
 | V9 | **No one-way doors for the A4 / Syntakt.** Every per-trig field takes the same value source (range, list with an order, contour), so note pools and pattern lists can be added to NOTE later. |
 | V10 | **Navigation: LEFT / RIGHT move between layer pages.** PAGE returns to its stock job (which 16 steps the TRIG keys show), so pages 2–4 of a take can be seen while auditioning. The VIEW cursor moves to a knob. To verify in the emulator: stock PAGE and the TRIG keys behave normally while trig-seedr is open. |
+| V11 | **Seeds change once, at 0.4.** The engine principles (section 3) change which take a seed number gives; kept patterns and every feature are unaffected. From 0.4 on, golden vectors hold seeds fixed. (Confirmed 2026-11-15.) |
 
 ## 3. Engine principles
 
@@ -165,6 +166,5 @@ A device provides, for `lib/`:
 | A2 | VARY, PHRS and CVAR as in sections 3, 5 and 7. | F9 |
 | A3 | Recipes live in RAM only (lost at power-off; the written steps are ordinary pattern data). | nothing |
 | A4 | Keep stays FUNC + YES on the Rytm; the key is a device choice. | nothing |
-| A5 | **Seeds change once**, at 0.4: P1–P3 change what a seed gives. From 0.4 on, golden vectors freeze them. | M0 |
 | A6 | The map data lives in its own file under GPL-3.0-or-later and the README says a build with it is GPL-3.0-or-later. Alternative: move the repository to GPL-3.0-or-later. | F3 |
 | A7 | Meter (METR, BEAT) is per track; a new recipe starts from the last one used. | F1 |
