@@ -102,3 +102,13 @@ list-lock2-a orig=orig-a.txt lane2=-30:30 lane2.pct=60 lane2.src=list lane2.orde
 list-vary50 src=random dens=50 seed=5 vary=50 note=-12:12 note.src=list note.len=16
 legato-a orig=orig-a.txt lmod=legato
 legato-random-64 src=random dens=20 grid=2 lmod=legato note=-5:5 note.src=list note.order=ping note.len=4 length=64
+# NOISE (F7): value noise for NOTE and the LOCK lanes, SHAPE = NOISE with N as the zoom
+noise-note-a orig=orig-a.txt note=-7:7 note.src=noise note.zoom=4
+noise-note-random src=random dens=75 note=0:12 note.src=noise note.zoom=1
+noise-note-down src=random dens=75 note=12:-12 note.src=noise note.zoom=6
+noise-lane1-a orig=orig-a.txt lane1=1:16 lane1.pct=100 lane1.src=noise lane1.zoom=8
+noise-lanes-random src=random dens=60 lane1=1:8 lane1.pct=70 lane1.src=noise lane1.zoom=3 lane2.pct=50 lane2.src=noise lane2.zoom=16
+noise-shape src=random dens=100 vel=20:120 shape=noise amt=100 n=8
+noise-shape-a orig=orig-a.txt shape=noise amt=60 n=4
+noise-shape-vary src=random dens=80 seed=6 vary=60 vel=30:127 shape=noise amt=100 n=4
+noise-64 src=random dens=50 length=64 vel=40:127 shape=noise amt=100 n=16 note=-12:12 note.src=noise note.zoom=12
