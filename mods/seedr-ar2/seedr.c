@@ -136,7 +136,7 @@ static int aud_track;
 /* ---- the recipe store: one per track (V5) of the pattern in play ---- */
 
 static struct seed_recipe recipe[SEED_TRACKS], last;
-static uint16_t recipe_set;            /* a bit per track */
+static unsigned recipe_set;             /* a bit per track (an int: tools/emu.sh reads it) */
 static uint16_t turned = 0xffff;        /* a knob turned since the track's last YES (a bit per track) */
 static int have_last;
 static unsigned recipe_pat;
@@ -174,7 +174,7 @@ static struct seed_recipe *recipe_of(int n)
             seed_recipe_defaults(r, dev->caps);
         if (!pg_src_built(r->src))
             r->src = SEED_SRC_TRACK;    /* an empty track and no generator built yet */
-        recipe_set |= (uint16_t)(1u << n);
+        recipe_set |= 1u << n;
         turned |= (uint16_t)(1u << n);
     }
     return &recipe[n];

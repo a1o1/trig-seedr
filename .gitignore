@@ -9,6 +9,8 @@ mods/*/out/
 *.o
 lib/test_*
 !lib/test_*.c
+device/test_*
+!device/test_*.c
 tools/genref
 __pycache__/
 # groove tables derived from Ableton's files
