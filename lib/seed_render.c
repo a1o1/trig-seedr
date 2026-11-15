@@ -166,17 +166,14 @@ void seed_track_copy(struct seed_track *to, const struct seed_track *from)
 /* run a stage when its part of the recipe is active */
 #define STAGE(on, fn) do { if (on) { int rc_ = fn(t, r, k, c); if (rc_ < 0) return rc_; } } while (0)
 
-/* one take, one candidate: the chain from the original into t */
-static int chain(struct seed_track *t, const struct seed_track *orig, const struct seed_recipe *r,
-                 const struct seed_ctx *c, uint32_t n, int cand)
+/* one take, one candidate, from the original into t up to the trigs' final positions: RHYTHM, PLACE */
+static int place(struct seed_track *t, const struct seed_track *orig, const struct seed_recipe *r,
+                 const struct seed_ctx *c, const struct seed_take *k)
 {
-    struct seed_take take, *k = &take;
     int i, len;
 
     seed_track_copy(t, orig);
     t->length = (int16_t)(len = clamp(orig->length, 1, SEED_STEPS));
-    seed_take_init(k, n, (uint32_t)c->track, r->vary, cand);
-    k->length = len;
 
     /* RHYTHM. SOURCE = TRACK: the original's steps as they are, each its own origin. */
     if (r->src == SEED_SRC_TRACK) {
@@ -200,7 +197,13 @@ static int chain(struct seed_track *t, const struct seed_track *orig, const stru
     STAGE(r->sync > 0, seed_place_sync);
     STAGE(r->mask != SEED_MASK_OFF, seed_place_mask);
     STAGE(r->skip > 0, seed_place_skip);
+    return SEED_OK;
+}
 
+/* the layers that dress the trigs where PLACE left them: DYNAMICS to TIME, the field rotation */
+static int dress(struct seed_track *t, const struct seed_recipe *r, const struct seed_ctx *c,
+                 const struct seed_take *k)
+{
     STAGE(seed_layer_active(r, SEED_L_DYN), seed_dyn);
     STAGE(seed_layer_active(r, SEED_L_NOTE), seed_note);
     STAGE(seed_layer_active(r, SEED_L_LOCK), seed_lock);
@@ -211,31 +214,38 @@ static int chain(struct seed_track *t, const struct seed_track *orig, const stru
     return SEED_OK;
 }
 
-/* QUAL: the best of r->qual candidates of take n (ties: the lower candidate), into t */
+/* QUAL: take n from the best of r->qual candidates (ties: the lower candidate), into t. A
+ * candidate's numbers differ from candidate 0's only in RHYTHM and PLACE (seed_rng.c) and no
+ * later layer moves a trig, so each candidate runs to the end of PLACE and is scored there; the
+ * later layers then run once, on the winner. */
 static int best(struct seed_track *t, const struct seed_track *orig, const struct seed_recipe *r,
                 const struct seed_ctx *c, uint32_t n, struct seed_track *scratch)
 {
-    int rc, q = clamp(r->qual, 1, 8), top, i;
-    rc = chain(t, orig, r, c, n, 0);
-    if (rc < 0 || q == 1)
-        return rc;
-    top = seed_score(t, r, c);
-    if (top < 0)
-        return top;
-    for (i = 1; i < q; i++) {
+    struct seed_take k;
+    int rc, q = clamp(r->qual, 1, 8), top = 0, win = 0, i;
+    for (i = 0; i < q; i++) {
+        struct seed_track *u = i ? scratch : t;
         int s;
-        rc = chain(scratch, orig, r, c, n, i);
+        seed_take_init(&k, n, (uint32_t)c->track, r->vary, i);
+        k.length = clamp(orig->length, 1, SEED_STEPS);      /* NOISE wraps there */
+        rc = place(u, orig, r, c, &k);
         if (rc < 0)
             return rc;
-        s = seed_score(scratch, r, c);
+        if (q == 1)
+            break;
+        s = seed_score(u, r, c);
         if (s < 0)
             return s;
-        if (s > top) {
+        if (i == 0 || s > top) {
             top = s;
-            seed_track_copy(t, scratch);
+            win = i;
+            if (i)
+                seed_track_copy(t, u);
         }
     }
-    return SEED_OK;
+    seed_take_init(&k, n, (uint32_t)c->track, r->vary, win);
+    k.length = clamp(orig->length, 1, SEED_STEPS);
+    return dress(t, r, c, &k);
 }
 
 /* take n with CVAR: n and n + 1 rendered together */

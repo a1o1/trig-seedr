@@ -112,3 +112,16 @@ noise-shape src=random dens=100 vel=20:120 shape=noise amt=100 n=8
 noise-shape-a orig=orig-a.txt shape=noise amt=60 n=4
 noise-shape-vary src=random dens=80 seed=6 vary=60 vel=30:127 shape=noise amt=100 n=4
 noise-64 src=random dens=50 length=64 vel=40:127 shape=noise amt=100 n=16 note=-12:12 note.src=noise note.zoom=12
+# TAKE: QUAL (F11): the best of QUAL candidates; count kept, then spread, then fit in BIAS's direction
+qual4 src=random dens=50 qual=4
+qual8-d25 src=random dens=25 qual=8
+qual8-64 src=random dens=30 qual=8 length=64
+qual4-bias60 src=random dens=40 bias=60 qual=4
+qual4-bias-n60 src=random dens=40 bias=-60 role=hat qual=4
+qual4-grid2 src=random grid=2 dens=50 qual=4
+qual4-skip src=random dens=50 skip=4 qual=4
+qual4-mask other=3:other-hat.txt src=random dens=50 mask=avoid mtrk=3 qual=4
+qual4-sync src=random dens=50 sync=50 qual=4
+qual4-vary50 src=random dens=50 seed=5 vary=50 qual=4
+qual8-dressed orig=orig-a.txt src=random dens=50 qual=8 vel=60:120 acc=30 note=48:72 lane1.pct=50 cond=20 rand=10
+qual4-track orig=orig-a.txt qual=4 vel=60:120 cond=30

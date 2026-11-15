@@ -30,10 +30,14 @@ void seed_take_init(struct seed_take *k, uint32_t seed, uint32_t salt, int vary,
     k->length = SEED_STEPS;          /* seed_render sets the track's */
 }
 
-/* the slot's identity in this track and candidate, independent of the take number */
+/* the slot's identity in this track and candidate, independent of the take number. QUAL's
+ * candidates differ only in RHYTHM and PLACE (where the trigs are); every later layer draws
+ * candidate 0's numbers, so the winner's dressing does not depend on which candidate won (F11). */
 static uint32_t slot_base(const struct seed_take *k, uint32_t slot)
 {
-    return mix(mix(slot, k->salt), (uint32_t)k->cand);
+    uint32_t layer = slot >> 24;
+    uint32_t cand = layer == SEED_L_RHYTHM || layer == SEED_L_PLACE ? (uint32_t)k->cand : 0u;
+    return mix(mix(slot, k->salt), cand);
 }
 
 /* the slot's number when it re-rolled at take n */

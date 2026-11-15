@@ -14,12 +14,14 @@ static uint32_t rnd(void)
     return lcg >> 8;
 }
 
-/* I2: the same take and slot give the same number; distinct slots, takes, salts and candidates differ */
+/* I2: the same take and slot give the same number; distinct slots, takes, salts and candidates differ.
+ * Candidates differ only in RHYTHM and PLACE slots (F11); later layers draw candidate 0's numbers. */
 static void test_determinism(void)
 {
     struct seed_take a, b;
-    int i, same = 1, diff_slot = 0, diff_take = 0, diff_salt = 0, diff_cand = 0;
-    uint32_t s = SEED_SLOT(SEED_L_DYN, SEED_P_VEL, 0);
+    int i, same = 1, diff_slot = 0, diff_take = 0, diff_salt = 0, diff_cand = 0, same_cand = 0;
+    uint32_t s = SEED_SLOT(SEED_L_DYN, SEED_P_VEL, 0), rh = SEED_SLOT(SEED_L_RHYTHM, SEED_P_DENS, 0),
+             pl = SEED_SLOT(SEED_L_PLACE, SEED_P_SYNC, 0);
     for (i = 0; i < 1000; i++) {
         seed_take_init(&a, (uint32_t)i, 3, i % 101, 0);
         seed_take_init(&b, (uint32_t)i, 3, i % 101, 0);
@@ -30,11 +32,18 @@ static void test_determinism(void)
         diff_take += seed_rand(&a, s) != seed_rand(&b, s);
         seed_take_init(&b, (uint32_t)i, 4, 0, 0);
         diff_salt += seed_rand(&a, s) != seed_rand(&b, s);
-        seed_take_init(&b, (uint32_t)i, 3, 0, 1);
-        diff_cand += seed_rand(&a, s) != seed_rand(&b, s);
+        seed_take_init(&b, (uint32_t)i, 3, i % 101, 1 + i % 7);
+        seed_take_init(&a, (uint32_t)i, 3, i % 101, 0);
+        diff_cand += seed_rand(&a, rh + (uint32_t)i % 64) != seed_rand(&b, rh + (uint32_t)i % 64);
+        diff_cand += seed_rand(&a, pl + (uint32_t)i % 64) != seed_rand(&b, pl + (uint32_t)i % 64);
+        same_cand += seed_rand(&a, s + (uint32_t)i % 64) == seed_rand(&b, s + (uint32_t)i % 64);
+        same_cand += seed_rand(&a, SEED_SLOT(SEED_L_TIME, SEED_P_UTIME, i % 64)) ==
+                     seed_rand(&b, SEED_SLOT(SEED_L_TIME, SEED_P_UTIME, i % 64));
     }
     CHECK(same);
-    CHECK(diff_slot == 1000 && diff_take == 1000 && diff_salt == 1000 && diff_cand == 1000);
+    CHECK(diff_slot == 1000 && diff_take == 1000 && diff_salt == 1000);
+    CHECK(same_cand == 2000);
+    CHECK(diff_cand == 2000);
     /* layers draw apart (P1): the same purpose and index under another layer is another number */
     seed_take_init(&a, 7, 0, 0, 0);
     CHECK(seed_rand(&a, SEED_SLOT(SEED_L_DYN, SEED_P_ACC, 5)) != seed_rand(&a, SEED_SLOT(SEED_L_TRIG, SEED_P_ACC, 5)));
