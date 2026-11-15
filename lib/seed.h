@@ -216,7 +216,7 @@ struct seed_tool {
     int16_t steps;                    /* ROTATE ALL: -63..63 */
 };
 
-/* a groove (TIME GRV), as lib/groove.h's tables: per step the micro timing at 100 % in 1/24
+/* a groove (TIME GRV), as tools/groove2h.py writes them: per step the micro timing at 100 % in 1/24
  * step and the groove's velocity there (0: no groove note, the step's velocity stays) */
 #define SEED_GROOVE_NAME 21
 struct seed_groove {

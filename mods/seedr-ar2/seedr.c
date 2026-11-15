@@ -38,9 +38,6 @@
 #include "grooves-swing.h"
 #endif
 
-/* lib/groove.h's tables are struct seed_groove's layout (task 0.2 moves them onto it) */
-typedef char groove_layout_check[sizeof(struct gen_groove) == sizeof(struct seed_groove) ? 1 : -1];
-
 #define K_FUNC 0x80
 #define K_TRIG 0x30
 /* keys that leave the TRIG page in stock: the parameter pages, FX, the menu keys */
@@ -118,181 +115,28 @@ static int clampi(int v, int lo, int hi)
     return v < lo ? lo : v > hi ? hi : v;
 }
 
-/* ---- the device (design section 10). PROVISIONAL: task 0.4 replaces this block with the Rytm's
- * struct seed_dev in device/rytm_ar2.h. Until then it covers what 0.3's rt_* calls can do: the
- * fields and one lane on the sample slot, steps that stay where they are (origin = the step or
- * none). A recipe that moves steps answers SEED_E_NA. ---- */
+/* ---- the device (design section 10): the Rytm's struct seed_dev in device/rytm_ar2.h ---- */
 
-static const struct seed_param rt_params[1] = { { "SMPL", RT_SAMPLE_SLOT, 0, 127 } };
-#define RT_FIELDS (SEED_F_NOTE | SEED_F_VEL | SEED_F_LEN | SEED_F_UTIME | SEED_F_COND | SEED_F_RETRIG | \
-                   SEED_F_ACCENT | SEED_F_SLIDE | SEED_F_LOCKS)
-static const struct seed_caps rt_caps = {
-    NTRACKS, 64, RT_FIELDS, -23, 23, 1, 1, rt_params, { 0, 0 }
-};
+#define dev (rt_seed_device())
 
 static unsigned track_obj(int t)
 {
-    unsigned obj, pat;
-    rt_current(&obj, &pat);
-    return RT_TRACK_OBJ(pat, t);
+    return rt_seed_obj(t);
 }
 
 static uint16_t track_fields(int t)
 {
-    return t == FX_TRACK ? (uint16_t)(RT_FIELDS & ~(SEED_F_NOTE | SEED_F_LOCKS)) : (uint16_t)RT_FIELDS;
+    return (uint16_t)rt_seed_fields(t);
 }
 
-static struct gen_track gtrk;
-
-static int dv_current(void)
-{
-    unsigned obj;
-    return rt_current(&obj, 0);
-}
-
-static int dv_read(int t, const int16_t *parm, struct seed_track *s)
-{
-    uint8_t defvel = 100;
-    int i;
-    if (t < 0 || t >= NTRACKS || !rt_read(track_obj(t), &gtrk, &defvel))
-        return SEED_E_NA;
-    s->length = gtrk.length;
-    s->fields = track_fields(t);
-    s->default_note = gtrk.default_note;
-    s->default_vel = defvel;
-    for (i = 0; i < SEED_STEPS; i++) {
-        const struct gen_step *g = &gtrk.s[i];
-        struct seed_step *d = &s->s[i];
-        d->flags = g->flags;
-        d->note = g->note;
-        d->vel = g->vel;
-        d->len = g->len;
-        d->utime = g->utime;
-        d->cond = g->cond;
-        d->rlen = g->rlen;
-        d->rrate = g->rrate;
-        d->rvel = g->rvel;
-        d->origin = (int8_t)i;
-        d->spare = 0;
-        d->lane[0] = parm[0] == 0 && g->slock != GEN_NO_LOCK ? g->slock : SEED_NO_LOCK;
-        d->lane[1] = SEED_NO_LOCK;
-    }
-    return SEED_OK;
-}
-
-static int dv_room(int t, const int16_t *parm, const struct seed_track *s)
-{
-    int i;
-    (void)parm;
-    for (i = 0; i < s->length && i < SEED_STEPS; i++)
-        if (s->s[i].lane[0] != SEED_NO_LOCK)
-            return rt_lock_room(track_obj(t), RT_SAMPLE_SLOT) ? SEED_OK : SEED_E_ROOM;
-    return SEED_OK;
-}
-
-static int dv_write(int t, const int16_t *parm, const struct seed_track *s)
-{
-    int i, rc;
-    if (t < 0 || t >= NTRACKS)
-        return SEED_E_ARG;
-    for (i = 0; i < s->length && i < SEED_STEPS; i++)
-        if ((s->s[i].origin != i && s->s[i].origin != SEED_NO_ORIGIN) || s->s[i].lane[1] != SEED_NO_LOCK)
-            return SEED_E_NA;           /* moves and lane 2: the device layer (0.4) */
-    if ((rc = dv_room(t, parm, s)) < 0)
-        return rc;
-    gtrk.length = s->length;
-    gtrk.default_note = s->default_note;
-    for (i = 0; i < SEED_STEPS; i++) {
-        const struct seed_step *d = &s->s[i];
-        struct gen_step *g = &gtrk.s[i];
-        g->flags = d->flags;
-        g->note = d->note;
-        g->vel = d->vel;
-        g->len = d->len;
-        g->utime = d->utime;
-        g->cond = d->cond;
-        g->rlen = d->rlen;
-        g->rrate = d->rrate;
-        g->rvel = d->rvel;
-        g->slock = d->lane[0] == SEED_NO_LOCK ? GEN_NO_LOCK : d->lane[0];
-    }
-    rt_write(track_obj(t), &gtrk);
-    return SEED_OK;
-}
-
-static void dv_context(struct seed_ctx *c, int track)
-{
-    int t, i;
-    c->caps = &rt_caps;
-    c->track = track;
-    c->tracks = NTRACKS;
-    for (t = 0; t < NTRACKS; t++) {
-        unsigned obj = track_obj(t);
-        const uint8_t *r = rt_record(obj);
-        int len = RT_TRACK_LENGTH(obj);
-        c->length[t] = (uint8_t)clampi(len, 1, SEED_STEPS);
-        for (i = 0; i < SEED_STEPS / 8; i++)
-            c->trig[t][i] = 0;
-        for (i = 0; r && i < c->length[t]; i++)
-            if (r[RT_FLAGS + 2 * i + 1] & SEED_TRIG)
-                c->trig[t][i >> 3] |= (uint8_t)(1u << (i & 7));
-    }
-}
-
-/* the audition's snapshots: one per track it covers (ROTATE ALL: every track) */
-static struct rt_snap snaps[NTRACKS];
+/* what the audition covers: its tracks, and the pattern and track it was started on */
 static unsigned aud_mask, aud_pat;
 static int aud_track;
 
-static int dv_snapshot(uint16_t mask)
-{
-    unsigned obj, pat;
-    int n = rt_current(&obj, &pat), t;
-    for (t = 0; t < NTRACKS; t++) {
-        if (!(mask & (1u << t)))
-            continue;
-        if (!rt_snap_take(&snaps[t], RT_TRACK_OBJ(pat, t), pat, t)) {
-            while (--t >= 0)
-                snaps[t].valid = 0;
-            return SEED_E_NA;
-        }
-    }
-    aud_mask = mask;
-    aud_pat = pat;
-    aud_track = n;
-    return SEED_OK;
-}
-
-static void dv_restore(void)
-{
-    int t;
-    for (t = 0; t < NTRACKS; t++)
-        if (aud_mask & (1u << t))
-            rt_snap_restore(&snaps[t]);
-}
-
-static void dv_drop(void)
-{
-    int t;
-    for (t = 0; t < NTRACKS; t++)
-        snaps[t].valid = 0;
-    aud_mask = 0;
-}
-
-static void dv_changed(int t)
-{
-    rt_changed(track_obj(t));
-}
-
-static const struct seed_dev rt_dev = {
-    &rt_caps, dv_current, dv_read, dv_room, dv_write, dv_context, dv_snapshot, dv_restore, dv_drop, dv_changed
-};
-static const struct seed_dev *const dev = &rt_dev;
-
 /* ---- the recipe store: one per track (V5) of the pattern in play ---- */
 
-static struct seed_recipe recipes[SEED_TRACKS], last;
-static uint16_t have_recipe;            /* a bit per track */
+static struct seed_recipe recipe[SEED_TRACKS], last;
+static uint16_t recipe_set;            /* a bit per track */
 static uint16_t turned = 0xffff;        /* a knob turned since the track's last YES (a bit per track) */
 static int have_last;
 static unsigned recipe_pat;
@@ -310,18 +154,19 @@ static void lane_parms(const struct seed_recipe *r, int16_t *parm)
 }
 
 /* the track's recipe; a new one when there is none for this pattern yet (V6, A7) */
-static struct seed_recipe *recipe(int n)
+static struct seed_recipe *recipe_of(int n)
 {
     unsigned obj, pat;
     int16_t parm[SEED_LANES];
     rt_current(&obj, &pat);
     if (pat != recipe_pat) {
-        have_recipe = 0;
+        if (recipe_pat)
+            recipe_set = 0;             /* another pattern: new recipes (a first call keeps any set) */
         recipe_pat = pat;
     }
     n = clampi(n, 0, SEED_TRACKS - 1);
-    if (!(have_recipe & (1u << n))) {
-        struct seed_recipe *r = &recipes[n];
+    if (!(recipe_set & (1u << n))) {
+        struct seed_recipe *r = &recipe[n];
         lane_parms(0, parm);
         if (dev->read(n, parm, &shown) == SEED_OK)
             seed_recipe_init(r, &shown, have_last ? &last : 0, dev->caps);
@@ -329,15 +174,15 @@ static struct seed_recipe *recipe(int n)
             seed_recipe_defaults(r, dev->caps);
         if (!pg_src_built(r->src))
             r->src = SEED_SRC_TRACK;    /* an empty track and no generator built yet */
-        have_recipe |= (uint16_t)(1u << n);
+        recipe_set |= (uint16_t)(1u << n);
         turned |= (uint16_t)(1u << n);
     }
-    return &recipes[n];
+    return &recipe[n];
 }
 
 static void page_ctx(struct pg_ctx *c, int n)
 {
-    c->r = recipe(n);
+    c->r = recipe_of(n);
     c->shared = &shared;
     c->tool = &tool;
     c->cursor = &cursor;
@@ -374,6 +219,11 @@ static int audition(int kind, unsigned mask)
         say("NO TRACK DATA");
         return 0;
     }
+    {
+        unsigned obj;
+        aud_track = rt_current(&obj, &aud_pat);
+    }
+    aud_mask = mask;
     auditioning = kind;
     return 1;
 }
@@ -405,7 +255,7 @@ static void take(void)
         say("EUCLID IS ON: TURN IT OFF");
         return;
     }
-    r = recipe(n);
+    r = recipe_of(n);
     if (!(turned & bit))
         r->seed = r->seed < SEED_MAX ? r->seed + 1 : 0;     /* YES again: the next seed */
     turned &= (uint16_t)~bit;
@@ -416,7 +266,7 @@ static void take(void)
     if (rc >= 0) {
         dev->context(&ctx, n);
         ctx.shared = shared;
-        ctx.grooves = (const struct seed_groove *)(const void *)grooves;
+        ctx.grooves = grooves;
         ctx.ngrooves = N_GROOVES;
         rc = seed_render(&take_out, &orig, r, &ctx, &work);
     }

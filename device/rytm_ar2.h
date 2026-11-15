@@ -2,11 +2,9 @@
 /* The Analog Rytm MKII OS 1.74 device layer. Addresses and offsets: docs/firmware-notes-os174.md.
  * UI task only (ev_key, ev_enc, ev_tick, ev_draw).
  *
- * Two interfaces, side by side until gate G0 retires lib/gen.c:
- *   - 0.3's, on struct gen_track: rt_read, rt_write, rt_lock_room, rt_snap_*;
- *   - version 1's, on lib/seed.h: rt_seed_device() returns the struct seed_dev of design section 10
- *     (task 0.4, docs/status/0.4.md).
- * Both are static inline, so a mod pays only for what it calls.
+ * rt_seed_device() returns the struct seed_dev of design section 10 (lib/seed.h; task 0.4,
+ * docs/status/0.4.md), built on the track, lock-row and snapshot routines below. Everything is
+ * static inline, so a mod pays only for what it calls.
  *
  * A host test (device/test_rytm_ar2.c) defines RT_HOST and supplies the stock routines and the
  * accessors below them with a model of the track, so the write logic runs under the sanitizers. */
@@ -14,7 +12,6 @@
 #define RYTM_AR2_H
 
 #include <stdint.h>
-#include "../lib/gen.h"
 #include "../lib/seed.h"
 
 #ifndef RT_HOST
@@ -204,39 +201,6 @@ static inline uint16_t rt_flags_at(const uint8_t *r, int step)
     return (uint16_t)(r[RT_FLAGS + 2 * step] << 8 | r[RT_FLAGS + 2 * step + 1]);
 }
 
-/* read a track into t; 0 when the track has no data */
-static inline int rt_read(unsigned obj, struct gen_track *t, uint8_t *def_vel)
-{
-    const uint8_t *r = rt_record(obj), *l = rt_locks(obj);
-    int i;
-    if (!r)
-        return 0;
-    t->length = RT_TRACK_LENGTH(obj);
-    if (t->length < 1 || t->length > GEN_STEPS)
-        t->length = 16;
-    t->default_note = r[RT_DEF_NOTE];
-    if (def_vel)
-        *def_vel = r[RT_DEF_VEL];
-    for (i = 0; i < GEN_STEPS; i++) {
-        struct gen_step *s = &t->s[i];
-        s->flags = rt_flags_at(r, i);
-        s->note = r[RT_NOTE + i];
-        s->vel = r[RT_VEL + i];
-        s->len = r[RT_LEN + i];
-        s->utime = (int8_t)r[RT_UTIME + i];
-        s->cond = (int8_t)r[RT_COND + i];
-        s->rlen = r[RT_RLEN + i];
-        s->rrate = r[RT_RRATE + i];
-        s->rvel = (int8_t)r[RT_RVEL + i];
-        s->slock = GEN_NO_LOCK;
-        if (l) {
-            int16_t v = rt_lock_at(l, i, RT_SAMPLE_SLOT);
-            s->slock = v < 0 ? GEN_NO_LOCK : (int16_t)(v >> 8);
-        }
-    }
-    return 1;
-}
-
 /* the pattern's stored lock rows: used, and whether (type of sound index k, this track) has one */
 static inline int rt_rows(unsigned obj, int k, int *have)
 {
@@ -264,58 +228,6 @@ static inline int rt_lock_room(unsigned obj, int k)
     if (used < 0 || !l)
         return 0;
     return have || used + (l[RT_LOCK_FINE + k] ? 2 : 1) <= RT_ROWS_MAX;
-}
-
-/* Write t's steps 0..t->length-1 into the track through the stock routines, changing only what
- * differs from what the track holds now. A trig removed or added goes through the place/remove
- * routine (which sets the SYN/SMP/ENV/LFO bits from the track's defaults); flags and fields go
- * through their setters. Returns the number of steps changed. */
-static inline int rt_write(unsigned obj, const struct gen_track *t)
-{
-    static const uint16_t masks[4] = { GEN_ACCENT, GEN_RETRIG, GEN_SLIDE, GEN_MUTE };
-    struct gen_track now;
-    int i, m, n = t->length, changed = 0;
-
-    if (!rt_read(obj, &now, 0))
-        return 0;
-    if (n > now.length)
-        n = now.length;
-    for (i = 0; i < n; i++) {
-        const struct gen_step *w = &t->s[i];
-        const uint8_t *r;
-        int c = 0;
-        uint16_t f;
-        if ((w->flags & GEN_TRIG) != (now.s[i].flags & GEN_TRIG)) {
-            RT_SET_TRIG(obj, i, (w->flags & GEN_TRIG) != 0);
-            c = 1;
-        }
-        r = rt_record(obj);
-        f = rt_flags_at(r, i);
-        for (m = 0; m < 4; m++)
-            if ((w->flags & masks[m]) != (f & masks[m])) {
-                RT_SET_FLAG(obj, i, masks[m], (w->flags & masks[m]) != 0);
-                c = 1;
-            }
-        r = rt_record(obj);
-        if (r[RT_NOTE + i] != w->note) { RT_SET_NOTE(obj, i, w->note); c = 1; }
-        if (r[RT_VEL + i] != w->vel) { RT_SET_VEL(obj, i, w->vel); c = 1; }
-        if (r[RT_LEN + i] != w->len) { RT_SET_LEN(obj, i, w->len); c = 1; }
-        if ((int8_t)r[RT_UTIME + i] != w->utime) { RT_SET_UTIME(obj, i, w->utime + 64); c = 1; }
-        if ((int8_t)r[RT_COND + i] != w->cond) { RT_SET_COND(obj, i, w->cond); c = 1; }
-        if (r[RT_RLEN + i] != w->rlen) { RT_SET_RLEN(obj, i, w->rlen); c = 1; }
-        if (r[RT_RRATE + i] != w->rrate) { RT_SET_RRATE(obj, i, w->rrate); c = 1; }
-        if ((int8_t)r[RT_RVEL + i] != w->rvel) { RT_SET_RVEL(obj, i, w->rvel); c = 1; }
-        if (w->slock != now.s[i].slock) {
-            const uint8_t *l = rt_locks(obj);
-            if (w->slock == GEN_NO_LOCK)
-                RT_LOCK_CLEAR(obj, i, RT_SAMPLE_SLOT);
-            else
-                RT_LOCK_SET(obj, i, RT_SAMPLE_SLOT, w->slock << 8, l && l[RT_LOCK_FINE + RT_SAMPLE_SLOT]);
-            c = 1;
-        }
-        changed += c;
-    }
-    return changed;
 }
 
 /* ---- the audition snapshot: one track's record and lock store ---- */
