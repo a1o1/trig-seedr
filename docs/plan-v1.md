@@ -108,6 +108,7 @@ Each workstream delivers: the module with host tests, its rows in `pages.c`, its
 | F9 | Variation | PHRS over pages; CVAR as conditions; interaction with a track shorter than four pages | G0 | A2 |
 | F10 | Preview and VIEW | the preview strip from the work buffer on every knob change; VIEW on the new step type; drawing cost measured | G0 | |
 | F11 | Candidate scoring | QUAL; must keep P3 (a take stays a function of n) | F1 | design note agreed with the lead first |
+| F12 | MAP accents | AMOD = TOP ranks by the map level when SRC = MAP, so ACC reproduces Grids' accents (level above 192 at ACC as Grids sets it), as design section 6 first said; F3's open point. A contract change (TOP needs the level) and `dyn_rank.c`; a host test against Grids' accent rule; `docs/v1/map.md` and design section 6 updated back | F1, F3 | scheduled by Alan 2026-11-15, after M1's merges |
 
 Suggested release grouping: 0.5 = F1, F2, F10; 0.6 = F4, F5; 0.7 = F6, F7, F8; 0.8 = F3; 0.9 = F9, F11.
 
