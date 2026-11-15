@@ -11,7 +11,7 @@ Trig Seedr is a third page behind the **TRIG** key, after the Euclidean page:
 
 **TAKE → RHYTHM → PLACE → DYNAMICS → NOTE → LOCK → TRIG → TIME → VIEW → TOOLS → TAKE**
 
-A page, knob or value whose feature is not built yet is not shown. The title bar shows the page, the track, and the source: `TRK` (the track's own trigs) or `S` and the seed; `AUD` while a take is being auditioned. The marks along its foot are the pages, the long one the page in view.
+A page, knob or value whose feature is not built yet is not shown. The title bar shows the page, the track and the page's place among the pages shown (`3/10`), and at the right the source: `TRK` (the track's own trigs) or `S` and the seed, after `AUD` while a take is being auditioned. The place is left out when a long title would not fit.
 
 | Key | What it does |
 |---|---|

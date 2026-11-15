@@ -504,12 +504,6 @@ static void dot(uint8_t *p, int x, int r)
         p[8 * x + 7 - r / 8] |= (uint8_t)(1 << (r % 8));
 }
 
-static void undot(uint8_t *p, int x, int r)
-{
-    if (x >= 0 && x < 128 && r >= 0 && r < 64)
-        p[8 * x + 7 - r / 8] &= (uint8_t)~(1 << (r % 8));
-}
-
 static void box(uint8_t *p, int x0, int r0, int x1, int r1, int fill)
 {
     int x, r;
@@ -531,13 +525,13 @@ static void text_right(void *bmp, int x, int top, const char *s, int flags)
     core_text_draw(bmp, CORE_FONT_MAIN, x, 64 - h - top, CORE_ALIGN_RIGHT | flags, s);
 }
 
-/* The title bar: the page (and LOCK's lane), the track; at the right the source, TRK or S and
- * the seed (V6), after AUD while a take is auditioned; along its foot a mark per page shown, the
- * page in view the long one. */
+/* The title bar: the page (and LOCK's lane), the track and the page's place among the pages
+ * shown (3/10); at the right the source, TRK or S and the seed (V6), after AUD while a take is
+ * auditioned. The place is left out when the two sides would not fit. */
 static void draw_title(void *bmp, uint8_t *p, const struct pg_ctx *c, int n)
 {
-    char line[40], *o = line;
-    int i, shown_pages = 0, x;
+    char line[40], right[16], *o = line, *place;
+    int i, at = 0, count = 0;
     box(p, 0, 0, 127, 9, 1);
     o = pg_put(o, pg_names[page]);
     if (page == PG_LOCK && dev->caps->lanes > 1) {
@@ -546,9 +540,21 @@ static void draw_title(void *bmp, uint8_t *p, const struct pg_ctx *c, int n)
     }
     *o++ = ' ';
     o = pg_put(o, track_name(n));
+    place = o;
+    for (i = 0; i < PG_N; i++)
+        if (pg_page_shown(c, i)) {
+            count++;
+            if (i == page)
+                at = count;
+        }
+    if (at) {
+        *o++ = ' ';
+        o = pg_num(o, at);
+        *o++ = '/';
+        o = pg_num(o, count);
+    }
     *o = 0;
-    text_at(bmp, 2, 1, line, CORE_TEXT_INVERT);
-    o = line;
+    o = right;
     if (auditioning)
         o = pg_put(o, "AUD ");
     if (c->r->src == SEED_SRC_TRACK)
@@ -558,21 +564,32 @@ static void draw_title(void *bmp, uint8_t *p, const struct pg_ctx *c, int n)
         o = pg_num(o, (int)c->r->seed);
     }
     *o = 0;
-    text_right(bmp, 126, 1, line, CORE_TEXT_INVERT);
-    for (i = 0; i < PG_N; i++)
-        shown_pages += pg_page_shown(c, i);
-    x = 64 - (shown_pages * 5) / 2;
-    for (i = 0; i < PG_N; i++) {
-        if (!pg_page_shown(c, i))
-            continue;
-        undot(p, x + 1, 8);
-        undot(p, x + 2, 8);
-        if (i == page) {
-            undot(p, x, 8);
-            undot(p, x + 3, 8);
-        }
-        x += 5;
-    }
+    if (2 + core_text_width(CORE_FONT_MAIN, line) + 6 + core_text_width(CORE_FONT_MAIN, right) > 126)
+        *place = 0;
+    text_at(bmp, 2, 1, line, CORE_TEXT_INVERT);
+    text_right(bmp, 126, 1, right, CORE_TEXT_INVERT);
+}
+
+/* VIEW's footer, as 0.3's: the name at the left, with a small sprout drawn in pixels after it */
+static void draw_footer(void *bmp, uint8_t *p)
+{
+    static const char *const sprout[7] = {   /* 7 wide: two leaves on a stem, in the ground */
+        "##...##",
+        "#.#.#.#",
+        ".##.##.",
+        "...#...",
+        "...#...",
+        ".#####.",
+        "#######",
+    };
+    int w = core_text_width(CORE_FONT_MAIN, "Trig Seedr"), x = 2, r, k;
+    box(p, 0, 47, 127, 47, 1);                  /* the divider */
+    text_at(bmp, x, 52, "Trig Seedr", 0);
+    x += w + 4;
+    for (r = 0; r < 7; r++)
+        for (k = 0; k < 7; k++)
+            if (sprout[r][k] == '#')
+                dot(p, x + k, 50 + r);
 }
 
 /* one knob's label and value, in a 32-pixel column, two rows of four */
@@ -697,8 +714,6 @@ static void draw_strip(void *bmp, uint8_t *p, const struct seed_track *t)
             box(p, x, STRIP_BOTTOM - h + 1, x, STRIP_BOTTOM, 1);
         } else if (!(i & 3))
             dot(p, x, STRIP_BOTTOM);
-        if (page == PG_VIEW && i == cursor)
-            dot(p, x, STRIP_TOP - 1);
     }
 }
 
@@ -727,8 +742,10 @@ void gr_draw(void *bmp, void *ctrl)
     if (page == PG_VIEW) {
         if (ok)
             draw_view(bmp, p, &shown, parm[0]);
-    } else
+        draw_footer(bmp, p);                    /* VIEW draws the steps itself: no strip */
+    } else {
         draw_cells(bmp, &c);
-    if (ok)
-        draw_strip(bmp, p, &shown);
+        if (ok)
+            draw_strip(bmp, p, &shown);
+    }
 }
