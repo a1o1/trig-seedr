@@ -45,6 +45,7 @@ Every commit message follows [Conventional Commits](https://www.conventionalcomm
 
 | Scope | What |
 |---|---|
+| `lib` | the version 1 engine: `lib/seed.h` and the modules in `lib/` |
 | `gen` | GENERATOR in `lib/gen.c` |
 | `rotate` | ROTATE (`lib/gen.c`, the ROTATE page) |
 | `groove` | GROOVE (`lib/groove.c`, the GROOVE page) |
