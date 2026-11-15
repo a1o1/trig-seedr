@@ -504,6 +504,12 @@ static void dot(uint8_t *p, int x, int r)
         p[8 * x + 7 - r / 8] |= (uint8_t)(1 << (r % 8));
 }
 
+static void undot(uint8_t *p, int x, int r)
+{
+    if (x >= 0 && x < 128 && r >= 0 && r < 64)
+        p[8 * x + 7 - r / 8] &= (uint8_t)~(1 << (r % 8));
+}
+
 static void box(uint8_t *p, int x0, int r0, int x1, int r1, int fill)
 {
     int x, r;
@@ -525,14 +531,31 @@ static void text_right(void *bmp, int x, int top, const char *s, int flags)
     core_text_draw(bmp, CORE_FONT_MAIN, x, 64 - h - top, CORE_ALIGN_RIGHT | flags, s);
 }
 
-/* The title bar: the page (and LOCK's lane), the track and the page's place among the pages
- * shown (3/10); at the right the source, TRK or S and the seed (V6), after AUD while a take is
- * auditioned. The place is left out when the two sides would not fit. */
+/* the sprout, 7 x 7: two leaves on a stem, in the ground (the title bar and VIEW's footer) */
+static const char *const sprout[7] = {
+    "##...##",
+    "#.#.#.#",
+    ".##.##.",
+    "...#...",
+    "...#...",
+    ".#####.",
+    "#######",
+};
+
+/* The title bar: the sprout, then the page (and LOCK's lane), the track and the page's place
+ * among the pages shown (3/10); at the right the source, TRK or S and the seed (V6), after AUD
+ * while a take is auditioned. The place is left out when the two sides would not fit. */
+#define TITLE_X 13                              /* the sprout (2..8), a space, then the text */
 static void draw_title(void *bmp, uint8_t *p, const struct pg_ctx *c, int n)
 {
     char line[40], right[16], *o = line, *place;
     int i, at = 0, count = 0;
     box(p, 0, 0, 127, 9, 1);
+    for (i = 0; i < 7; i++)                     /* cut out of the bar, as the text is */
+        for (at = 0; at < 7; at++)
+            if (sprout[i][at] == '#')
+                undot(p, 2 + at, 1 + i);
+    at = 0;
     o = pg_put(o, pg_names[page]);
     if (page == PG_LOCK && dev->caps->lanes > 1) {
         *o++ = ' ';
@@ -564,24 +587,15 @@ static void draw_title(void *bmp, uint8_t *p, const struct pg_ctx *c, int n)
         o = pg_num(o, (int)c->r->seed);
     }
     *o = 0;
-    if (2 + core_text_width(CORE_FONT_MAIN, line) + 6 + core_text_width(CORE_FONT_MAIN, right) > 126)
+    if (TITLE_X + core_text_width(CORE_FONT_MAIN, line) + 6 + core_text_width(CORE_FONT_MAIN, right) > 126)
         *place = 0;
-    text_at(bmp, 2, 1, line, CORE_TEXT_INVERT);
+    text_at(bmp, TITLE_X, 1, line, CORE_TEXT_INVERT);
     text_right(bmp, 126, 1, right, CORE_TEXT_INVERT);
 }
 
-/* VIEW's footer, as 0.3's: the name at the left, with a small sprout drawn in pixels after it */
+/* VIEW's footer, as 0.3's: the name at the left, with the sprout after it */
 static void draw_footer(void *bmp, uint8_t *p)
 {
-    static const char *const sprout[7] = {   /* 7 wide: two leaves on a stem, in the ground */
-        "##...##",
-        "#.#.#.#",
-        ".##.##.",
-        "...#...",
-        "...#...",
-        ".#####.",
-        "#######",
-    };
     int w = core_text_width(CORE_FONT_MAIN, "Trig Seedr"), x = 2, r, k;
     box(p, 0, 47, 127, 47, 1);                  /* the divider */
     text_at(bmp, x, 52, "Trig Seedr", 0);
