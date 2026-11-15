@@ -182,8 +182,9 @@ static inline void prop_recipe(struct seed_recipe *r, struct prop_rng *g, int pc
 #define PROP_LANE1  0x0100u
 #define PROP_LANE2  0x0200u
 #define PROP_ORIGIN 0x0400u
-#define PROP_OTHER  0x0800u           /* a flag bit lib/ does not know, swing, length, the defaults */
-#define PROP_ALL    0x0fffu
+#define PROP_OTHER  0x0800u           /* swing, length, the defaults: no layer changes these */
+#define PROP_XFLAG  0x1000u           /* a flag bit lib/ does not know: it travels with its step */
+#define PROP_ALL    0x1fffu
 
 /* the fields that differ between a and b at any step below n (n 0: both lengths) */
 static inline unsigned prop_diff(const struct seed_track *a, const struct seed_track *b, int n)
@@ -199,7 +200,8 @@ static inline unsigned prop_diff(const struct seed_track *a, const struct seed_t
         const struct seed_step *x = &a->s[i], *y = &b->s[i];
         if ((x->flags ^ y->flags) & SEED_TRIG) d |= PROP_TRIG;
         if ((x->flags ^ y->flags) & (SEED_KNOWN & ~SEED_TRIG)) d |= PROP_FLAGS;
-        if ((x->flags ^ y->flags) & ~SEED_KNOWN) d |= PROP_OTHER;
+        if ((x->flags ^ y->flags) & SEED_SWING) d |= PROP_OTHER;
+        if ((x->flags ^ y->flags) & ~(SEED_KNOWN | SEED_SWING)) d |= PROP_XFLAG;
         if (x->vel != y->vel) d |= PROP_VEL;
         if (x->note != y->note) d |= PROP_NOTE;
         if (x->len != y->len) d |= PROP_LEN;
@@ -216,7 +218,8 @@ static inline unsigned prop_diff(const struct seed_track *a, const struct seed_t
 
 /* The fields a layer may change (I3, design section 4), when the source is not changed between
  * the two renders. RHYTHM and PLACE decide where steps are, so they may change everything a step
- * carries; the flags of DYNAMICS are the accent, those of TRIG the retrig. TIME's GVEL scales
+ * carries, unknown flag bits included (they move with their steps; swing stays with the position);
+ * the flags of DYNAMICS are the accent, those of TRIG the retrig. TIME's GVEL scales
  * velocity (the one shared field). FIELDS rotates one field: any of the value fields. */
 static inline unsigned prop_owned(enum seed_layer L)
 {

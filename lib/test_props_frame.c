@@ -25,6 +25,9 @@ static void test_diff(void)
     CHECK(prop_diff(&a, &b, 0) == (PROP_VEL | PROP_LANE2 | PROP_TRIG));
     b = a;
     b.s[0].flags ^= 0x0400u;                      /* a flag bit lib/ does not know */
+    CHECK(prop_diff(&a, &b, 0) == PROP_XFLAG);
+    b = a;
+    b.s[1].flags ^= SEED_SWING;                   /* swing: no layer may change it */
     CHECK(prop_diff(&a, &b, 0) == PROP_OTHER);
 }
 
