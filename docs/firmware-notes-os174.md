@@ -57,15 +57,30 @@ In the emulator the record of track t in live pattern p is at `0x407dd8e3 + 0x14
 | parameter lock set | 0x400c058c (track, step, sound index, value 8.8, fine flag) |
 | parameter lock clear | 0x400c05e2 (track, step, sound index) |
 | trig shift | 0x400c1d7a (track, ±1, −1): one step a call, wraps at the length, carries every field and the step's 88-byte lock record, swing bits stay |
+| sound lock set / clear | 0x400c0670 (track, step, value ≤ 128; voice tracks only, otherwise it stores 0xFF) / 0x400c070a (track, step); both send the step's change notice |
 | memcpy | 0x40098bc0 |
 
 Removing a trig through the stock routine leaves the SYN/SMP/ENV state bits on the step, as removing it by hand does.
+
+**The flag routine resets a step left without a trig.** 0x400c2482 ORs or clears any mask; then, whenever the step
+is left without the note trig (bit 0), it calls 0x400c0b18 (note, velocity, length to the default, micro timing 0,
+retrig 46 / 9 / 0), 0x400c0624 (every parameter lock of the step, through the pool's 0x400ac86e) and 0x400c070a (the
+sound lock to 0xFF). So a write sets the flags first, then the fields, then the locks (device/rytm_ar2.h,
+rt_seed_write_step). The lock set / clear routines do not touch the flag word; their length check lets step ==
+length through (`blt`), so the device layer never writes there.
 
 ## 4. Parameter locks
 
 - **Live store:** per track 5,674 bytes: per step 88 bytes = 44 int16 values by sound index (−1 = none), stored as value × 256; then a fine-flag byte per sound index at +5632.
 - **Stored rows:** the pattern's saved copy keeps locks in 72 rows of (type, track), 66 bytes each, behind the lock pool (track object +0x2c) at +0x20. Sound index → row type for voice tracks: table 0x401c5be4 (its inverse 0x401c5b4c). A new row is taken while used + cost ≤ 71 (cost 2 for a fine parameter); past that a new lock lives only until the next save, without a warning.
 - **Sample slot:** sound index 19, value slot × 256, 0 = OFF.
+- **Sound index → parameter, voice tracks** (the parameter records at 0x401bfb2c, 0x34 bytes each, +0x04 the
+  index): 1..8 LFO (MUL, WAV, MOD, DST, SPD, FAD, SPH, DEP); 9..16 the SYNTH page (per machine; 9 is LEV); 17..24
+  SAMPLE (TUN, FIN, SMP, BR, STA, END, LOP, LEV); 25..32 FILTER (ENV, ATK, DEC, SUS, REL, FRQ, RES, TYP); 33..41 AMP
+  (ATK, HLD, DEC, OVR, VOL, PAN, ACC, DEL, REV). Words 42 and 43 of a step's 88 bytes are not locks. The lanes'
+  parameter list is device/rytm_params.h (task 0.4).
+- Checked (task 0.4, tools/tests/11-device.sh): a step with three FLTR locks made by hand, moved one step through
+  the lock set / clear routines, keeps all three after SAVE PATTERN + RELOAD PATTERN and after a power cycle.
 - Checked: sample locks written through 0x400c058c survive SAVE PATTERN + RELOAD PATTERN (so their row is stored), play the locked slot's sample, and move with whole steps under the trig shift.
 
 ## 5. Other findings

@@ -376,7 +376,7 @@ emu_keep() { emu_keys F+YES; }
 # emu_dump [TRACK [LENGTH]]: the track in seedref's dump format (LENGTH: default the track's)
 emu_dump() { emu_py dump "$EMU_SNAP" "${1:-0}" "${2:-0}"; }
 # emu_cmp LINE [LENGTH [TRACK]]: a line of release 0.3's comparison format (tools/emucmp.py, as
-# 0.3's genref printed it): 1 trigs and velocities, 2 flag words, 3 µtimes, 4 sample locks, 5 the mark
+# 0.3's genref printed it; 03-save and 10-pages use it): 1 trigs and velocities, 2 flag words, 3 µtimes, 4 sample locks, 5 the mark
 emu_cmp() { python3 "$T/emucmp.py" "$DTPEEK" "$FW" "$EMU_SNAP" "${2:-16}" "${3:-0}" | sed -n "${1}p"; }
 
 # emu_shot NAME: the screen as build/emu/<test>/NAME.png

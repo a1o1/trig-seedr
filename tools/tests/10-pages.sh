@@ -70,11 +70,11 @@ differ "$(screen $W/k1.snap)" "$(screen $W/k2.snap)" "seedr's screen stays up an
 
 # 2. LEFT / RIGHT: with 0.2's layers every page is built: RIGHT visits ten different pages and
 #    wraps to TAKE; LEFT from TAKE is TOOLS
-prev=$W/k2.snap; seen=""
-for pg in 1 2 3 4 5 6 7 8 9 10; do        # (not i: run() sets i)
+prev=$W/k2.snap; seen=""; pg=0
+for name in take rhythm place dynamics note lock trig time view tools; do   # (not i: run() sets i)
+    pg=$((pg + 1)); png $prev seedr-$name
     key $prev $W/p$pg.snap RIGHT; seen="$seen $(screen $prev)"; prev=$W/p$pg.snap
 done
-png $W/p8.snap seedr-view
 same 10 "$(echo $seen | tr ' ' '\n' | sort -u | wc -l | tr -d ' ')" "RIGHT: ten different pages"
 same "$(screen $W/k2.snap)" "$(screen $W/p10.snap)" "RIGHT x10: back on TAKE"
 key $W/p10.snap $W/p4.snap LEFT

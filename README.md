@@ -1,67 +1,72 @@
 # trig-seedr
 
 [![License: GPL v2+](https://img.shields.io/badge/License-GPL%20v2%2B-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-v0.3.0-blue.svg)](https://github.com/a1o1/trig-seedr/releases)
+[![Version](https://img.shields.io/badge/Version-v0.4.0-blue.svg)](https://github.com/a1o1/trig-seedr/releases)
 [![Status](https://img.shields.io/badge/Status-emulator%20only-orange.svg)](#status)
 [![Device](https://img.shields.io/badge/Analog%20Rytm%20MKII-OS%201.74-black.svg)](docs/firmware-notes-os174.md)
 [![elekloader](https://img.shields.io/badge/elekloader-core--ar2%200.13-purple.svg)](https://github.com/elekloader/elekloader)
 [![Language](https://img.shields.io/badge/C99-freestanding%20ColdFire-informational.svg)](lib/)
-[![Tests](https://img.shields.io/badge/tests-200%20host%20%7C%2040%20emulator-brightgreen.svg)](tools/README.md)
+[![Tests](https://img.shields.io/badge/tests-10%2C979%20host%20%7C%2083%20emulator-brightgreen.svg)](tools/README.md)
 [![Emulator](https://img.shields.io/badge/tested%20in-analog--emu-lightgrey.svg)](https://github.com/trigcondition/analog-emu)
 [![Grooves](https://img.shields.io/badge/Grooves-Ableton%20.agr%20%7C%20MIDI-yellowgreen.svg)](#grooves)
 [![AI](https://img.shields.io/badge/AI-Claude%20Opus%205.5-purple.svg)](https://www.anthropic.com/claude)
 [![Website](https://img.shields.io/badge/Website-a1o1.github.io%2Ftrig--seedr-4d9bff.svg)](https://a1o1.github.io/trig-seedr/)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
 
-Pattern seeds for Elektron machines. trig-seedr is a set of offline pattern algorithms, as firmware mods. The first is for the Analog Rytm MKII (OS 1.74), as an [elekloader](https://github.com/elekloader/elekloader) mod; the Analog Four MKII and the Syntakt are planned next. On the Rytm it has a generator with an audition undo, Ableton grooves for micro timing and velocity, sample locks per trig, and rotation of a track or the whole pattern.
+Pattern seeds for Elektron machines. trig-seedr is a set of offline pattern algorithms, as firmware mods. The first is for the Analog Rytm MKII (OS 1.74), as an [elekloader](https://github.com/elekloader/elekloader) mod; the Analog Four MKII and the Syntakt are planned next. On the Rytm each track has a recipe: a source of trigs (the track's own, or generated), then pages that place them and set velocity, notes, two lanes of parameter locks, trig conditions, retrigs and a groove from Ableton Live, with an audition undo; and rotation of the whole pattern.
 
-<a id="status"></a>**Status: works in the emulator (analog-emu, 40 scripted checks), not yet run on a unit.** Flashing modified firmware is at your own risk; keep the stock OS and a way to reflash it (DIN MIDI) at hand.
+<a id="status"></a>**Status: version 0.4 works in the emulator (analog-emu, every scripted check passes); 0.3 and 0.4 have not yet been run on a unit.** Flashing modified firmware is at your own risk; keep the stock OS and a way to reflash it (DIN MIDI) at hand.
 
 trig-seedr is an independent project. It is not affiliated with or endorsed by Elektron or Ableton; their product names are used only to say what it works with. No firmware, and nothing derived from Ableton's content, is included: you build against your own copy of the stock OS, and generate groove tables from your own Live installation.
 
 ## What it does
 
-It is a third page behind the **TRIG** key: **TRIG** (stock's TRIG page), **TRIG** (EUCLIDEAN), **TRIG** (trig-seedr), **TRIG** again back to stock. **TRIG held + PAGE** opens it from anywhere. **PAGE** steps through its pages:
+It is a third page behind the **TRIG** key: **TRIG** (stock's TRIG page), **TRIG** (EUCLIDEAN), **TRIG** (trig-seedr), **TRIG** again back to stock. **TRIG held + PAGE** opens it from anywhere. **LEFT / RIGHT** step through its pages; **PAGE** and the TRIG keys stay stock's.
 
-| Page | What |
+| Page | What (0.4) |
 |---|---|
+| TAKE | SEED (the take number), VARY (how much of a take the next seed keeps), BEAT |
+| RHYTHM | SRC: TRACK (the trigs on the track) or RAND (GRID, DENS, BIAS towards strong or weak steps) |
+| PLACE | ROT (whole steps), SKIP (leave the first steps empty), FLD / FROT / FMOD (rotate one field against the trigs) |
+| DYNAMICS | VEL, SHAPE + AMT (velocity by position: STRONG, WEAK, OFF, NOT 1, NOTBAR, EVRY), ACC (accent flags), HUM |
+| NOTE | LEN, NOTE |
+| LOCK | two lanes of parameter locks, each on a parameter you choose (lane 1: the sample slot, lane 2: filter frequency): %, RNGE |
+| TRIG | trig conditions (X%, A:B, 1ST, FILL, mixed), retrigs (share, rate, velocity curve) |
+| TIME | a groove's micro timing and velocity (GRV, TIME, GVEL, QUANT, SHFT), random micro timing (RAND) |
 | VIEW | the track's steps and the fields of the step under the cursor (read only) |
-| GEN 1 | rhythm and notes: GRID, DENS, VEL, LEN, NOTE, UTIM (random micro timing), SEED, ROT |
-| GEN 2 | accents, trig conditions (X%, A:B, 1ST, FILL, mixed), retrigs (share, rate, velocity curve) |
-| GEN 3 | sample-slot locks: SMP% of the trigs get a slot from the SMPL range |
-| METER | the beat: BEAT (steps per beat), SKIP (leave the first steps empty), BIAS (trigs onto strong or weak steps), VSHP + VAMT (velocity by position: STRONG, WEAK, OFF, NOT 1, NOT BAR) |
-| GROOVE | a groove's micro timing and velocity on the track's trigs: TIME, VEL, QUANT, RAND, SHIFT |
-| ROTATE | moves whole steps (with their locks) or one field, on this track or every track |
+| TOOLS | ROTATE ALL: every track's whole steps, with their own YES |
 
-Screens, from the emulator (a generated BD take being auditioned):
+Screens, from the emulator:
 
 | | |
 |---|---|
-| ![VIEW](docs/screens/view.png) VIEW | ![GEN 1](docs/screens/gen1.png) GEN 1 |
-| ![GEN 2](docs/screens/gen2.png) GEN 2 | ![GEN 3](docs/screens/gen3.png) GEN 3 |
-| ![METER](docs/screens/meter.png) METER | ![GROOVE](docs/screens/groove.png) GROOVE |
-| ![ROTATE](docs/screens/rotate.png) ROTATE | |
+| ![TAKE](docs/screens/take.png) TAKE | ![RHYTHM](docs/screens/rhythm.png) RHYTHM |
+| ![PLACE](docs/screens/place.png) PLACE | ![DYNAMICS](docs/screens/dynamics.png) DYNAMICS |
+| ![NOTE](docs/screens/note.png) NOTE | ![LOCK](docs/screens/lock.png) LOCK |
+| ![TRIG](docs/screens/trig.png) TRIG | ![TIME](docs/screens/time.png) TIME |
+| ![VIEW](docs/screens/view.png) VIEW | ![TOOLS](docs/screens/tools.png) TOOLS |
 
-- **YES** applies. The first YES snapshots the track (or tracks); each YES after it starts again from that original, so you audition takes. YES with no knob turned since the last YES moves to the next seed.
-- **NO** goes back to the original; **FUNC + YES** keeps the take. Leaving the page, the track or the pattern keeps it too.
-- Ranges (VEL, LEN, NOTE, RATE, SMPL): a knob sets the high end, **FUNC** + knob the low end.
+- **One recipe per track.** A track with trigs starts on SRC = TRACK, an empty one on RAND. A page at 0 (or DEF) leaves its fields alone: SRC = TRACK with every page at 0 changes nothing.
+- **YES** renders the whole recipe from the original track. The first YES snapshots the track; each YES after it starts again from that original, so you audition takes. YES with no knob turned since the last YES moves to the next seed.
+- **NO** goes back to the original; **FUNC + YES** keeps the take. Leaving the track or the pattern keeps it too.
+- Ranges (VEL, LEN, NOTE, RNGE, CVAL, RATE): a knob sets the high end, **FUNC** + knob the low end.
 - Everything written is ordinary Rytm data: it plays, saves and reloads on a stock OS.
 
-Website: [a1o1.github.io/trig-seedr](https://a1o1.github.io/trig-seedr/). Details: [`docs/requirements.md`](docs/requirements.md). Firmware notes: [`docs/firmware-notes-os174.md`](docs/firmware-notes-os174.md).
+What changed from 0.3: [`docs/release-0.4.md`](docs/release-0.4.md). Website: [a1o1.github.io/trig-seedr](https://a1o1.github.io/trig-seedr/). Version 1's design and plan: [`docs/design-v1.md`](docs/design-v1.md), [`docs/plan-v1.md`](docs/plan-v1.md). Firmware notes: [`docs/firmware-notes-os174.md`](docs/firmware-notes-os174.md).
 
 ## Layout
 
 | Path | What |
 |---|---|
-| `lib/` | the algorithms (`gen.c`: GENERATOR, ROTATE; `groove.c`: GROOVE), portable C with no device code and no C library; host tests |
-| `device/rytm_ar2.h` | the OS 1.74 device layer: read a track, write it through the stock step and lock routines, snapshot / restore |
-| `mods/seedr-ar2/` | the elekloader mod (`seedr.c`, `mod.json`) and its groove tables |
-| `tools/` | groove conversion (`groove2h.py`), emulator test (`test_seedr.sh`) and helpers, firmware study scripts |
-| `docs/` | requirements and firmware notes |
+| `lib/` | the engine: `seed.h` (the contract), `seed_render.c` (the chain), `seed_rng.c` (seeds, keys, VARY) and a module per layer; portable C99 with no device code and no C library; host tests |
+| `device/` | the OS 1.74 device layer (`rytm_ar2.h`): capabilities, read any track, write with whole-step moves through the stock step and lock routines, the lock-row check, snapshot / restore; its host tests |
+| `mods/seedr-ar2/` | the elekloader mod (`seedr.c`: keys, audition, drawing; `pages.c`: every page's knobs; `mod.json`) and its groove tables |
+| `tools/` | the test harness (`run_tests.sh`, `tests/`, `emu.sh`, `seedref.c`), the release build, groove conversion (`groove2h.py`), firmware study scripts |
+| `docs/` | the version 1 design and plan, task status (`status/`), the development environment, requirements and firmware notes |
 
 ## Building and testing
 
-Expected next to this repository (or set `WORKSPACE`):
+Expected next to this repository (or set `WORKSPACE`), as [`docs/dev-environment.md`](docs/dev-environment.md) describes for the Mac and the Linux shell:
 
 - `elekloader/` ([elekloader/elekloader](https://github.com/elekloader/elekloader)) — the mod loader and the Rytm core (core-ar2 0.13).
 - `analog-emu/` ([trigcondition/analog-emu](https://github.com/trigcondition/analog-emu)) — the whole-device emulator, built (`cargo build --release`).
@@ -69,20 +74,21 @@ Expected next to this repository (or set `WORKSPACE`):
 - An m68k-elf cross compiler (binutils + gcc, C only), `ELEKLOADER_CROSS=m68k-elf-`.
 
 ```sh
-make -C lib test coldfire                 # host tests (sanitizers) and a ColdFire build check
+sh tools/doctor.sh                        # the environment
+make -C lib test coldfire                 # the engine: host tests (sanitizers) and a ColdFire build check
+sh tools/run_tests.sh                     # every check: host, then the emulator (00..11; NAME... for some)
+sh tools/build_release.sh                 # the firmware to flash: build/trig-seedr-0.4-os1.74.syx (docs/flashing.md)
 python3 tools/test_groove2h.py PATH/TO/Live/Core\ Library/Grooves   # the .agr / MIDI reader
-sh tools/test_seedr.sh                    # build, patch the OS, run the emulator checks (PART=1..7: one part)
-sh tools/build_release.sh                 # the firmware to flash: build/trig-seedr-0.3-os1.74.syx (docs/flashing.md)
 ```
 
-`test_seedr.sh` writes `build/seedr.syx` (the patched OS). It contains Elektron's firmware: keep it to yourself.
+The harness writes `build/emu/seedr.syx` (the patched OS). It contains Elektron's firmware: keep it to yourself.
 
 To try it by hand, in the emulator's window:
 
 ```sh
 cd ../analog-emu
 ./target/release/dtcard play.img format
-./target/release/rytm ../trig-seedr/build/seedr.syx --card play.img --snapshot play.snap
+./target/release/rytm ../trig-seedr/build/emu/seedr.syx --card play.img --snapshot play.snap
 ```
 
 A new card first shows FILE SYSTEM OK; close it with NO. Delete the `.snap` after a rebuild.

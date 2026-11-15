@@ -14,7 +14,7 @@ pipx install commitizen                  # optional: `cz commit`, `cz bump`, `cz
 
 ```sh
 make -C lib test coldfire                # host tests (sanitizers) and the ColdFire build check
-sh tools/test_seedr.sh                   # the emulator checks, for changes to the mod or the device layer
+sh tools/run_tests.sh                    # every check, host and emulator (docs/dev-environment.md for the variables)
 ```
 
 Never commit Elektron's firmware or anything built from it (`build/`, `*.syx`, emulator snapshots and card images),
@@ -45,22 +45,19 @@ Every commit message follows [Conventional Commits](https://www.conventionalcomm
 
 | Scope | What |
 |---|---|
-| `lib` | the version 1 engine: `lib/seed.h` and the modules in `lib/` |
-| `gen` | GENERATOR in `lib/gen.c` |
-| `rotate` | ROTATE (`lib/gen.c`, the ROTATE page) |
-| `groove` | GROOVE (`lib/groove.c`, the GROOVE page) |
-| `seedr` | the mod in general: keys, pages, audition, drawing |
+| `lib` | the version 1 engine: `lib/seed.h` and the modules in `lib/` (a workstream may use its layer instead: `sync`, `map`, …) |
+| `seedr` | the mod in general: keys, pages (`pages.c`), audition, drawing |
 | `device` | `device/rytm_ar2.h`, the OS 1.74 layer |
 | `groove2h` | the groove table tool |
 | `tools` | other scripts in `tools/` |
-| `test` | `tools/test_seedr.sh`, `genref`, `emucmp`, host tests |
+| `test` | `tools/run_tests.sh`, `tools/tests/`, `emu.sh`, `seedref`, host tests |
 | `docs` | README, `docs/` |
 | `build` | Makefiles, `mod.json`, `.gitignore` |
 
 Examples:
 
 ```
-feat(rotate): add the PAGE scope
+feat(seedr): add the TOOLS page
 fix(device): clear a sample lock through stock's clear routine
 docs(readme): add screenshots of the pages
 test(seedr): check the lock-row refusal with a test build

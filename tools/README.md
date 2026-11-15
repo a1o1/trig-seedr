@@ -2,60 +2,58 @@
 
 ## Tests
 
-    sh tools/test_seedr.sh            # all parts; PART=1..8 runs one (each under 3 minutes)
-    sh tools/build_release.sh         # the firmware to flash (docs/flashing.md)
-
-Builds core-ar2 and the seedr mod, patches the stock OS 1.74 (`build/seedr.syx`, version GR01) and drives analog-emu's
-`dtboot` through the Rytm's own keys and knobs. After each stage `emucmp.py` reads the A01 BD track (trig, velocity,
-flag words, µtime, sample locks, the modified mark) and compares it with `genref` (the host build of `lib/gen.c` and
-`lib/groove.c` with the same settings).
-
-| Part | Checks |
-|---|---|
-| 1 | build; boot empty; YES seed 1; seed 2 from the original; NO; FUNC + YES; closing keeps; a take equals a fresh generate |
-| 2 | GROOVE µtime; NO; a GEN take grooved, NO undoes only the groove; velocity from a groove (needs `grooves-live.h`); regenerate rule |
-| 3 | SAVE / RELOAD PATTERN; power cycle; the project's modified mark |
-| 4 | GEN 3 sample locks; NO removes them; they survive SAVE + RELOAD PATTERN |
-| 5 | ROTATE whole steps, one field, every track (SD moves too), NO; whole steps carry sample locks |
-| 6 | a test build with no lock rows left: GEN 3 refuses and writes nothing |
-| 8 | METER: SKIP 2, BIAS −40 %, NOT 1 at 100 % against genref; NO |
-| 7 | the keys: TRIG on EUCLIDEAN opens seedr, TRIG goes back to stock's TRIG page, then EUCLIDEAN, seedr again; SRC closes it |
-
-Parts 2–5 and 8 resume from part 1's (and 5 from part 4's) emulator snapshots.
-
-`test_groove2h.py GROOVE_DIR` writes five of Live's plain `.agr` grooves out as MIDI files (format 0 and 1) and checks
-`groove2h.py` gives the same tables from both (±1: MIDI holds whole ticks and velocities).
-
-## The test harness (version 1, task 0.5)
-
     sh tools/doctor.sh [--host]      the environment (docs/dev-environment.md section 7); no emulator
-    sh tools/run_tests.sh [NAME...]  every tools/tests/NN-*.sh, or those whose name contains NAME
+    sh tools/run_tests.sh [NAME...]  every tools/tests/NN-*.sh, or those whose name contains NAME (about 9 minutes)
     sh tools/golden.sh [--write]     the golden vectors in lib/golden/
+    sh tools/build_release.sh        the firmware to flash (docs/flashing.md)
+
+`run_tests.sh` builds core-ar2 and the seedr mod, patches the stock OS 1.74 (`build/emu/seedr.syx`, version GR01) and
+drives analog-emu's `dtboot` through the Rytm's own keys and knobs. Each check reads A01 BD from the emulator
+snapshot (`emu.py dump`: trig, flags, note, velocity, length, µtime, condition, retrig, the sample-slot lock) and
+compares it with `seedref`, the host build of the same chain with the same recipe.
 
 Each test file writes only under this checkout's `build/emu/<name>/` (card, snapshots, screens, `actions.log`);
-core-ar2 and the mod are built into `build/emu/` too. Nothing goes into `analog-emu/` or `elekloader/`, so suites
-in two worktrees run side by side. `WORKSPACE` is found from a worktree's path; set it for a checkout elsewhere.
+core-ar2 and the mod are built into `build/emu/` too (core-ar2 with `-std=gnu17` when the cross compiler is gcc 15 or
+later). Nothing goes into `analog-emu/` or `elekloader/`, so suites in two worktrees run side by side. `WORKSPACE` is
+found from a worktree's path; set it for a checkout elsewhere.
+
+| File | Checks |
+|---|---|
+| `00-host` | no emulator: `make test` and `coldfire` for `lib/` and `device/`, the page-table tests, the recipe layout on the host and on ColdFire, `--fields`, identity, the golden vectors |
+| `01-generate` | boot empty; the new recipe is RANDOM (V6); YES seed 1; seed 2 from the original; NO; FUNC + YES; closing keeps |
+| `02-groove` | TIME GRV on a RANDOM take; NO; SOURCE = TRACK with a groove on the kept take; GVEL (needs `grooves-live.h`); the regenerate rule |
+| `03-save` | SAVE / RELOAD PATTERN; power cycle; the project's modified mark |
+| `04-smplocks` | LOCK lane 1 (sample slot) locks; NO removes them; they survive SAVE + RELOAD PATTERN |
+| `05-rotate` | SOURCE = TRACK with PLACE ROT, FLD VEL by trig, TOOLS' ROTATE ALL (SD moves too), NO; whole steps carry sample locks |
+| `06-norows` | a test build with no lock rows left: a take with locks is refused and writes nothing (I8) |
+| `07-keys` | TRIG on EUCLIDEAN opens seedr, TRIG goes back to stock's TRIG page, then EUCLIDEAN, seedr again; SRC closes it |
+| `08-meter` | SKIP 2, BIAS −40 %, SHAPE NOT 1 at 100 %; NO |
+| `09-inject` | a whole recipe written into the mod's store with `dtboot --poke` |
+| `10-pages` | stock PAGE and TRIG keys while seedr is open (V10); LEFT / RIGHT over the ten pages; VIEW's cursor; SOURCE = TRACK identity on the record and the lock store (I1); the TRIG cycle; ROTATE ALL; a source not built refuses; a screenshot of every page |
+| `11-device` | the device layer through a test mod (`11-device.c`): a step with three locks moved, saved, reloaded, power-cycled (I9); restore (I7); a lock with no room refused (I8) |
+
+`01` leaves the fixture `kept2` (seed 2 kept) that `02`, `03`, `05`, `07` and `08` start from; `04` leaves `smp3` for `05`.
 
 | File | What |
 |---|---|
-| `emu.sh` | sourced by the tests: `emu_build [VARIANT CFLAGS]`, `emu_boot`, `emu_open`, `emu_page NAME`, `emu_knob PAGE KNOB VALUE` (turns until the mod's value is VALUE), `emu_keys`, `emu_yes` / `emu_no` / `emu_keep`, `emu_poke` and `emu_recipe` (settings written with `dtboot --poke`), `emu_dump`, `emu_check`, `emu_fixture` (a shared state made once per build) |
+| `emu.sh` | sourced by the tests: `emu_build [VARIANT CFLAGS]`, `emu_boot`, `emu_open`, `emu_page NAME`, `emu_knob PAGE LETTER:KEY VALUE` (turns until the mod's value is VALUE), `emu_keys`, `emu_yes` / `emu_no` / `emu_keep`, `emu_poke` and `emu_recipe` (settings written with `dtboot --poke`), `emu_dump`, `emu_check`, `emu_fixture` (a shared state made once per build) |
 | `emu.py` | symbols from the patched OS's `.map.json`, memory, pokes, the track dump, struct layouts from the cross compiler |
-| `seedref.c` | the version 1 chain on the host: `seedref KEY=VALUE...` (every `struct seed_recipe` field by name; `orig=FILE` an original track as a dump) prints the take in `emu.py dump`'s format; `--keys`, `--fields`, `--layout` |
+| `seedref.c` | the version 1 chain on the host, with the Rytm's capabilities (`device/rytm_params.h`) and the mod's grooves: `seedref KEY=VALUE...` (every `struct seed_recipe` field by name; `orig=FILE` an original track as a dump) prints the take in `emu.py dump`'s format; `--keys`, `--fields`, `--recipe`, `--layout` |
 | `golden.sh` | `lib/golden/recipes.txt` through seedref against `lib/golden/NAME.txt` |
-| `tests/00-host.sh` | no emulator: the recipe layout on the host and on ColdFire, `--fields`, identity, the golden vectors |
-| `tests/01..08` | release 0.3's emulator checks (`test_seedr.sh` parts 1..8) on the harness; `09-inject` writes settings by poke |
+| `tests/fixtures.sh` | the shared fixtures and `check_take LABEL SEEDREF-ARGS` |
 
-The mod's state (page, open, knob values) is read from the snapshot by symbol, so navigation and knob settings
-are checked, not timed. A profile in `emu.sh` says what the harness knows of a build: `r03` (release 0.3's
-`seedr.c`) or `v1` (the version 1 pages, `docs/status/0.5.md`).
+The mod's state (page, open, knob values, the recipe store `recipe[]` and `recipe_set`) is read from the snapshot by
+symbol, so navigation and knob settings are checked, not timed.
+
+`test_groove2h.py GROOVE_DIR` writes five of Live's plain `.agr` grooves out as MIDI files (format 0 and 1) and checks
+`groove2h.py` gives the same tables from both (±1: MIDI holds whole ticks and velocities).
 
 ## Helpers
 
 | Script | What |
 |---|---|
 | `groove2h.py` | `.agr` / `.mid` → groove tables (`--dump FILE` shows what it read) |
-| `genref.c` | host reference: `genref SEED [LEN [GROOVE TIME VEL QUANT RAND SHIFT GSEED [DENS SMP LO HI [ROT]]]]`; `GENREF_ROT="K WHAT MODE"` rotates afterwards |
-| `emucmp.py` | one track of an emulator snapshot in genref's format |
+| `emucmp.py` | one track of an emulator snapshot in release 0.3's comparison format (trig and velocity line, flag words, µtime, sample locks, the modified mark) |
 | `presses.py` | menu key sequences → `dtboot --press` arguments |
 | `fb2png.py` | an emulator screen (`dtpeek SNAP fb`) → PNG |
 | `voice.py`, `onsets.py` | one channel of `dtboot --usb-wav` (2 = BD), and its hits |

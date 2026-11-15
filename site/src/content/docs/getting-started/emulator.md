@@ -8,7 +8,7 @@ analog-emu runs the Rytm's OS in a window with its panel, so you can play with T
 ```sh
 cd ../analog-emu
 ./target/release/dtcard play.img format
-./target/release/rytm ../trig-seedr/build/seedr.syx --card play.img --snapshot play.snap
+./target/release/rytm ../trig-seedr/build/emu/seedr.syx --card play.img --snapshot play.snap
 ```
 
 - A new card first shows **FILE SYSTEM OK, PRESS Y/N TO CLOSE**; every other key is ignored until you close it with NO.
@@ -17,4 +17,4 @@ cd ../analog-emu
 
 ## Samples
 
-An emulator card has no factory samples. Add WAVs with `dtcard play.img add *.wav`, then on the Rytm: GLOBAL → SAMPLES → incoming → RIGHT → SELECT ALL → RIGHT → LOAD TO PROJ → YES. They land in the project's sample slots, ready for GEN 3's sample locks.
+An emulator card has no factory samples. Add WAVs with `dtcard play.img add *.wav`, then on the Rytm: GLOBAL → SAMPLES → incoming → RIGHT → SELECT ALL → RIGHT → LOAD TO PROJ → YES. They land in the project's sample slots, ready for the LOCK page's sample-slot lane.
