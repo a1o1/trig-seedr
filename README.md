@@ -121,6 +121,7 @@ trig-seedr builds on, and learned from, these open source projects:
 | [digikit](https://github.com/ElekLabs/digikit) | AGPL-3.0 | Digitakt II / Digitone II firmware research |
 | [modwerk](https://github.com/repeat98/modwerk) | mixed (Elastic-2.0 and others) | firmware modding research |
 | [Capstone](https://www.capstone-engine.org/), [Unicorn](https://www.unicorn-engine.org/) | BSD-3 / GPL-2.0 | disassembly and function-level emulation in `tools/` |
+| [Mutable Instruments' Eurorack modules](https://github.com/pichenettes/eurorack): Grids by Emilie Gillet | GPL-3.0-or-later | the MAP source: its map of drum patterns is Grids' (`lib/map_data.c`, copied with its licence notice), and X / Y, DENS and CHAOS follow Grids' code; `tools/tests/23-map.sh` compares the two |
 
 Methods taken from research:
 
@@ -129,7 +130,8 @@ Methods taken from research:
 | Clarence Barlow, "Two Essays on Theory", *Computer Music Journal* 11(1), 1987 | indispensability: the rank of each step in a meter (BIAS, ROLE, SHAPE = RANK, AMOD = TOP), and the basic orders for the primes 2 to 13 |
 | [hmt](https://gitlab.com/rd--/hmt) by Rohan Drape, `Music.Theory.Meter.Barlow_1987` (GPL-3.0) | the reference trig-seedr's ranks were checked against: Barlow's formula as code, and its tables of values |
 
-No code from the projects under other licences is included; each is credited for what it documented or made possible.
+Apart from Grids' map data in `lib/map_data.c`, no code or data from the projects under other licences is included;
+each is credited for what it documented or made possible.
 
 ## Contributing
 
@@ -138,3 +140,7 @@ Commit messages follow Conventional Commits; scopes, checks and the commit hook:
 ## License
 
 GPL-2.0-or-later (see `LICENSE`), as elekloader.
+
+`lib/map_data.c`, the MAP source's data, is GPL-3.0-or-later, as the project it comes from. A build that includes
+it, as the mod does (`mods/seedr-ar2/mod.json`), is therefore GPL-3.0-or-later; the rest of the repository stays
+GPL-2.0-or-later.
