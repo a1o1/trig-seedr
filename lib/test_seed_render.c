@@ -70,37 +70,38 @@ static void test_identity(void)
     }
 }
 
-/* the knobs that make each layer active; the stubs then refuse (SEED_E_NA) */
+/* the knobs that make each layer active; a layer whose flag is 0 then refuses (SEED_E_NA), one
+ * whose flag is 1 renders */
 static void test_not_available(void)
 {
     struct seed_track orig, out;
     struct seed_recipe r;
     struct seed_ctx c = ctx(0);
-    int i;
+    int i, have = 0;
     sample(&orig, 16);
     for (i = 0; i < 18; i++) {
         seed_recipe_defaults(&r, NULL);
         switch (i) {
-        case 0: r.src = SEED_SRC_RANDOM; break;
-        case 1: r.src = SEED_SRC_EUCLID; break;
-        case 2: r.src = SEED_SRC_MAP; break;
-        case 3: r.src = SEED_SRC_COPY; break;
-        case 4: r.rot = 1; break;
-        case 5: r.sync = 10; break;
-        case 6: r.mask = SEED_MASK_AVOID; break;
-        case 7: r.skip = 2; break;
-        case 8: r.vel.lo = r.vel.hi = 90; break;
-        case 9: r.note.lo = r.note.hi = 2; break;
-        case 10: r.lane[1].pct = 50; break;
-        case 11: r.cond = 20; break;
-        case 12: r.rand = 30; break;
-        case 13: r.fld = SEED_FLD_VEL; r.frot = 1; break;
-        case 14: r.phrs = SEED_PHRS_AAAB; break;
-        case 15: r.cvar = SEED_CVAR_1_2; break;
-        case 16: r.qual = 4; break;
-        case 17: r.acc = 10; break;
+        case 0: r.src = SEED_SRC_RANDOM; have = seed_have_random; break;
+        case 1: r.src = SEED_SRC_EUCLID; have = seed_have_euclid; break;
+        case 2: r.src = SEED_SRC_MAP; have = seed_have_map; break;
+        case 3: r.src = SEED_SRC_COPY; have = seed_have_copy; break;
+        case 4: r.rot = 1; have = seed_have_place; break;
+        case 5: r.sync = 10; have = seed_have_sync; break;
+        case 6: r.mask = SEED_MASK_AVOID; have = seed_have_mask; break;
+        case 7: r.skip = 2; have = seed_have_place; break;
+        case 8: r.vel.lo = r.vel.hi = 90; have = seed_have_dyn; break;
+        case 9: r.note.lo = r.note.hi = 2; have = seed_have_values; break;
+        case 10: r.lane[1].pct = 50; have = seed_have_values; break;
+        case 11: r.cond = 20; have = seed_have_trig; break;
+        case 12: r.rand = 30; have = seed_have_timing; break;
+        case 13: r.fld = SEED_FLD_VEL; r.frot = 1; have = seed_have_place; break;
+        case 14: r.phrs = SEED_PHRS_AAAB; have = seed_have_vary; break;
+        case 15: r.cvar = SEED_CVAR_1_2; have = seed_have_vary; break;
+        case 16: r.qual = 4; have = seed_have_score; break;
+        case 17: r.acc = 10; have = seed_have_dyn; break;
         }
-        CHECK(seed_render(&out, &orig, &r, &c, &work) == SEED_E_NA);
+        CHECK(seed_render(&out, &orig, &r, &c, &work) == (have ? SEED_OK : SEED_E_NA));
     }
     seed_recipe_defaults(&r, NULL);
     r.src = 77;
