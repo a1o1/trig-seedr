@@ -24,25 +24,6 @@ K_PL1=0 K_LEN=2 K_EUC=3
 
 byte() { emu_py peek "$EMU_SNAP" "$1" 1; }
 
-# sknob ENCODER ADDRESS VALUE: turns a stock knob until the record's byte is VALUE. dtboot's
-# --nudge wakes a sleeping knob with two 8-count turns, which on 1.74 moves a stock value by 2 (a
-# step of 1 then cannot be made), so the turns are raw encoder counts, a UI frame (10M) apart:
-# one 8-count turn wakes the knob and its next 4 counts are taken with it, then each 4 counts is
-# one step (measured in the emulator: N + 1 turns of 4 after the 8 move exactly N). The byte is
-# read back and turned again if needed, as emu_knob does.
-sknob() {
-    _sk_tries=0
-    while :; do
-        _sk_cur=$(byte "$2")
-        [ "$_sk_cur" = "$3" ] && return 0
-        _sk_tries=$((_sk_tries + 1))
-        [ $_sk_tries -gt 4 ] && emu_die "stock knob $1: $_sk_cur, wanted $3"
-        _sk_d=$(($3 - _sk_cur)) _sk_s=1
-        [ $_sk_d -lt 0 ] && _sk_s=-1 _sk_d=$((-_sk_d))
-        emu_run -s 300M --turn "$1:$((8 * _sk_s))@+600M" --turn "$1:$((4 * _sk_s))@+610Mx$((_sk_d + 1))/10M"
-    done
-}
-
 # stock_pattern: the first LEN steps of stock's Euclidean table as seedref's trig line
 stock_pattern() {
     # shellcheck disable=SC2046
@@ -57,8 +38,8 @@ euclid_trigs() { seedref src=euclid eu_steps="$1" eu_puls="$2" length="$1" | gre
 
 # check_stock LEN PL1: stock set to it, its pattern against seedref's
 check_stock() {
-    sknob $K_LEN "$LEN" "$1"
-    sknob $K_PL1 "$PL1" "$2"
+    emu_sknob $K_LEN "$LEN" "$1"
+    emu_sknob $K_PL1 "$PL1" "$2"
     emu_check "stock LEN $1, PL1 $2 = EUCLID STEPS $1, PULS $2" "$(euclid_trigs "$1" "$2")" "$(stock_pattern)"
 }
 
@@ -66,7 +47,7 @@ check_stock() {
 emu_boot
 emu_keys TRIG TRIG
 emu_check "TRIG, TRIG: stock's EUCLIDEAN page" 1 "$(emu_py trigpage "$MAP" "$EMU_SNAP")"
-sknob $K_EUC "$EUC" 1
+emu_sknob $K_EUC "$EUC" 1
 emu_check "EUC on; PL2 0, the track's flag words without trigs" "0 0" "$(byte "$PL2") $(emu_dump | grep -c '^trig.*x')"
 emu_shot stock-euclidean
 for p in 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16; do
@@ -80,7 +61,7 @@ emu_shot stock-13-5
 STOCK13=$(stock_pattern)
 
 # ---- 2. seedr's EUCLID on the same track, stock's Euclidean mode off ----
-sknob $K_EUC "$EUC" 0
+emu_sknob $K_EUC "$EUC" 0
 emu_check "EUC off: LEN stays 13, no trigs on the track" "13 0" "$(byte "$LEN") $(emu_dump | grep -c '^trig.*x')"
 emu_open
 emu_page RHYTHM
@@ -98,10 +79,10 @@ emu_check "kept and closed: EUC still off" "0 0" "$(emu_get open) $(byte "$EUC")
 # the same at 64 steps: stock's pattern, then seedr's (BD's recipe is still EUCLID)
 emu_keys TRIG TRIG
 emu_check "TRIG, TRIG: stock's EUCLIDEAN page again" 1 "$(emu_py trigpage "$MAP" "$EMU_SNAP")"
-sknob $K_EUC "$EUC" 1
+emu_sknob $K_EUC "$EUC" 1
 check_stock 64 23
 STOCK64=$(stock_pattern)
-sknob $K_EUC "$EUC" 0
+emu_sknob $K_EUC "$EUC" 0
 emu_open
 emu_page RHYTHM
 emu_knob RHYTHM B:eu_steps 64

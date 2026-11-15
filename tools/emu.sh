@@ -367,6 +367,25 @@ emu_knob() {
     done
 }
 
+# emu_sknob ENCODER ADDRESS VALUE: turns a stock knob (0..7 = A..H, on the page stock shows) until
+# the byte at ADDRESS is VALUE. --nudge wakes a sleeping knob with two 8-count turns, which on 1.74
+# moves a stock value by 2 (a step of 1 then cannot be made), so the turns are raw encoder counts,
+# a UI frame (10M) apart: one 8-count turn wakes the knob and its next 4 counts are taken with it,
+# then each 4 counts is one step (measured in the emulator, task F2: N + 1 turns of 4 after the 8
+# move exactly N). The byte is read back and turned again if needed, as emu_knob does.
+emu_sknob() {
+    _sknob_tries=0
+    while :; do
+        _sknob_cur=$(emu_py peek "$EMU_SNAP" "$2" 1)
+        [ "$_sknob_cur" = "$3" ] && return 0
+        _sknob_tries=$((_sknob_tries + 1))
+        [ $_sknob_tries -gt 4 ] && emu_die "stock knob $1: $_sknob_cur, wanted $3"
+        _sknob_d=$(($3 - _sknob_cur)) _sknob_s=1
+        [ $_sknob_d -lt 0 ] && _sknob_s=-1 _sknob_d=$((-_sknob_d))
+        emu_run -s 300M --turn "$1:$((8 * _sknob_s))@+600M" --turn "$1:$((4 * _sknob_s))@+610Mx$((_sknob_d + 1))/10M"
+    done
+}
+
 emu_yes() { emu_keys YES; }
 emu_no() { emu_keys NO; }
 emu_keep() { emu_keys F+YES; }
