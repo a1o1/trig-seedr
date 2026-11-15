@@ -2,7 +2,7 @@
 # seedr (trig-seedr) in analog-emu: open, GEN 1, YES (seed 1), seed 2 + YES, NO (revert), YES, FUNC + YES
 # (keep), NO (close). After each stage the A01 BD track is compared with genref.
 # Needs ../elekloader, ../analog-emu (built), the stock OS in "../Official Firmwares/..." and the m68k-elf
-# toolchain (README.md). Run from the repository: sh tools/test_seedr.sh   (PART=1..6: one part)
+# toolchain (README.md). Run from the repository: sh tools/test_seedr.sh   (PART=1..8: one part)
 set -e
 R=$(cd "$(dirname "$0")/.." && pwd)                 # this repository
 E=${WORKSPACE:-$(cd "$R/.." && pwd)}                  # the folder holding elekloader/ and analog-emu/
@@ -10,7 +10,7 @@ T=$R/tools; W=$R/build; mkdir -p $W
 STOCK=${STOCK:-"$E/Official Firmwares/Analog-Rytm_MKII_OS1.74_dist/Analog-Rytm_MKII_OS1.74.syx"}
 B=${B:-$CARGO_TARGET_DIR/release}; FW=$W/seedr.syx
 # Opening seedr: TRIG held + PAGE (the shortcut, whatever stock shows); part 7 checks the TRIG cycle
-P=${PART:-all}   # PART=1: build + generate/audition; 2: GROOVE, regenerate; 3: save paths; 4: sample locks; 5: ROTATE (2..5 resume from 1's snapshots);
+P=${PART:-all}   # PART=1: build + generate/audition; 2: GROOVE, regenerate; 3: save paths; 4: sample locks; 5: ROTATE; 8: METER (2..8 resume from 1's snapshots);
 #                6: the lock-row refusal (its own test build, RT_ROWS_MAX 0)
 part() { [ "$P" = all ] || [ "$P" = "$1" ]; }
 cc -std=c99 -O2 -Wall $T/genref.c $R/lib/gen.c $R/lib/groove.c -o $T/genref
@@ -97,13 +97,13 @@ fi
 if part 2; then
 # ---- GROOVE (gr5: seed 2 kept, page closed on GEN 1; clock 10.4 G). grooves[1] = MPC 16 57 (Live's Swing MPC 3000 16ths 57): odd steps late
 run gr5.snap gv1.snap --instr 1.8G --press TRIG@10.50G:0.4G --press PAGE@10.65G --press PAGE@11.0G --press PAGE@11.15G --press PAGE@11.3G \
-    --nudge 0:1@11.5G --press YES@11.8G
+    --press PAGE@11.45G --nudge 0:1@11.6G --press YES@11.9G
 DTEMU_FW=$FW $B/dtpeek gv1.snap fb | python3 $T/fb2png.py $W/seedr-groove.png 4 > /dev/null
 check "GROOVE: MPC 16 57 on seed 2" gv1.snap "$($T/genref 2 16 1 100 0 0 0 0 1)"
 run gv1.snap gv2.snap --instr 0.4G --press NO@12.3G
 check "groove NO: seed 2, µtime 0" gv2.snap "$($T/genref 2 16 0 0 0 0 0 0 1)"
 run gv2.snap gv3.snap --instr 2.0G --press PAGE@12.7G --press PAGE@12.85G --press PAGE@13.0G --nudge 6:-1@13.2G --press YES@13.5G \
-    --press PAGE@13.8G --press PAGE@13.95G --press PAGE@14.1G --press YES@14.3G
+    --press PAGE@13.8G --press PAGE@13.95G --press PAGE@14.1G --press PAGE@14.25G --press YES@14.45G
 check "GEN seed 1, then GROOVE    " gv3.snap "$($T/genref 1 16 1 100 0 0 0 0 1)"
 run gv3.snap gv4.snap --instr 0.4G --press NO@14.7G
 check "groove NO: the GEN take kept" gv4.snap "$($T/genref 1 16 0 0 0 0 0 0 1)"
@@ -141,9 +141,9 @@ run sl3.snap sl4.snap --instr 1.6G --press YES@15.3G:0.4G --press SCNE@15.45G --
 check "smp SAVE + RELOAD PATTERN" sl4.snap "$($T/genref 3 16 0 0 0 0 0 0 1 50 100 1 8)"
 fi
 if part 5; then
-# ROTATE (gr5: seed 2 kept, page GEN 1, closed; clock 10.4 G). PAGE x4: GEN 2, GEN 3, GROOVE, ROTATE
+# ROTATE (gr5: seed 2 kept, page GEN 1, closed; clock 10.4 G). PAGE x5: GEN 2, GEN 3, METER, GROOVE, ROTATE
 run gr5.snap rt1.snap --instr 2.0G --press TRIG@10.50G:0.4G --press PAGE@10.65G --press PAGE@11.0G --press PAGE@11.15G \
-    --press PAGE@11.3G --press PAGE@11.45G --nudge 0:1@11.7G --nudge 0:1@11.8G --press YES@12.2G
+    --press PAGE@11.3G --press PAGE@11.45G --press PAGE@11.6G --nudge 0:1@11.85G --nudge 0:1@11.95G --press YES@12.3G
 DTEMU_FW=$FW $B/dtpeek rt1.snap fb | python3 $T/fb2png.py $W/seedr-rotate.png 4 > /dev/null
 check "ROTATE +3, whole steps  " rt1.snap "$($T/genref 2 16 0 0 0 0 0 0 1 50 0 1 8 3)"
 run rt1.snap rt2.snap --instr 0.4G --press NO@12.5G
@@ -161,7 +161,7 @@ if [ "$(sd rt5.snap)" = "$(sd gr5.snap)" ]; then echo "PASS rotate ALL NO: SD ba
 check "rotate ALL NO: BD back  " rt5.snap "$($T/genref 2)"
 # whole steps carry their locks: part 4's kept take with sample locks (sl4, page GEN 3, clock 16.8 G), +1
 if [ -f sl4.snap ]; then
-run sl4.snap rt6.snap --instr 1.2G --press TRIG@16.90G:0.4G --press PAGE@17.05G --press PAGE@17.4G --press PAGE@17.55G --press YES@17.8G
+run sl4.snap rt6.snap --instr 1.4G --press TRIG@16.90G:0.4G --press PAGE@17.05G --press PAGE@17.4G --press PAGE@17.55G --press PAGE@17.7G --press YES@17.95G
 check "ROTATE +1 carries SMP locks" rt6.snap "$($T/genref 3 16 0 0 0 0 0 0 1 50 100 1 8 1)"
 fi
 fi
@@ -182,6 +182,16 @@ $B/dtboot $FN --load nr0.snap --instr 2.45G --press TRIG@5.80G:0.4G --press PAGE
 DTEMU_FW=$FN $B/dtpeek nr1.snap fb | python3 $T/fb2png.py $W/seedr-norows.png 4 > /dev/null
 got=$(python3 $T/emucmp.py $B/dtpeek $FN nr1.snap | sed -n '1p;4p' | tr '\n' '|')
 if [ "$got" = "$ORIG|slock -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1|" ]; then echo "PASS no lock rows: nothing written ($W/seedr-norows.png)"; else echo "FAIL no lock rows: $got"; fi
+fi
+if part 8; then
+# METER (gr5: seed 2 kept, page GEN 1, closed; clock 10.4 G). PAGE x3: GEN 2, GEN 3, METER.
+# SKIP 2, BIAS -40 %, VSHP NOT 1, VAMT 100 %: a knob turned, so YES takes seed 2 again
+run gr5.snap mt1.snap --instr 4.4G --press TRIG@10.50G:0.4G --press PAGE@10.65G --press PAGE@11.0G --press PAGE@11.15G --press PAGE@11.3G \
+    --nudge 1:1@11.5Gx2/0.08G --nudge 3:1@11.75Gx4/0.08G --nudge 2:-1:8@12.15Gx5/0.05G --nudge 4:1:8@12.6Gx13/0.05G --press YES@14.6G
+DTEMU_FW=$FW $B/dtpeek mt1.snap fb | python3 $T/fb2png.py $W/seedr-meter.png 4 > /dev/null
+check "METER skip 2 bias -40 NOT 1" mt1.snap "$(GENREF_METER='4 2 -40 4 100' $T/genref 2)"
+run mt1.snap mt2.snap --instr 0.4G --press NO@15.0G
+check "meter NO: seed 2        " mt2.snap "$($T/genref 2)"
 fi
 if part 7; then
 # The keys (gr5: closed with NO over the EUCLIDEAN page; clock 10.4 G): TRIG on EUCLIDEAN opens seedr, TRIG

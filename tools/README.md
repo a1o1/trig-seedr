@@ -2,7 +2,7 @@
 
 ## Tests
 
-    sh tools/test_seedr.sh            # all parts; PART=1..7 runs one (each under 3 minutes)
+    sh tools/test_seedr.sh            # all parts; PART=1..8 runs one (each under 3 minutes)
     sh tools/build_release.sh         # the firmware to flash (docs/flashing.md)
 
 Builds core-ar2 and the seedr mod, patches the stock OS 1.74 (`build/seedr.syx`, version GR01) and drives analog-emu's
@@ -18,9 +18,10 @@ flag words, µtime, sample locks, the modified mark) and compares it with `genre
 | 4 | GEN 3 sample locks; NO removes them; they survive SAVE + RELOAD PATTERN |
 | 5 | ROTATE whole steps, one field, every track (SD moves too), NO; whole steps carry sample locks |
 | 6 | a test build with no lock rows left: GEN 3 refuses and writes nothing |
+| 8 | METER: SKIP 2, BIAS −40 %, NOT 1 at 100 % against genref; NO |
 | 7 | the keys: TRIG on EUCLIDEAN opens seedr, TRIG goes back to stock's TRIG page, then EUCLIDEAN, seedr again; SRC closes it |
 
-Parts 2–5 resume from part 1's (and 5 from part 4's) emulator snapshots.
+Parts 2–5 and 8 resume from part 1's (and 5 from part 4's) emulator snapshots.
 
 `test_groove2h.py GROOVE_DIR` writes five of Live's plain `.agr` grooves out as MIDI files (format 0 and 1) and checks
 `groove2h.py` gives the same tables from both (±1: MIDI holds whole ticks and velocities).

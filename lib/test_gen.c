@@ -434,6 +434,106 @@ static void test_generate_smp(void)
     CHECK(ok);
 }
 
+static void test_meter(void)
+{
+    struct gen_track a, b;
+    struct gen_params p;
+    int i, seed, ok, on, off, on0, ok2;
+
+    /* weights, 4 steps per beat and 3 */
+    CHECK(gen_weight(0, 4) == 4 && gen_weight(16, 4) == 4 && gen_weight(48, 4) == 4);
+    CHECK(gen_weight(8, 4) == 3 && gen_weight(24, 4) == 3);
+    CHECK(gen_weight(4, 4) == 2 && gen_weight(12, 4) == 2);
+    CHECK(gen_weight(2, 4) == 1 && gen_weight(14, 4) == 1);
+    CHECK(gen_weight(1, 4) == 0 && gen_weight(3, 4) == 0 && gen_weight(15, 4) == 0);
+    CHECK(gen_weight(0, 3) == 4 && gen_weight(6, 3) == 3 && gen_weight(3, 3) == 2 && gen_weight(9, 3) == 2);
+    CHECK(gen_weight(1, 3) == 0 && gen_weight(2, 3) == 0);
+
+    /* defaults are a no-op: beat, skip, bias 0, vamt 0 give the same take whatever the shape */
+    gen_defaults(&p);
+    CHECK(p.beat == 4 && p.skip == 0 && p.bias == 0 && p.vshp == GEN_VS_FLAT && p.vamt == 0);
+    p.dens = 60; p.seed = 7;
+    blank(&a, 32); gen_generate(&a, &p);
+    p.vshp = GEN_VS_STRONG; p.beat = 3;
+    blank(&b, 32); gen_generate(&b, &p);
+    CHECK(memcmp(&a, &b, sizeof a) == 0);
+
+    /* SKIP clears the first steps and generates after them, also with ROT */
+    gen_defaults(&p);
+    p.dens = 100; p.skip = 3;
+    blank(&a, 16);
+    for (i = 0; i < 16; i++) { a.s[i].flags |= GEN_TRIG | GEN_ACCENT; a.s[i].vel = 9; }
+    CHECK(gen_generate(&a, &p) == 13);
+    ok = 1;
+    for (i = 0; i < 16; i++)
+        ok &= (i < 3) == !(a.s[i].flags & GEN_TRIG);
+    ok &= a.s[0].vel == GEN_DEFAULT && !(a.s[0].flags & GEN_ACCENT);
+    CHECK(ok);
+    p.rot = 5; p.dens = 50;
+    for (seed = 1, ok = 1; seed < 40; seed++) {
+        p.seed = (uint32_t)seed;
+        blank(&a, 16); gen_generate(&a, &p);
+        ok &= trigs(&a) == 7 && !(a.s[0].flags & GEN_TRIG) && !(a.s[1].flags & GEN_TRIG) && !(a.s[2].flags & GEN_TRIG);
+    }
+    CHECK(ok);
+    p.skip = 64; p.rot = 0;
+    blank(&a, 16);
+    CHECK(gen_generate(&a, &p) == 0 && trigs(&a) == 0);
+
+    /* BIAS: the count stays exact; + puts trigs on strong steps, - on weak ones */
+    gen_defaults(&p);
+    p.dens = 25;
+    on0 = on = off = 0; ok = ok2 = 1;
+    for (seed = 1; seed <= 300; seed++) {
+        p.seed = (uint32_t)seed;
+        p.bias = 0;   blank(&a, 16); gen_generate(&a, &p);
+        for (i = 0; i < 16; i++) on0 += (a.s[i].flags & GEN_TRIG) && gen_weight(i, 4) >= 2;
+        p.bias = 100; blank(&a, 16); gen_generate(&a, &p);
+        ok &= trigs(&a) == 4;
+        for (i = 0; i < 16; i++) on += (a.s[i].flags & GEN_TRIG) && gen_weight(i, 4) >= 2;
+        p.bias = -100; blank(&a, 16); gen_generate(&a, &p);
+        ok2 &= trigs(&a) == 4;
+        for (i = 0; i < 16; i++) off += (a.s[i].flags & GEN_TRIG) && gen_weight(i, 4) >= 2;
+    }
+    printf("%-22s beats/1200 trigs: bias 0 %d, +100 %d, -100 %d\n", "meter bias", on0, on, off);
+    CHECK(ok && ok2);
+    CHECK(on0 > 230 && on0 < 370);       /* uniform: a quarter of the trigs on the 4 beats */
+    CHECK(on > 2 * on0);
+    CHECK(off < on0 / 3);
+
+    /* the velocity shapes at VAMT 100, VEL 40..120, every step a trig */
+    gen_defaults(&p);
+    p.dens = 100; p.vel_lo = 40; p.vel_hi = 120; p.vamt = 100;
+    p.vshp = GEN_VS_STRONG; blank(&a, 16); gen_generate(&a, &p);
+    CHECK(a.s[0].vel == 120 && a.s[8].vel == 100 && a.s[4].vel == 80 && a.s[2].vel == 60 && a.s[1].vel == 40);
+    p.vshp = GEN_VS_WEAK; blank(&a, 16); gen_generate(&a, &p);
+    CHECK(a.s[0].vel == 40 && a.s[4].vel == 80 && a.s[1].vel == 120);
+    p.vshp = GEN_VS_OFF; blank(&a, 16); gen_generate(&a, &p);
+    CHECK(a.s[2].vel == 120 && a.s[1].vel == 80 && a.s[4].vel == 40 && a.s[0].vel == 40);
+    p.vshp = GEN_VS_NOT1; blank(&a, 16); gen_generate(&a, &p);
+    CHECK(a.s[0].vel == 40 && a.s[4].vel == 40 && a.s[12].vel == 40 && a.s[1].vel == 120 && a.s[2].vel == 120);
+    p.vshp = GEN_VS_NOTBAR; blank(&a, 16); gen_generate(&a, &p);
+    CHECK(a.s[0].vel == 40 && a.s[4].vel == 120 && a.s[8].vel == 120);
+    /* VEL given high to low is the same range */
+    p.vel_lo = 120; p.vel_hi = 40; blank(&b, 16); gen_generate(&b, &p);
+    CHECK(b.s[0].vel == 40 && b.s[4].vel == 120);
+    /* VAMT 50: half way between the random velocity and the shape's */
+    p.vel_lo = 40; p.vel_hi = 120;
+    p.vshp = GEN_VS_FLAT; p.vamt = 0; blank(&b, 16); gen_generate(&b, &p);
+    p.vshp = GEN_VS_NOT1; p.vamt = 50; blank(&a, 16); gen_generate(&a, &p);
+    ok = 1;
+    for (i = 0; i < 16; i++) {
+        int to = gen_weight(i, 4) >= 2 ? 40 : 120;
+        ok &= a.s[i].vel == b.s[i].vel + (to - b.s[i].vel) * 50 / 100;
+    }
+    CHECK(ok);
+    /* the shape is where the steps land: with ROT the bar's first step is still the loudest */
+    p.vshp = GEN_VS_STRONG; p.vamt = 100; p.rot = 3;
+    blank(&a, 16); gen_generate(&a, &p);
+    CHECK(a.s[0].vel == 120 && a.s[1].vel == 40 && a.s[8].vel == 100);
+    show("meter STRONG rot 3", &a);
+}
+
 int main(void)
 {
     test_rng();
@@ -446,6 +546,7 @@ int main(void)
     test_rotate_fields();
     test_generate_rot();
     test_generate_smp();
+    test_meter();
     printf("%d checks, %d failed\n", checks, fails);
     return fails != 0;
 }

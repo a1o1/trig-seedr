@@ -24,6 +24,9 @@ Scope: pattern seeds for Elektron machines. Offline, destructive pattern algorit
 | D16 | **Sample-slot locks per trig** (GEN 3): a share of the generated trigs get a p-lock of the sample slot, from a slot-number range (low–high). |
 | D17 | **Open as a third TRIG page.** Stock cycles TRIG → EUCLIDEAN with the TRIG key; TRIG on the EUCLIDEAN page opens trig-seedr, TRIG again goes back to stock's TRIG page; a parameter page or menu key closes it. TRIG held + PAGE opens it from anywhere. (Every FUNC + key is used in stock 1.74; FUNC + PLAY MODE is its KIT menu.) |
 | D18 | **Leaving mid-audition keeps the take.** Changing track or pattern, or closing the page, while a take is auditioned keeps it, as FUNC + YES would. |
+| D19 | **Metric weights** (METER page). Each step has a weight from its place in a 4-beat bar (bar 4, half bar 3, beat 2, "&" 1, the rest 0), BEAT steps per beat. Placement and velocity follow them; the Rytm's accent flag stays on GEN 2's ACC. Prior art: Grids (weighted steps, accents on the strongest), kin.rhythmicator (Barlow's indispensability, syncopation by weakening strong pulses), Torso T-1 (accent as velocity with a groove character). |
+| D20 | **SKIP**: the pattern's first N steps are cleared and get no trig (room for a kick on another track). Once at the start of the pattern, not per beat. |
+| D21 | **Velocity shapes**: "accent" here is velocity. VSHP picks which steps are loudest within VEL (STRONG, WEAK, OFF, NOT 1 for every beat, NOTBAR for the bar's first step); VAMT mixes the shape with the random velocity. BIAS weights trig placement (each weight level doubles the chance; reversed below 0) and keeps DENS's exact count. At the defaults the takes are unchanged. |
 
 ## 1. Algorithms
 
@@ -72,6 +75,17 @@ Region: the track's current length as the sequencer plays it. All of it is repla
 |---|---|---|---|
 | A | SMP% | 0..100% | share of generated trigs that get a sample-slot lock. 0: the track's sample locks are left as they are; above 0: GEN replaces them |
 | B | SMPL | 0..127, FUNC: min | the slot range a locked trig draws from (0 = OFF) |
+
+**GEN 4: METER (D19–D21)**
+| Knob | Name | Range | Meaning |
+|---|---|---|---|
+| A | BEAT | 1..16 | steps per beat (4 beats per bar) |
+| B | SKIP | 0..63 | the first SKIP steps are cleared and get no trig |
+| C | BIAS | -100..100% | trig placement: + strong steps, - weak steps |
+| D | VSHP | FLAT, STRONG, WEAK, OFF, NOT 1, NOTBAR | velocity shape |
+| E | VAMT | 0..100% | share of the shape in each velocity |
+
+SKIP, BIAS and VSHP use the steps' final positions (after ROT).
 
 GEN refuses ("NO LOCK ROWS LEFT") when SMP% > 0, the track has no sample-lock row yet and the pattern's 72 lock rows are full (a new lock would be lost at the next save).
 
@@ -147,6 +161,7 @@ Only steps with a trig change; µtime is clamped to ±23. Limits: a step is take
 ## 9. Later
 
 - GEN 3: more lock targets (any sound parameter, a range per trig).
+- METER: other bar lengths (3/4, 7/8), the accent flag from the weights, velocity shapes as built-in grooves on GROOVE (for hand-programmed tracks).
 - Range knobs without FUNC (push to switch low / high, or separate MIN / MAX), if FUNC + turn proves awkward.
 - Grooves: track speed taken into account; a groove from a Rytm pattern; grooves loaded at run time instead of built in.
 - ROTATE: PAGE scope, locks alone.

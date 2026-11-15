@@ -63,6 +63,22 @@ int gen_range(struct gen_rng *r, int lo, int hi);      /* lo..hi inclusive, eith
 /* ---- GENERATOR ---- */
 enum gen_ctyp { GEN_CT_PROB, GEN_CT_AB, GEN_CT_1ST, GEN_CT_FILL, GEN_CT_MIX };
 
+/* velocity shapes (METER page): which steps play loudest within the VEL range */
+enum gen_vshp {
+    GEN_VS_FLAT,    /* no shape: velocity random within VEL */
+    GEN_VS_STRONG,  /* by metric weight: the bar's first step loudest, then the half bar, beats, "&" */
+    GEN_VS_WEAK,    /* the weights inverted: the "e" and "a" loudest, the bar's first step softest */
+    GEN_VS_OFF,     /* the "&" loudest, the "e" and "a" in the middle, the beats softest */
+    GEN_VS_NOT1,    /* every beat soft, the rest loud */
+    GEN_VS_NOTBAR,  /* the bar's first step soft, the rest loud */
+    GEN_VS_N
+};
+
+/* The metric weight of step i (0-based) with `beat` steps per beat and 4 beats per bar:
+ * 4 the bar's first step, 3 the half bar, 2 a beat, 1 the half beat (the "&", even beats only),
+ * 0 the rest. */
+int gen_weight(int i, int beat);
+
 struct gen_params {
     /* page 1 */
     int grid;                     /* 1, 2, 4 or 8 steps */
@@ -85,6 +101,13 @@ struct gen_params {
     int smp;                      /* 0..100 % of trigs that get a sample lock; 0: sample locks
                                      are left as they are, above 0: GEN replaces them */
     int smp_lo, smp_hi;           /* sample slots 0..127 */
+    /* page 4: meter. The weights, SKIP and the velocity shape refer to the steps as written,
+     * after ROT. At the defaults GENERATOR gives the same takes as before the page existed. */
+    int beat;                     /* steps per beat, 1..16 (4: 1/16 steps in 4/4) */
+    int skip;                     /* 0..64: the first `skip` steps are cleared and get no trig */
+    int bias;                     /* -100..100: trig placement, + favours strong steps, - weak */
+    enum gen_vshp vshp;
+    int vamt;                     /* 0..100 % of the velocity shape */
 };
 
 void gen_defaults(struct gen_params *p);

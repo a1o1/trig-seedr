@@ -43,6 +43,11 @@ int main(int argc, char **argv)
     }
     if (argc > 14)
         p.rot = atoi(argv[14]);            /* ... SMP LO HI ROT */
+    if (getenv("GENREF_METER")) {          /* "BEAT SKIP BIAS VSHP VAMT": the METER page */
+        int sh = 0;
+        sscanf(getenv("GENREF_METER"), "%d %d %d %d %d", &p.beat, &p.skip, &p.bias, &sh, &p.vamt);
+        p.vshp = (enum gen_vshp)sh;
+    }
     gen_generate(&t, &p);
     if (argc > 9) {
         struct gen_groove_params g;

@@ -82,6 +82,48 @@ void gen_defaults(struct gen_params *p)
     p->smp = 0;
     p->smp_lo = 1;
     p->smp_hi = 8;
+    p->beat = 4;
+    p->skip = 0;
+    p->bias = 0;
+    p->vshp = GEN_VS_FLAT;
+    p->vamt = 0;
+}
+
+int gen_weight(int i, int beat)
+{
+    int bar;
+    beat = clamp(beat, 1, 16);
+    bar = 4 * beat;
+    if (i < 0)
+        return 0;
+    if (i % bar == 0)
+        return 4;
+    if (i % (bar / 2) == 0)
+        return 3;
+    if (i % beat == 0)
+        return 2;
+    if (beat % 2 == 0 && i % (beat / 2) == 0)
+        return 1;
+    return 0;
+}
+
+/* how loud a step of weight w is in a shape, 0 (VEL's low end) .. 4 (its high end) */
+static int shape_level(enum gen_vshp s, int w)
+{
+    switch (s) {
+    case GEN_VS_STRONG: return w;
+    case GEN_VS_WEAK:   return 4 - w;
+    case GEN_VS_OFF:    return w == 1 ? 4 : w == 0 ? 2 : 0;
+    case GEN_VS_NOT1:   return w >= 2 ? 0 : 4;
+    case GEN_VS_NOTBAR: return w == 4 ? 0 : 4;
+    default:            return -1;
+    }
+}
+
+static int imod(int k, int n)
+{
+    k %= n;
+    return k < 0 ? k + n : k;
 }
 
 static void clear_step(struct gen_step *s)
@@ -118,7 +160,7 @@ int gen_generate(struct gen_track *t, const struct gen_params *p)
 {
     struct gen_rng r;
     uint8_t pos[GEN_STEPS];
-    int n = clamp(t->length, 1, GEN_STEPS), grid, npos = 0, want, i, written = 0;
+    int n = clamp(t->length, 1, GEN_STEPS), grid, npos = 0, want, i, written = 0, beat, skip, bias;
 
     gen_seed(&r, p->seed);
     grid = p->grid == 2 || p->grid == 4 || p->grid == 8 ? p->grid : 1;
@@ -128,13 +170,35 @@ int gen_generate(struct gen_track *t, const struct gen_params *p)
             t->s[i].slock = GEN_NO_LOCK;
     }
 
+    beat = clamp(p->beat, 1, 16);
+    skip = clamp(p->skip, 0, GEN_STEPS);
+    bias = clamp(p->bias, -100, 100);
+    /* a grid position q ends up on step (q + rot) mod n */
     for (i = 0; i < n; i += grid)
-        pos[npos++] = (uint8_t)i;
-    /* exactly round(dens * npos / 100) positions: a partial Fisher-Yates shuffle */
+        if (imod(i + p->rot, n) >= skip)
+            pos[npos++] = (uint8_t)i;
+    /* exactly round(dens * npos / 100) positions */
     want = (clamp(p->dens, 0, 100) * npos + 50) / 100;
     for (i = 0; i < want; i++) {
-        int j = gen_range(&r, i, npos - 1);
-        uint8_t tmp = pos[i];
+        int j;
+        uint8_t tmp;
+        if (!bias) {
+            j = gen_range(&r, i, npos - 1);    /* a partial Fisher-Yates shuffle */
+        } else {
+            /* a draw weighted by the final step's metric weight: each weight level doubles the
+             * chance (1, 2, 4, 8, 16; reversed for a negative BIAS), mixed with uniform (4) */
+            static const uint8_t dbl[5] = { 1, 2, 4, 8, 16 };
+            int dw[GEN_STEPS], sum = 0, k, a = bias < 0 ? -bias : bias;
+            for (k = i; k < npos; k++) {
+                int w = gen_weight(imod(pos[k] + p->rot, n), beat);
+                dw[k] = (100 - a) * 4 + a * dbl[bias > 0 ? w : 4 - w];
+                sum += dw[k];
+            }
+            k = gen_range(&r, 0, sum - 1);
+            for (j = i; j < npos - 1 && k >= dw[j]; j++)
+                k -= dw[j];
+        }
+        tmp = pos[i];
         pos[i] = pos[j];
         pos[j] = tmp;
     }
@@ -143,6 +207,14 @@ int gen_generate(struct gen_track *t, const struct gen_params *p)
         struct gen_step *s = &t->s[pos[i]];
         s->flags |= GEN_TRIG;
         s->vel = (uint8_t)gen_range(&r, clamp(p->vel_lo, 1, 127), clamp(p->vel_hi, 1, 127));
+        if (p->vamt > 0 && shape_level(p->vshp, 0) >= 0) {
+            int lo = clamp(p->vel_lo, 1, 127), hi = clamp(p->vel_hi, 1, 127), v = s->vel, to;
+            int lev = shape_level(p->vshp, gen_weight(imod(pos[i] + p->rot, n), beat));
+            if (hi < lo) { int x = lo; lo = hi; hi = x; }
+            to = lo + (hi - lo) * lev / 4;
+            v += (to - v) * clamp(p->vamt, 0, 100) / 100;
+            s->vel = (uint8_t)clamp(v, 1, 127);
+        }
         if (p->len_lo != GEN_DEFAULT || p->len_hi != GEN_DEFAULT)
             s->len = (uint8_t)gen_range(&r, clamp(p->len_lo, 0, 127), clamp(p->len_hi, 0, 127));
         if (p->note_lo || p->note_hi) {

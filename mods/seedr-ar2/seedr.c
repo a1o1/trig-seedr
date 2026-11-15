@@ -90,7 +90,7 @@ void *memcpy(void *dst, const void *src, unsigned long n)
     return dst;
 }
 
-enum { P_VIEW, P_GEN1, P_GEN2, P_GEN3, P_GROOVE, P_ROT, P_COUNT };
+enum { P_VIEW, P_GEN1, P_GEN2, P_GEN3, P_METER, P_GROOVE, P_ROT, P_COUNT };
 enum { A_NONE, A_GEN, A_GROOVE, A_ROT };
 
 static volatile int open, func_held, trig_down, page, cursor, swallow_trig;
@@ -366,6 +366,15 @@ static void turn(int k, int d, int lo)
             *a = clampi(*a + d, 0, 127);
             if (prm.smp_lo > prm.smp_hi) { if (lo) prm.smp_hi = prm.smp_lo; else prm.smp_lo = prm.smp_hi; }
             break;
+        default: break;
+        }
+    } else if (page == P_METER) {
+        switch (k) {
+        case 0: prm.beat = clampi(prm.beat + (d > 0 ? 1 : -1), 1, 16); break;
+        case 1: prm.skip = clampi(prm.skip + d, 0, 63); break;
+        case 2: prm.bias = clampi(prm.bias + d, -100, 100); break;
+        case 3: prm.vshp = (enum gen_vshp)clampi((int)prm.vshp + (d > 0 ? 1 : -1), GEN_VS_FLAT, GEN_VS_N - 1); break;
+        case 4: prm.vamt = clampi(prm.vamt + d, 0, 100); break;
         default: break;
         }
     } else if (page == P_ROT) {
@@ -857,9 +866,20 @@ static void draw_gen(void *bmp, uint8_t *p, int n)
 {
     char v[16], *o;
     static const char *const whats[8] = { "ALL", "VEL", "NOTE", "LEN", "UTIM", "COND", "RTRG", "ACC" };
+    static const char *const vshps[GEN_VS_N] = { "FLAT", "STRONG", "WEAK", "OFF", "NOT 1", "NOTBAR" };
     draw_title(bmp, p, page == P_GEN1 ? "GEN 1" : page == P_GEN2 ? "GEN 2" : page == P_GEN3 ? "GEN 3" :
-               page == P_ROT ? "ROTATE" : "GROOVE", n);
-    if (page == P_ROT) {
+               page == P_METER ? "METER" : page == P_ROT ? "ROTATE" : "GROOVE", n);
+    if (page == P_METER) {
+        o = v; o = num(o, prm.beat); *o = 0;
+        cell(bmp, 0, "BEAT", v);
+        o = v; o = num(o, prm.skip); *o = 0;
+        cell(bmp, 1, "SKIP", v);
+        o = v; o = pcts(o, prm.bias); *o = 0;
+        cell(bmp, 2, "BIAS", v);
+        cell(bmp, 3, "VSHP", vshps[clampi((int)prm.vshp, 0, GEN_VS_N - 1)]);
+        o = v; o = num(o, prm.vamt); o = put(o, "%"); *o = 0;
+        cell(bmp, 4, "VAMT", v);
+    } else if (page == P_ROT) {
         o = v; o = snum(o, rot_steps); *o = 0;
         cell(bmp, 0, "STEPS", v);
         cell(bmp, 1, "SCOPE", rot_all ? "ALL" : "TRACK");

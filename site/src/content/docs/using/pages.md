@@ -9,7 +9,7 @@ Trig Seedr is a third page behind the **TRIG** key, after the Euclidean page:
 
 **TRIG held + PAGE** opens it from any page. A parameter page key (SRC, SMPL, FLTR, AMP, LFO, FX) or a menu key closes it. **PAGE** steps through its pages:
 
-**VIEW → GEN 1 → GEN 2 → GEN 3 → GROOVE → ROTATE → VIEW**
+**VIEW → GEN 1 → GEN 2 → GEN 3 → METER → GROOVE → ROTATE → VIEW**
 
 | Key | What it does |
 |---|---|

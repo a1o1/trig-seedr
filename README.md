@@ -6,7 +6,7 @@
 [![Device](https://img.shields.io/badge/Analog%20Rytm%20MKII-OS%201.74-black.svg)](docs/firmware-notes-os174.md)
 [![elekloader](https://img.shields.io/badge/elekloader-core--ar2%200.13-purple.svg)](https://github.com/elekloader/elekloader)
 [![Language](https://img.shields.io/badge/C99-freestanding%20ColdFire-informational.svg)](lib/)
-[![Tests](https://img.shields.io/badge/tests-175%20host%20%7C%2038%20emulator-brightgreen.svg)](tools/README.md)
+[![Tests](https://img.shields.io/badge/tests-200%20host%20%7C%2040%20emulator-brightgreen.svg)](tools/README.md)
 [![Emulator](https://img.shields.io/badge/tested%20in-analog--emu-lightgrey.svg)](https://github.com/trigcondition/analog-emu)
 [![Grooves](https://img.shields.io/badge/Grooves-Ableton%20.agr%20%7C%20MIDI-yellowgreen.svg)](#grooves)
 [![AI](https://img.shields.io/badge/AI-Claude%20Opus%205.5-purple.svg)](https://www.anthropic.com/claude)
@@ -15,7 +15,7 @@
 
 Pattern seeds for Elektron machines. trig-seedr is a set of offline pattern algorithms, as firmware mods. The first is for the Analog Rytm MKII (OS 1.74), as an [elekloader](https://github.com/elekloader/elekloader) mod; the Analog Four MKII and the Syntakt are planned next. On the Rytm it has a generator with an audition undo, Ableton grooves for micro timing and velocity, sample locks per trig, and rotation of a track or the whole pattern.
 
-<a id="status"></a>**Status: works in the emulator (analog-emu, 38 scripted checks), not yet run on a unit.** Flashing modified firmware is at your own risk; keep the stock OS and a way to reflash it (DIN MIDI) at hand.
+<a id="status"></a>**Status: works in the emulator (analog-emu, 40 scripted checks), not yet run on a unit.** Flashing modified firmware is at your own risk; keep the stock OS and a way to reflash it (DIN MIDI) at hand.
 
 trig-seedr is an independent project. It is not affiliated with or endorsed by Elektron or Ableton; their product names are used only to say what it works with. No firmware, and nothing derived from Ableton's content, is included: you build against your own copy of the stock OS, and generate groove tables from your own Live installation.
 
@@ -29,6 +29,7 @@ It is a third page behind the **TRIG** key: **TRIG** (stock's TRIG page), **TRIG
 | GEN 1 | rhythm and notes: GRID, DENS, VEL, LEN, NOTE, UTIM (random micro timing), SEED, ROT |
 | GEN 2 | accents, trig conditions (X%, A:B, 1ST, FILL, mixed), retrigs (share, rate, velocity curve) |
 | GEN 3 | sample-slot locks: SMP% of the trigs get a slot from the SMPL range |
+| METER | the beat: BEAT (steps per beat), SKIP (leave the first steps empty), BIAS (trigs onto strong or weak steps), VSHP + VAMT (velocity by position: STRONG, WEAK, OFF, NOT 1, NOT BAR) |
 | GROOVE | a groove's micro timing and velocity on the track's trigs: TIME, VEL, QUANT, RAND, SHIFT |
 | ROTATE | moves whole steps (with their locks) or one field, on this track or every track |
 
@@ -38,7 +39,8 @@ Screens, from the emulator (a generated BD take being auditioned):
 |---|---|
 | ![VIEW](docs/screens/view.png) VIEW | ![GEN 1](docs/screens/gen1.png) GEN 1 |
 | ![GEN 2](docs/screens/gen2.png) GEN 2 | ![GEN 3](docs/screens/gen3.png) GEN 3 |
-| ![GROOVE](docs/screens/groove.png) GROOVE | ![ROTATE](docs/screens/rotate.png) ROTATE |
+| ![METER](docs/screens/meter.png) METER | ![GROOVE](docs/screens/groove.png) GROOVE |
+| ![ROTATE](docs/screens/rotate.png) ROTATE | |
 
 - **YES** applies. The first YES snapshots the track (or tracks); each YES after it starts again from that original, so you audition takes. YES with no knob turned since the last YES moves to the next seed.
 - **NO** goes back to the original; **FUNC + YES** keeps the take. Leaving the page, the track or the pattern keeps it too.
