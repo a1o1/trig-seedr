@@ -26,6 +26,29 @@ Parts 2–5 and 8 resume from part 1's (and 5 from part 4's) emulator snapshots.
 `test_groove2h.py GROOVE_DIR` writes five of Live's plain `.agr` grooves out as MIDI files (format 0 and 1) and checks
 `groove2h.py` gives the same tables from both (±1: MIDI holds whole ticks and velocities).
 
+## The test harness (version 1, task 0.5)
+
+    sh tools/doctor.sh [--host]      the environment (docs/dev-environment.md section 7); no emulator
+    sh tools/run_tests.sh [NAME...]  every tools/tests/NN-*.sh, or those whose name contains NAME
+    sh tools/golden.sh [--write]     the golden vectors in lib/golden/
+
+Each test file writes only under this checkout's `build/emu/<name>/` (card, snapshots, screens, `actions.log`);
+core-ar2 and the mod are built into `build/emu/` too. Nothing goes into `analog-emu/` or `elekloader/`, so suites
+in two worktrees run side by side. `WORKSPACE` is found from a worktree's path; set it for a checkout elsewhere.
+
+| File | What |
+|---|---|
+| `emu.sh` | sourced by the tests: `emu_build [VARIANT CFLAGS]`, `emu_boot`, `emu_open`, `emu_page NAME`, `emu_knob PAGE KNOB VALUE` (turns until the mod's value is VALUE), `emu_keys`, `emu_yes` / `emu_no` / `emu_keep`, `emu_poke` and `emu_recipe` (settings written with `dtboot --poke`), `emu_dump`, `emu_check`, `emu_fixture` (a shared state made once per build) |
+| `emu.py` | symbols from the patched OS's `.map.json`, memory, pokes, the track dump, struct layouts from the cross compiler |
+| `seedref.c` | the version 1 chain on the host: `seedref KEY=VALUE...` (every `struct seed_recipe` field by name; `orig=FILE` an original track as a dump) prints the take in `emu.py dump`'s format; `--keys`, `--fields`, `--layout` |
+| `golden.sh` | `lib/golden/recipes.txt` through seedref against `lib/golden/NAME.txt` |
+| `tests/00-host.sh` | no emulator: the recipe layout on the host and on ColdFire, `--fields`, identity, the golden vectors |
+| `tests/01..08` | release 0.3's emulator checks (`test_seedr.sh` parts 1..8) on the harness; `09-inject` writes settings by poke |
+
+The mod's state (page, open, knob values) is read from the snapshot by symbol, so navigation and knob settings
+are checked, not timed. A profile in `emu.sh` says what the harness knows of a build: `r03` (release 0.3's
+`seedr.c`) or `v1` (the version 1 pages, `docs/status/0.5.md`).
+
 ## Helpers
 
 | Script | What |
