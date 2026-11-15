@@ -4,42 +4,17 @@
 # TRACK with every layer at 0 leaves the track byte-identical), the TRIG cycle, TOOLS' ROTATE ALL,
 # VIEW's knob cursor, and a screenshot of every page (a SEEDR_SHOW_ALL build shows the pages whose
 # features are not built yet, as their knob tables stand).
-# Everything it writes (the two builds' .syx, snapshots, the card, PNGs) goes under build/pages/ of
-# this checkout, so it does not touch analog-emu/ or another worktree's files. It uses core-ar2's
-# built core-0.13.elemod and does not rebuild it (tools/test_seedr.sh PART=1 builds it).
-# Needs WORKSPACE (the folder holding elekloader/ and analog-emu/; set it in a worktree), B (dtboot,
-# dtpeek, dtcard), the stock OS (STOCK) and ELEKLOADER_CROSS. Run: sh tools/tests/03-pages.sh
-set -e
-R=$(cd "$(dirname "$0")/../.." && pwd)
-E=${WORKSPACE:-$(cd "$R/.." && pwd)}
-T=$R/tools; W=$R/build/pages; mkdir -p $W
-STOCK=${STOCK:-"$E/Official Firmwares/Analog-Rytm_MKII_OS1.74_dist/Analog-Rytm_MKII_OS1.74.syx"}
-B=${B:-$CARGO_TARGET_DIR/release}
-CORE=$E/elekloader/mods/core-ar2/out/core-0.13.elemod
-if [ ! -f "$CORE" ]; then echo "FAIL no $CORE: build it first (tools/test_seedr.sh PART=1)"; exit 1; fi
-
-# ---- two builds: the mod as it is, and every page shown (its own folder under build/, sources from here)
-M=$W/showall; mkdir -p $M
-python3 - "$R/mods/seedr-ar2" "$M" <<'PY'
-import json, os, sys
-src, dst = sys.argv[1], sys.argv[2]
-j = json.load(open(os.path.join(src, 'mod.json')))
-j['sources'] = [os.path.normpath(os.path.join(src, s)) for s in j['sources']]
-j['cflags'] = ['-DSEEDR_SHOW_ALL', '-I' + src]
-json.dump(j, open(os.path.join(dst, 'mod.json'), 'w'), indent=1)
-PY
-cd $E/elekloader
-for m in "$R/mods/seedr-ar2 seedr" "$M showall"; do
-    set -- $m
-    python3 -m elekloader.sdk.build $1 --stock "$STOCK" | tail -1
-    python3 -m elekloader.patch --stock "$STOCK" --mod $CORE --mod $1/out/seedr-0.3.elemod \
-        --out $W/$2.syx --lockfile $W/$2.lock.json --version GR01 | tail -1
-done
-cd $W
+# Everything it writes goes under build/emu/10-pages/ of this checkout; the two builds (the mod,
+# and SEEDR_SHOW_ALL) are the harness's (tools/emu.sh emu_build).
+R=$(cd "$(dirname "$0")/../.." && pwd); . "$R/tools/emu.sh"
+emu_init 10-pages
+EMU_QUIET=1 emu_build showall -DSEEDR_SHOW_ALL; FW_ALL=$FW MAP_ALL=$MAP
+EMU_QUIET=1 emu_build; FW_MOD=$FW MAP_MOD=$MAP
+W=$D; mkdir -p $W; cd $W
 
 # ---- helpers. Each snapshot's clock (in M instructions) is kept beside it in SNAP.clk; `from SNAP`
 # sets CLK to it, and `at N` is the clock N M later, for a run that starts from SNAP.
-FW=$W/seedr.syx
+FW=$FW_MOD MAP=$MAP_MOD
 from() { CLK=$(cat $1.clk); }
 at() { echo "$((CLK + $1))M"; }
 run() {   # in out N args: N M instructions from snapshot in
@@ -59,8 +34,16 @@ steps() { python3 $T/emucmp.py $B/dtpeek $FW $1 32 ${2:-0} | head -1; }
 # BD's whole record (0x395 bytes) and lock store (0x162a) in A01
 bytes() { DTEMU_FW=$FW $B/dtpeek $1 mem 407dd8e3 917 | cksum; DTEMU_FW=$FW $B/dtpeek $1 mem 407e0774 5674 | cksum; }
 tled() { DTEMU_FW=$FW $B/dtpeek $1 leds | grep -E '^led ([0-9]|1[0-5]):'; }   # the TRIG keys' LEDs
-same() { if [ "$1" = "$2" ]; then echo "PASS $3"; else echo "FAIL $3"; echo "  want $1"; echo "  got  $2"; fi; }
-differ() { if [ "$1" != "$2" ]; then echo "PASS $3"; else echo "FAIL $3 (both $1)"; fi; }
+same() { emu_check "$3" "$1" "$2"; }
+# hknob in out PAGE KNOB VALUE: tools/emu.sh's emu_knob (PAGE showing) from snapshot in; this script
+# keeps clocks in M instructions, tools/emu.sh in instructions. FW and MAP: the build in use.
+hknob() {
+    export DTEMU_FW=$FW
+    cp $1 $W/hk.snap; echo $(($(cat $1.clk) * 1000000)) > $W/hk.snap.clk
+    emu_at $W/hk.snap; emu_knob $3 $4 $5
+    cp "$EMU_SNAP" $2; echo $(($(cat "$EMU_SNAP.clk") / 1000000)) > $2.clk
+}
+differ() { if [ "$1" != "$2" ]; then emu_check "$3" 1 1; else emu_check "$3" "not $1" "$2"; fi; }
 boot() {
     $B/dtcard $W/card.img format > /dev/null
     $B/dtboot $FW --instr 5.6G --card $W/card.img --press NO@4.2G --press NO@4.6G --press NO@5.0G --press NO@5.4G --save $1 > /dev/null
@@ -85,15 +68,17 @@ same "$(steps $W/k0.snap)" "$(steps $W/k2.snap)" "seedr open: RECORD, the TRIG k
 same "$(tled $W/k0.snap)" "$(tled $W/k2.snap)" "seedr open: the TRIG keys' LEDs as stock's (page 2 of 2)"
 differ "$(screen $W/k1.snap)" "$(screen $W/k2.snap)" "seedr's screen stays up and its strip follows the track"
 
-# 2. LEFT / RIGHT: TAKE, VIEW, TOOLS are the pages built; RIGHT three times comes back
-key $W/k2.snap $W/p1.snap RIGHT; png $W/p1.snap seedr-view
-key $W/p1.snap $W/p2.snap RIGHT
-key $W/p2.snap $W/p3.snap RIGHT
-key $W/p3.snap $W/p4.snap LEFT
-s0=$(screen $W/k2.snap); s1=$(screen $W/p1.snap); s2=$(screen $W/p2.snap)
-if [ "$s0" != "$s1" ] && [ "$s1" != "$s2" ] && [ "$s0" != "$s2" ]; then echo "PASS RIGHT: three different pages"; else echo "FAIL RIGHT: pages repeat"; fi
-same "$s0" "$(screen $W/p3.snap)" "RIGHT x3: back on TAKE (only the built pages are visited)"
-same "$s2" "$(screen $W/p4.snap)" "LEFT from TAKE: TOOLS"
+# 2. LEFT / RIGHT: with 0.2's layers every page is built: RIGHT visits ten different pages and
+#    wraps to TAKE; LEFT from TAKE is TOOLS
+prev=$W/k2.snap; seen=""
+for pg in 1 2 3 4 5 6 7 8 9 10; do        # (not i: run() sets i)
+    key $prev $W/p$pg.snap RIGHT; seen="$seen $(screen $prev)"; prev=$W/p$pg.snap
+done
+png $W/p8.snap seedr-view
+same 10 "$(echo $seen | tr ' ' '\n' | sort -u | wc -l | tr -d ' ')" "RIGHT: ten different pages"
+same "$(screen $W/k2.snap)" "$(screen $W/p10.snap)" "RIGHT x10: back on TAKE"
+key $W/p10.snap $W/p4.snap LEFT
+same "$(screen $W/p9.snap)" "$(screen $W/p4.snap)" "LEFT from TAKE: TOOLS"
 
 # 3. VIEW: knob A moves the step cursor
 key $W/p4.snap $W/v0.snap LEFT
@@ -105,7 +90,12 @@ same "$(bytes $W/v0.snap)" "$(bytes $W/v1.snap)" "VIEW: the track is not touched
 # 4. YES with SOURCE = TRACK and every layer at 0: byte-identical (I1 through the device), an audition;
 #    NO; YES again (the next seed); FUNC + YES keeps; NO closes
 key $W/v1.snap $W/y0.snap RIGHT                      # TOOLS
-key $W/y0.snap $W/y1.snap RIGHT                      # TAKE
+key $W/y0.snap $W/ya.snap RIGHT                      # TAKE
+key $W/ya.snap $W/yb.snap RIGHT                      # RHYTHM
+# BD's recipe was made when seedr opened on the empty BD (section 1), so it is RANDOM (V6), and it
+# stays so after the trigs were recorded: SOURCE = TRACK by hand
+hknob $W/yb.snap $W/yc.snap RHYTHM A:src:one 0
+key $W/yc.snap $W/y1.snap LEFT                       # TAKE
 key $W/y1.snap $W/y2.snap YES; png $W/y2.snap seedr-take-audition
 same "$(bytes $W/y1.snap)" "$(bytes $W/y2.snap)" "YES, SOURCE = TRACK, layers at 0: record and locks byte-identical"
 differ "$(screen $W/y1.snap)" "$(screen $W/y2.snap)" "YES: the title shows the audition"
@@ -145,7 +135,7 @@ fkey $W/r4.snap $W/r5.snap YES
 same "$want" "$(steps $W/r5.snap)" "ROTATE ALL, FUNC + YES: kept"
 
 # ================= every page shown (SEEDR_SHOW_ALL): screenshots, and a layer that is not built
-FW=$W/showall.syx
+FW=$FW_ALL MAP=$MAP_ALL
 boot $W/a0.snap
 open_ $W/a0.snap $W/a1.snap
 prev=$W/a1.snap; seen=""
@@ -158,9 +148,13 @@ done
 uniq=$(echo $seen | tr ' ' '\n' | sort -u | wc -l | tr -d ' ')
 same 10 "$uniq" "SHOW_ALL: RIGHT visits ten different pages"
 same "$(screen $W/a1.snap)" "$(screen $prev)" "SHOW_ALL: and wraps to TAKE"
-# RHYTHM (a-take.snap) on the empty BD: SRC = RANDOM (V6); its stage is a stub, so YES writes nothing and says so
-key $W/a-take.snap $W/n1.snap YES; png $W/n1.snap all-rhythm-not-built
-same "$(bytes $W/a-take.snap)" "$(bytes $W/n1.snap)" "SHOW_ALL: YES on a layer not built writes nothing"
-differ "$(screen $W/a-take.snap)" "$(screen $W/n1.snap)" "SHOW_ALL: and says so (NOT AVAILABLE YET)"
+# RHYTHM (a-take.snap) on the empty BD: SRC = RANDOM (V6). Turned to EUCLID, whose stage is a stub
+# (F2), YES writes nothing and says so.
+MAP=$MAP_ALL
+hknob $W/a-take.snap $W/e0.snap RHYTHM A:src:one 2
+key $W/e0.snap $W/n1.snap YES; png $W/n1.snap all-rhythm-not-built
+same "$(bytes $W/e0.snap)" "$(bytes $W/n1.snap)" "SHOW_ALL: YES on EUCLID (not built) writes nothing"
+differ "$(screen $W/e0.snap)" "$(screen $W/n1.snap)" "SHOW_ALL: and says so (NOT AVAILABLE YET)"
 run $W/n1.snap $W/n2.snap 700
-same "$(screen $W/a-take.snap)" "$(screen $W/n2.snap)" "SHOW_ALL: no audition was started (the screen as before YES)"
+same "$(screen $W/e0.snap)" "$(screen $W/n2.snap)" "SHOW_ALL: no audition was started (the screen as before YES)"
+emu_done

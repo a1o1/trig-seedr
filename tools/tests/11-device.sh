@@ -1,6 +1,6 @@
 #!/bin/sh
 # Task 0.4: the device layer's version 1 interface (device/rytm_ar2.h) in analog-emu, through a test mod
-# (tools/tests/04-device.c: TEMPO moves the track one step, CHAIN auditions a take, SONG restores, FILL tries
+# (tools/tests/11-device.c: TEMPO moves the track one step, CHAIN auditions a take, SONG restores, FILL tries
 # a lock no row can hold). On A01 BD:
 #   1. a step with three parameter locks made by hand (GRID REC, T1 held, three FLTR knobs)
 #   2. TEMPO: moved one step later, every field and all 44 lock values with it
@@ -8,32 +8,27 @@
 #   4. power off and cold boot on that card: the same (I9)
 #   5. CHAIN then SONG: back byte for byte, record and lock store (I7)
 #   6. FILL: refused, nothing written (I8)
-# Snapshots, card images and the build stay in this checkout's build/dev/ (nothing is written into analog-emu/).
-# core-ar2 is built only when its .elemod is missing (FORCE_CORE=1 rebuilds it; elekloader's out/ is shared).
-# Needs the same as tools/test_seedr.sh: WORKSPACE, B (the emulator binaries), STOCK, ELEKLOADER_CROSS.
-set -e
-R=$(cd "$(dirname "$0")/../.." && pwd)
-E=${WORKSPACE:-$(cd "$R/.." && pwd)}
-STOCK=${STOCK:-"$E/Official Firmwares/Analog-Rytm_MKII_OS1.74_dist/Analog-Rytm_MKII_OS1.74.syx"}
-B=${B:-$CARGO_TARGET_DIR/release}
-W=$R/build/dev; M=$W/devtest; FW=$W/devtest.syx
+# Snapshots, card images and the build stay in this checkout's build/emu/11-device/; core-ar2 is the
+# harness's build (tools/emu.sh emu_build).
+R=$(cd "$(dirname "$0")/../.." && pwd); . "$R/tools/emu.sh"
+emu_init 11-device
+EMU_QUIET=1 emu_build
+W=$D; M=$W/devtest; FW=$W/devtest.syx
 mkdir -p $W
 rm -f $W/*.rec $W/*.lks
-rm -rf $M && mkdir -p $M && cp $R/tools/tests/04-device.c $M/devtest.c
+rm -rf $M && mkdir -p $M && cp $R/tools/tests/11-device.c $M/devtest.c
 cat > $M/mod.json <<EOF
 {
  "id": "devtest", "version": "0.4", "title": "device layer test", "category": "Test",
- "license": "GPL-2.0-or-later", "author": "trig-seedr", "description": "Test build only (tools/tests/04-device.sh).",
+ "license": "GPL-2.0-or-later", "author": "trig-seedr", "description": "Test build only (tools/tests/11-device.sh).",
  "device": "analog-rytm-mk2", "os": "1.74", "sources": ["devtest.c"], "cflags": ["-I$R/device"],
  "subscribe": [{"event": "ev_key", "fn": "dt_key", "order": 40}],
  "resources": {"core": "0.13"}, "requires": ["core"]
 }
 EOF
-CORE=$E/elekloader/mods/core-ar2/out/core-0.13.elemod
 cd $E/elekloader
-if [ ! -f $CORE ] || [ -n "$FORCE_CORE" ]; then python3 -m elekloader.sdk.build mods/core-ar2 --stock "$STOCK" | head -1; fi
-python3 -m elekloader.sdk.build $M --stock "$STOCK" | head -1
-python3 -m elekloader.patch --stock "$STOCK" --mod $CORE --mod $M/out/devtest-0.4.elemod \
+emu_elebuild $M $M/out > $W/devtest-build.log 2>&1 || { cat $W/devtest-build.log; emu_die "build devtest"; }
+python3 -m elekloader.patch --stock "$STOCK" --mod "$CORE" --mod $M/out/devtest-0.4.elemod \
     --out $FW --lockfile $W/devtest.lock.json --version SDEV | tail -1
 cd $W
 run() { snap_in=$1; snap_out=$2; shift 2; $B/dtboot $FW --load $snap_in "$@" --save $snap_out > /dev/null; }
@@ -61,7 +56,9 @@ PY
 }
 # check NAME SNAP 'python expression on a (this snapshot) and the named others'
 check() { name=$1; snap=$2; expr=$3; shift 3; for s in $snap "$@"; do [ -f $s.rec ] || dump $s; done
-python3 - "$name" "$expr" $snap "$@" <<'PY'
+_chk=$(check_py "$name" "$expr" $snap "$@"); echo "$_chk" | sed "s/^PASS /PASS $EMU_NAME: /; s/^FAIL /FAIL $EMU_NAME: /"
+case $_chk in PASS*) EMU_PASS=$((EMU_PASS + 1)) ;; *) EMU_FAIL=$((EMU_FAIL + 1)) ;; esac; }
+check_py() { python3 - "$@" <<'PY'
 import sys
 name, expr, snaps = sys.argv[1], sys.argv[2], sys.argv[3:]
 def load(s):
@@ -120,3 +117,4 @@ check "SONG: record and lock store byte for byte as before (I7)" d7.snap \
 # 6. a lock no row can hold (12.2 G)
 run d7.snap d8.snap --instr 0.4G --press FILL@11.9G
 check "FILL: refused with SEED_E_ROOM, nothing written (I8)" d8.snap 'a.res[3] == -3 and a.rec == o[0].rec and a.lks == o[0].lks' d7.snap
+emu_done
