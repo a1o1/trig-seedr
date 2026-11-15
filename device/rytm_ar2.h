@@ -111,6 +111,7 @@ int32_t rt_host_lock_type(int k);
 #define RT_DEF_NOTE 0x2c0
 #define RT_DEF_VEL  0x2c1
 #define RT_EUCLID   0x2ca
+#define RT_EUCLID_TAB 0x2d1            /* Euclidean mode's pattern, 64 bytes: a step's pulse number, 0xFF none (F2) */
 
 /* a track's lock store: per step 88 bytes = 44 int16 values by sound index (-1: none), then per
  * sound index a fine-flag byte at +5632; the pattern keeps 72 stored rows of (type, track) */
@@ -577,8 +578,9 @@ static inline int rt_seed_current(void)
     return rt_current(&obj, 0);
 }
 
-/* the pattern as stored: each track's length and trigs; caps, track and tracks. The mod fills
- * shared, grooves and ngrooves. */
+/* the pattern: each track's length and the trigs it plays (a track in Euclidean mode: the pattern
+ * that mode plays, not its stored trigs, which it leaves as they were); caps, track and tracks.
+ * The mod fills shared, grooves and ngrooves. */
 static inline void rt_seed_context(struct seed_ctx *c, int track)
 {
     int t, i;
@@ -595,7 +597,7 @@ static inline void rt_seed_context(struct seed_ctx *c, int track)
             continue;
         c->length[t] = (uint8_t)rt_seed_length(obj);
         for (i = 0; i < c->length[t]; i++)
-            if (rt_flags_at(r, i) & SEED_TRIG)
+            if (r[RT_EUCLID] ? r[RT_EUCLID_TAB + i] != 0xff : (rt_flags_at(r, i) & SEED_TRIG) != 0)
                 c->trig[t][i >> 3] |= (uint8_t)(1 << (i & 7));
     }
 }

@@ -543,8 +543,8 @@ static const char *const sprout[7] = {
 };
 
 /* The title bar: the sprout, then the page (and LOCK's lane), the track and the page's place
- * among the pages shown (3/10); at the right the source, TRK or S and the seed (V6), after AUD
- * while a take is auditioned. The place is left out when the two sides would not fit. */
+ * among the pages shown (3/10); at the right the source: TRK, EUC, CPY, or S and the seed (V6;
+ * the seed only for a source that draws from it), after AUD while a take is auditioned. The place is left out when the two sides would not fit. */
 #define TITLE_X 13                              /* the sprout (2..8), a space, then the text */
 static void draw_title(void *bmp, uint8_t *p, const struct pg_ctx *c, int n)
 {
@@ -582,6 +582,10 @@ static void draw_title(void *bmp, uint8_t *p, const struct pg_ctx *c, int n)
         o = pg_put(o, "AUD ");
     if (c->r->src == SEED_SRC_TRACK)
         o = pg_put(o, "TRK");
+    else if (c->r->src == SEED_SRC_EUCLID)       /* the sources that draw no random numbers */
+        o = pg_put(o, "EUC");
+    else if (c->r->src == SEED_SRC_COPY)
+        o = pg_put(o, "CPY");
     else {
         *o++ = 'S';
         o = pg_num(o, (int)c->r->seed);

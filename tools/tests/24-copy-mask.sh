@@ -103,4 +103,32 @@ check_take "SD changed: YES, keep" mask=only mtrk=1 "$K" "$O"
 emu_no
 emu_check "NO: closed" 0 "$(emu_get open)"
 check_take "closed: the take kept" mask=only mtrk=1 "$K" "$O"
+
+# ---- 6. COPY from a track in stock's Euclidean mode takes the pattern that mode plays (the device's
+# context reads its table, record +0x2D1), not the trigs stored on the track (lead, after F4) ----
+SD=$((0x407dd8e3 + 0x395))                      # A01 SD's record, after BD's (tools/emu.py)
+sd_euclid() {                                   # SD's Euclidean table, its first 16 steps, as a trig row
+    emu_py peek "$EMU_SNAP" "$((SD + 0x2d1))" 1 16 | tr -s ' \n' '\n' |
+        awk 'NF { r = r ($1 == 255 ? " ." : " x") } END { print "trig" r }'
+}
+emu_keys TRK+T2
+for _ in 1 2 3; do                              # TRIG until stock's EUCLIDEAN page, seedr closed
+    [ "$(emu_get open) $(emu_py trigpage "$MAP" "$EMU_SNAP")" = "0 1" ] && break
+    emu_keys TRIG
+done
+emu_check "SD: stock's EUCLIDEAN page, seedr closed" "0 1" "$(emu_get open) $(emu_py trigpage "$MAP" "$EMU_SNAP")"
+emu_sknob 3 $((SD + 0x2ca)) 1                   # EUC on
+emu_sknob 0 $((SD + 0x2cb)) 5                   # PL1 5
+EU=$(sd_euclid)
+emu_check "SD: Euclidean mode plays other steps than SD's stored trigs" 1 \
+    "$([ "$EU" != "$(emu_dump 1 | trigs)" ] && echo 1)"
+emu_keys TRK+T1
+emu_open
+emu_page PLACE
+emu_knob PLACE C:mask:one 0
+emu_page RHYTHM
+emu_knob RHYTHM A:src:one 4
+emu_yes
+emu_shot rhythm-copy-euclid
+emu_check "COPY SD in Euclidean mode: BD's trigs are the pattern that mode plays" "$EU" "$(emu_dump 0 | trigs)"
 emu_done

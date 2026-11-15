@@ -108,7 +108,7 @@ Other knobs:
 
 ## 8. Screen and keys
 
-- **Title bar:** page name, track, source (TRK or S + seed), a position mark for the page.
+- **Title bar:** the sprout, page name, track, the page's place among those shown (3/10); at the right the source: TRK, EUC, CPY, or S + seed for a source that draws from it (Alan, 2026-11-15).
 - **Body:** two rows of four cells (label, value), as 0.3.
 - **Bottom strip:** the preview: 64 steps × 2 px, bar height = velocity, the take as it would be written. It is rendered from the recipe on every knob change, before YES. Messages replace it for 2 seconds.
 

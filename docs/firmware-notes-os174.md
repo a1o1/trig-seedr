@@ -35,6 +35,8 @@ In the emulator the record of track t in live pattern p is at `0x407dd8e3 + 0x14
 | +0x2C5 | u8 | track length |
 | +0x2C7 | u8 | track speed (2 = 1x) |
 | +0x2CA | u8 | Euclid mode on |
+| +0x2CB / +0x2CC | u8 | Euclid PL1 / PL2 (pulses) |
+| +0x2D1 | 64 × u8 | the pattern Euclid mode plays: per step the pulse's number, 0xFF none (PL2 and OP combined); entries past the length keep old values. Euclid mode leaves the flag words as they were (F2, `tools/tests/22-euclid.sh`) |
 
 **Flag bits:** 0x0001 trig · 0x0002 retrig · 0x0004 mute · 0x0008 accent · 0x0010 swing · 0x0020 slide · 0x0080 / 0x0100 / 0x0200 / 0x0400 SYN / SMP / ENV / LFO state · 0x0800 / 0x1000 / 0x2000 SYN / SMP / ENV lock on.
 

@@ -534,6 +534,19 @@ static void test_context(void)
             ok &= seed_ctx_trig(&c, t, i) == (i < len[t] && (flags(t, i) & 1));
     }
     CHECK(ok);
+    /* a track in Euclidean mode: the pattern that mode plays (its table), not its stored trigs */
+    rec[4][RT_EUCLID] = 1;
+    for (i = 0; i < 64; i++)
+        rec[4][RT_EUCLID_TAB + i] = (uint8_t)(i % 3 == 0 ? i / 3 : 0xff);
+    rt_seed_context(&c, 3);
+    for (ok = 1, i = 0; i < SEED_STEPS; i++)
+        ok &= seed_ctx_trig(&c, 4, i) == (i < len[4] && i % 3 == 0);
+    CHECK(ok);
+    rec[4][RT_EUCLID] = 0;
+    rt_seed_context(&c, 3);
+    for (ok = 1, i = 0; i < SEED_STEPS; i++)
+        ok &= seed_ctx_trig(&c, 4, i) == (i < len[4] && (flags(4, i) & 1));
+    CHECK(ok);
     cur = 5;
     CHECK(rt_seed_current() == 5 && rt_seed_device()->current() == 5);
     cur = 0;
