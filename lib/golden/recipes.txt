@@ -47,3 +47,7 @@ rand-a orig=orig-a.txt rand=50
 quant-a orig=orig-a.txt quant=100
 # every 0.2 layer together
 all-02 src=random dens=60 bias=30 rot=2 skip=1 vel=50:110 shape=weak amt=60 acc=20 note=-3:3 len=14:46 lane1=1:8 lane1.pct=40 cond=20 rtrg=10 rand=20 fld=note frot=1
+# RHYTHM: EUCLID (F2)
+euclid-16-5 src=euclid eu_steps=16 eu_puls=5
+euclid-12-5-64 src=euclid eu_steps=12 eu_puls=5 length=64
+euclid-7-3-a orig=orig-a.txt src=euclid eu_steps=7 eu_puls=3 rot=1 vel=60:120 shape=strong amt=50

@@ -148,12 +148,12 @@ done
 uniq=$(echo $seen | tr ' ' '\n' | sort -u | wc -l | tr -d ' ')
 same 10 "$uniq" "SHOW_ALL: RIGHT visits ten different pages"
 same "$(screen $W/a1.snap)" "$(screen $prev)" "SHOW_ALL: and wraps to TAKE"
-# RHYTHM (a-take.snap) on the empty BD: SRC = RANDOM (V6). Turned to EUCLID, whose stage is a stub
-# (F2), YES writes nothing and says so.
+# RHYTHM (a-take.snap) on the empty BD: SRC = RANDOM (V6). Turned to MAP, whose stage is a stub
+# (F3), YES writes nothing and says so.
 MAP=$MAP_ALL
-hknob $W/a-take.snap $W/e0.snap RHYTHM A:src:one 2
+hknob $W/a-take.snap $W/e0.snap RHYTHM A:src:one 3
 key $W/e0.snap $W/n1.snap YES; png $W/n1.snap all-rhythm-not-built
-same "$(bytes $W/e0.snap)" "$(bytes $W/n1.snap)" "SHOW_ALL: YES on EUCLID (not built) writes nothing"
+same "$(bytes $W/e0.snap)" "$(bytes $W/n1.snap)" "SHOW_ALL: YES on MAP (not built) writes nothing"
 differ "$(screen $W/e0.snap)" "$(screen $W/n1.snap)" "SHOW_ALL: and says so (NOT AVAILABLE YET)"
 run $W/n1.snap $W/n2.snap 700
 same "$(screen $W/e0.snap)" "$(screen $W/n2.snap)" "SHOW_ALL: no audition was started (the screen as before YES)"
