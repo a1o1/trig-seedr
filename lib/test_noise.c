@@ -6,6 +6,7 @@
  * DENS and the lock % (P1, I4), and I1, I2, I3, I6 with NOISE on (props.h). */
 #include "tests.h"
 #include "props.h"
+#include "noise.h"
 
 static struct seed_track orig, out;
 static struct seed_recipe r;
@@ -23,6 +24,7 @@ static struct seed_take take_of(const struct seed_recipe *q)
 {
     struct seed_take k;
     seed_take_init(&k, q->seed, 0, q->vary, 0);
+    k.length = orig.length;                     /* as seed_render sets it: the contour wraps there */
     return k;
 }
 
@@ -286,6 +288,26 @@ static void test_shape(void)
     CHECK(same);
 }
 
+/* The contour wraps at the track's length: with ZOOM = the length there is one cell, from corner 0
+ * back to corner 0, so every step has corner 0's level (the lead, after F7) */
+static void test_wrap(void)
+{
+    int n, s, i, ok = 1, moved = 0;
+    for (n = 2; n <= SEED_STEPS; n++)
+        for (s = 1; s <= 8; s++) {
+            struct seed_take k;
+            seed_take_init(&k, (uint32_t)s, 0, 0, 0);
+            k.length = n;
+            for (i = 0; i < n; i++)
+                ok &= seed_noise_take(&k, 0x1234, i, n) == seed_noise_take(&k, 0x1234, 0, n);
+            k.length = SEED_STEPS;                  /* the same zoom on a longer track: a contour */
+            for (i = 1; i < n; i++)
+                moved |= seed_noise_take(&k, 0x1234, i, n) != seed_noise_take(&k, 0x1234, 0, n);
+        }
+    CHECK(ok);
+    CHECK(moved);
+}
+
 /* P1: NOTE, each lane and SHAPE have their own corners */
 static void test_slots(void)
 {
@@ -359,6 +381,7 @@ int main(void)
     test_dens_independent();
     test_lock();
     test_shape();
+    test_wrap();
     test_slots();
     test_props_noise();
     printf("test_noise: %d checks, %d failed\n", checks, fails);

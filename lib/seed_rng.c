@@ -27,6 +27,7 @@ void seed_take_init(struct seed_take *k, uint32_t seed, uint32_t salt, int vary,
     k->salt = salt;
     k->vary = vary < 0 ? 0 : vary > 100 ? 100 : vary;
     k->cand = cand < 0 ? 0 : cand;
+    k->length = SEED_STEPS;          /* seed_render sets the track's */
 }
 
 /* the slot's identity in this track and candidate, independent of the take number */

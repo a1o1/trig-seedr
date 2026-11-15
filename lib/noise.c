@@ -3,7 +3,7 @@
  * Owner: task F7 (docs/plan-v1.md section 4).
  * Value noise, one octave: a random level 0..255 at every `zoom`-th step (a cell's corner), and a
  * smoothstep (3t^2 - 2t^3) from one corner to the next. ZOOM 1 is a random level per step; higher
- * ZOOM a slower contour. Step 0 is a corner.
+ * ZOOM a slower contour. Step 0 is a corner, and the contour wraps at the track's length.
  *
  * In the chain each corner's level is the take's random number of its own slot (corner c: slot + c),
  * so VARY keeps that share of the corners from take to take (P3) and each layer has its own corners
@@ -46,13 +46,19 @@ int seed_noise(uint32_t seed, int x, int zoom)
                 (int)(seed_hash(seed ^ seed_hash((uint32_t)(c + 1))) >> 24), f, zoom);
 }
 
+/* The contour wraps at the track's length (k->length): its corners are at steps 0, zoom, 2 zoom, ...
+ * below the length, and the last cell runs from the last corner back to corner 0 over the steps
+ * that are left, so the loop has no seam. */
 int seed_noise_take(const struct seed_take *k, uint32_t slot, int step, int zoom)
 {
-    int f, c;
+    int f, c, n = clamp(k->length, 1, SEED_STEPS), corners, next, cell;
     zoom = clamp(zoom, 1, SEED_STEPS);
-    c = corner(clamp(step, 0, SEED_STEPS - 1), zoom, &f);
-    return ease((int)(seed_rand(k, slot + (uint32_t)c) >> 24), (int)(seed_rand(k, slot + (uint32_t)c + 1u) >> 24),
-                f, zoom);
+    c = corner(clamp(step, 0, n - 1), zoom, &f);
+    corners = (n + zoom - 1) / zoom;
+    next = c + 1 < corners ? c + 1 : 0;
+    cell = c + 1 < corners ? zoom : n - c * zoom;
+    return ease((int)(seed_rand(k, slot + (uint32_t)c) >> 24), (int)(seed_rand(k, slot + (uint32_t)next) >> 24),
+                f, cell);
 }
 
 /* The level mapped onto lo..hi in equal shares (at ZOOM 1 as likely as RANGE's values): level 0

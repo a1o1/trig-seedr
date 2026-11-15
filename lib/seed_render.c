@@ -176,6 +176,7 @@ static int chain(struct seed_track *t, const struct seed_track *orig, const stru
     seed_track_copy(t, orig);
     t->length = (int16_t)(len = clamp(orig->length, 1, SEED_STEPS));
     seed_take_init(k, n, (uint32_t)c->track, r->vary, cand);
+    k->length = len;
 
     /* RHYTHM. SOURCE = TRACK: the original's steps as they are, each its own origin. */
     if (r->src == SEED_SRC_TRACK) {

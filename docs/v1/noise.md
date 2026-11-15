@@ -29,9 +29,9 @@ or its lane's % is 0 (LOCK), as with RANGE.
 | 2..8 | a contour that turns every few steps |
 | 16..64 | a slow sweep over a page or the whole track |
 
-The track's first step is always one of the random levels. The contour does not wrap: with a length that is not
-a multiple of ZOOM, the last steps lead towards a level past the end, and the loop can jump from the last step to
-the first.
+The track's first step is always one of the random levels. The contour wraps at the track's length: the last
+steps lead back to the first step's level, so the loop has no jump. When the length is not a multiple of ZOOM, the
+last cell is shorter than the others.
 
 ## The range
 

@@ -331,6 +331,7 @@ struct seed_take {
     uint32_t salt;                    /* the track (seed_render sets it from the context) */
     int vary;                         /* 0..100 */
     int cand;                         /* QUAL's candidate, 0 .. qual - 1 */
+    int length;                       /* the track's length, 1..64 (seed_render sets it; NOISE wraps at it) */
 };
 
 void seed_take_init(struct seed_take *k, uint32_t seed, uint32_t salt, int vary, int cand);
@@ -431,7 +432,8 @@ int seed_map_level(int part, int x, int y, int step);
 
 /* A field's value for the trig at `step`, the index-th trig of the track, from v (values.c, 0.2).
  * `slot` is SEED_SLOT(layer, purpose, 0): RANGE draws slot + step, LIST its item i from
- * slot + 0x100 + i, NOISE its seed from slot + 0x200. These three return the value and cannot
+ * slot + 0x100 + i, NOISE its corner c from slot + 0x200 + c (the contour wraps at k->length). These
+ * three return the value and cannot
  * report an error (a value may be negative, so SEED_E_NA is a valid value): a stage checks the
  * source is built (seed_have_list, seed_have_noise) and refuses before it calls them. */
 int seed_value(const struct seed_values *v, const struct seed_take *k, uint32_t slot, int step, int index);
