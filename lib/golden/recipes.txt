@@ -90,3 +90,15 @@ sync-skip3 src=random dens=50 sync=100 skip=3
 sync-strong src=random dens=50 sync=100 vel=40:127 shape=strong amt=100
 sync-78 src=random dens=40 metr=7/8 beat=2 length=28 sync=100
 sync-64 src=random dens=40 sync=70 length=64
+# NOTE and LOCK: LIST and LEGATO (F6)
+list-note-up-a orig=orig-a.txt note=-5:7 note.src=list note.order=up note.len=4
+list-note-ping src=random dens=50 note=-12:12 note.src=list note.order=ping note.len=5
+list-note-png2-64 src=random dens=40 note=-24:24 note.src=list note.order=png2 note.len=7 length=64
+list-note-odd-a orig=orig-a.txt note=0:12 note.src=list note.order=odd note.len=6
+list-note-rand src=random dens=60 note=-7:7 note.src=list note.order=rand note.len=8
+list-len-down-a orig=orig-a.txt len=14:46 len.src=list len.order=down len.len=3
+list-lock1 src=random dens=50 lane1=1:8 lane1.pct=100 lane1.src=list lane1.order=up lane1.len=3
+list-lock2-a orig=orig-a.txt lane2=-30:30 lane2.pct=60 lane2.src=list lane2.order=odd lane2.len=5
+list-vary50 src=random dens=50 seed=5 vary=50 note=-12:12 note.src=list note.len=16
+legato-a orig=orig-a.txt lmod=legato
+legato-random-64 src=random dens=20 grid=2 lmod=legato note=-5:5 note.src=list note.order=ping note.len=4 length=64
