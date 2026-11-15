@@ -140,3 +140,12 @@ map-hat-xy src=map map_part=2 map_dens=200 map_x=100 map_y=200
 map-snare-64 src=map map_part=1 map_dens=150 map_x=128 map_y=64 length=64
 map-chaos-64 src=map map_dens=140 map_x=40 map_y=230 map_chaos=255 seed=3 length=64
 map-shape-a orig=orig-a.txt vel=20:127 shape=map amt=100 map_x=60 map_y=190
+# TAKE: PHRS and CVAR (F9)
+phrs-abab-64 src=random dens=50 length=64 phrs=abab
+phrs-aaab-a-64 orig=orig-a.txt length=64 phrs=aaab vel=60:120 cond=50
+phrs-abcd-40 src=random dens=50 length=40 phrs=abcd skip=3
+phrs-abac-vary src=random dens=60 length=64 phrs=abac vary=60 rot=2
+cvar-12 src=random dens=50 cvar=1:2
+cvar-aaab src=random dens=50 cvar=aaab
+cvar-12-vary src=random dens=50 cvar=1:2 vary=70 vel=60:120
+cvar-phrs-64 src=random dens=40 length=64 phrs=abab cvar=aaab vary=50

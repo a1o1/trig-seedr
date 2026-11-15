@@ -263,24 +263,64 @@ static int take(struct seed_track *t, const struct seed_track *orig, const struc
     return rc;
 }
 
+/* a struct copy without memcpy, which a mod does not link (both structs are 2-byte aligned) */
+static void copy16(void *to, const void *from, unsigned n)
+{
+    uint16_t *d = to;
+    const uint16_t *s = from;
+    for (n /= 2; n > 0; n--)
+        *d++ = *s++;
+}
+
 int seed_render(struct seed_track *out, const struct seed_track *orig, const struct seed_recipe *r,
                 const struct seed_ctx *c, struct seed_work *w)
 {
-    int p, i, rc, len = clamp(orig->length, 1, SEED_STEPS);
+    struct seed_recipe pr;
+    struct seed_ctx pc;
+    int p, i, j, rc, len = clamp(orig->length, 1, SEED_STEPS);
 
-    if (r->phrs == SEED_PHRS_OFF)
-        return take(out, orig, r, c, r->seed, w);
-    /* PHRS: page p is take n + offset(p); its steps come from that take's render */
+    /* a track of one page or less is one phrase */
+    if (r->phrs == SEED_PHRS_OFF || len <= SEED_PAGE)
+        return r->phrs < 0 || r->phrs >= SEED_PHRS_N ? SEED_E_ARG : take(out, orig, r, c, r->seed, w);
+    /* PHRS (F9): page p is take n + offset(p) rendered as a 16-step phrase from the original's
+     * page p, so pages with the same letter repeat; a last, shorter page plays the phrase's start.
+     * What belongs to the track's positions stays there: SKIP, the groove, the other tracks. */
     seed_track_copy(out, orig);
     for (p = 0; p * SEED_PAGE < len; p++) {
-        int off = seed_phrase_take(r->phrs, p);
+        int base = p * SEED_PAGE, off = seed_phrase_take(r->phrs, p);
         if (off < 0)
             return off;
-        rc = take(&w->page, orig, r, c, r->seed + (uint32_t)off, w);
+        seed_track_copy(&w->page, orig);
+        w->page.length = SEED_PAGE;
+        for (i = 0; i < SEED_PAGE; i++) {
+            w->page.s[i] = orig->s[base + i];
+            w->page.s[i].origin = (int8_t)i;
+            if (base + i >= len)
+                seed_step_clear(&w->page.s[i]);     /* past the track's end: no trig */
+        }
+        copy16(&pr, r, sizeof pr);
+        pr.skip = (int16_t)clamp(r->skip - base, 0, SEED_PAGE);
+        pr.shft = (int16_t)(r->shft - base);
+        copy16(&pc, c, sizeof pc);
+        for (j = 0; j < c->tracks && j < SEED_TRACKS; j++) {
+            int n = c->length[j];
+            if (n < 1)
+                continue;
+            pc.length[j] = SEED_PAGE;
+            pc.trig[j][0] = pc.trig[j][1] = 0;
+            for (i = 0; i < SEED_PAGE; i++)
+                if (seed_ctx_trig(c, j, (base + i) % n))
+                    pc.trig[j][i >> 3] |= (uint8_t)(1u << (i & 7));
+        }
+        rc = take(&w->a, &w->page, &pr, &pc, r->seed + (uint32_t)off, w);
         if (rc < 0)
             return rc;
-        for (i = p * SEED_PAGE; i < (p + 1) * SEED_PAGE && i < len; i++)
-            out->s[i] = w->page.s[i];
+        for (i = 0; i < SEED_PAGE && base + i < len; i++) {
+            int o = w->a.s[i].origin;
+            out->s[base + i] = w->a.s[i];
+            /* an origin past the track's end (a rotated empty step) is none */
+            out->s[base + i].origin = (int8_t)(o != SEED_NO_ORIGIN && base + o < len ? base + o : SEED_NO_ORIGIN);
+        }
     }
     return SEED_OK;
 }
