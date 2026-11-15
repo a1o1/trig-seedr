@@ -74,16 +74,39 @@ length through (`blt`), so the device layer never writes there.
 ## 4. Parameter locks
 
 - **Live store:** per track 5,674 bytes: per step 88 bytes = 44 int16 values by sound index (−1 = none), stored as value × 256; then a fine-flag byte per sound index at +5632.
-- **Stored rows:** the pattern's saved copy keeps locks in 72 rows of (type, track), 66 bytes each, behind the lock pool (track object +0x2c) at +0x20. Sound index → row type for voice tracks: table 0x401c5be4 (its inverse 0x401c5b4c). A new row is taken while used + cost ≤ 71 (cost 2 for a fine parameter); past that a new lock lives only until the next save, without a warning.
+- **Stored rows:** the pattern also keeps its locks as 72 rows of (type, track, …), 66 bytes each, behind the lock
+  pool (track object +0x2c) at +0x20; a free row has type and track 0xFF. Measured for every sound index on BD, MT
+  and the FX track (task D1, `tools/tests/12-lock-rows.sh`; table in its `map.txt`):
+  - A lock set through 0x400c058c makes the row (type, track) of its sound index if the track has none of that
+    type; the last lock of a type on a track cleared frees it. Stock does this from a notice the lock set posts,
+    not inside the call: the row is there by the next UI tick (`ev_tick`), not when the call returns.
+  - A lock set with the fine flag takes two rows: (type, track), then one of type and track 0x80.
+  - **Voice tracks:** type = int32 table 0x401c5c7c by sound index, 42 entries, each index its own type: 0..8 →
+    41, 34, 37, 39, 36, 33, 35, 38, 40; 9..24 → 0..15; 25 → 23; 26 → 16; 27 → 18; 28 → 17; 29..32 → 19..22;
+    33..36 → 24..27; 37 → 31; 38 → 30; 39 → 32; 40 → 28; 41 → 29. Its inverse is 0x401c5d24.
+  - **The FX track** keeps rows too (track 12): type = the int32 table 0x401c5b4c by sound index. It has 38
+    entries (0..8 → 37, 30, 33, 35, 32, 29, 31, 34, 36; 9..37 → 0..28); for 38..41 stock reads on into the next
+    table, 0x401c5be4 (its inverse), so 38..41 get types 9..12 and share a row with 18..21.
+  - The routine 0x40007602 (track, index) gives the same types, but 0 for an FX index past 37; the row code does
+    not use it.
+  - Earlier notes named 0x401c5be4 as the voice map: it is the FX track's type → index table.
+  - A new row is taken while used + cost ≤ 71 (cost 2 for a fine parameter); past that stock sets the lock
+    without a row and without a warning. Such a lock is kept by SAVE PATTERN + RELOAD PATTERN and by a power
+    cycle (measured). Where it is lost (the project file, a pattern SysEx dump) is not measured yet.
+  - The default project's pattern A01 is not empty: tracks 2–5 hold locks (15 rows, four of them fine).
 - **Sample slot:** sound index 19, value slot × 256, 0 = OFF.
 - **Sound index → parameter, voice tracks** (the parameter records at 0x401bfb2c, 0x34 bytes each, +0x04 the
   index): 1..8 LFO (MUL, WAV, MOD, DST, SPD, FAD, SPH, DEP); 9..16 the SYNTH page (per machine; 9 is LEV); 17..24
   SAMPLE (TUN, FIN, SMP, BR, STA, END, LOP, LEV); 25..32 FILTER (ENV, ATK, DEC, SUS, REL, FRQ, RES, TYP); 33..41 AMP
-  (ATK, HLD, DEC, OVR, VOL, PAN, ACC, DEL, REV). Words 42 and 43 of a step's 88 bytes are not locks. The lanes'
+  (ATK, HLD, DEC, OVR, VOL, PAN, ACC, DEL, REV). Words 42 and 43 of a step's 88 bytes are not locks: they hold
+  the step's count of locks as an int32, which the lock set / clear routines rewrite (0x400ac646). The lanes'
   parameter list is device/rytm_params.h (task 0.4).
 - Checked (task 0.4, tools/tests/11-device.sh): a step with three FLTR locks made by hand, moved one step through
   the lock set / clear routines, keeps all three after SAVE PATTERN + RELOAD PATTERN and after a power cycle.
-- Checked: sample locks written through 0x400c058c survive SAVE PATTERN + RELOAD PATTERN (so their row is stored), play the locked slot's sample, and move with whole steps under the trig shift.
+- Checked: sample locks written through 0x400c058c survive SAVE PATTERN + RELOAD PATTERN, play the locked slot's sample, and move with whole steps under the trig shift. (Surviving a pattern save does not show a lock has a row: see "Stored rows".)
+- Checked (task D1, tools/tests/12-lock-rows.sh): near the limit, with the device layer's room check: at 70 rows a
+  new lock is taken (71) and survives SAVE + RELOAD PATTERN; at 71 a lock of a new type is refused with nothing
+  written; a fine lock (two rows) is refused at 70 and taken at 69.
 
 ## 5. Other findings
 

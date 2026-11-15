@@ -49,9 +49,11 @@
  * tail-calls the clear. Neither touches the flag word. */
 #define RT_LOCK_SET       ((int (*)(unsigned, int, int, int, int))0x400c058c)
 #define RT_LOCK_CLEAR     ((int (*)(unsigned, int, int))0x400c05e2)
-/* sound index -> the stored lock row's type, voice tracks (1.73: 0x401c59cc, Sidecar's LOCK_TYPE;
- * 1.74: the only table of 38 types whose inverse, 0x401c5b4c, the row code next to it uses) */
-#define RT_LOCK_TYPE(k)   (((const int32_t *)0x401c5be4)[k])
+/* (track, sound index 0..41) -> the type of the stored lock row stock makes for it, as int32
+ * tables: voice tracks 0x401c5c7c (each index its own type), the FX track 0x401c5b4c (38 entries;
+ * stock's row code reads 38..41 on into the next table, 0x401c5be4, so those share types 9..12
+ * with 18..21). Measured for every index on BD, MT and FX (task D1, tools/tests/12-lock-rows.sh). */
+#define RT_LOCK_TYPE(t, k) (((const int32_t *)((t) == RT_FX_TRACK ? 0x401c5b4c : 0x401c5c7c))[k])
 #else
 unsigned rt_host_app(void);
 unsigned rt_host_app_tracks(unsigned app);
@@ -67,7 +69,7 @@ void rt_host_set_slock(unsigned obj, int i, int v);
 void rt_host_clear_slock(unsigned obj, int i);
 int rt_host_lock_set(unsigned obj, int i, int k, int value, int fine);
 int rt_host_lock_clear(unsigned obj, int i, int k);
-int32_t rt_host_lock_type(int k);
+int rt_host_lock_type(int track, int k);
 #define RT_APP            rt_host_app
 #define RT_APP_TRACKS     rt_host_app_tracks
 #define RT_CURRENT_TRACK  rt_host_current_track
@@ -89,7 +91,7 @@ int32_t rt_host_lock_type(int k);
 #define RT_CLEAR_SLOCK    rt_host_clear_slock
 #define RT_LOCK_SET       rt_host_lock_set
 #define RT_LOCK_CLEAR     rt_host_lock_clear
-#define RT_LOCK_TYPE(k)   rt_host_lock_type(k)
+#define RT_LOCK_TYPE(t, k) rt_host_lock_type(t, k)
 #endif
 
 #define RT_RECORD_SIZE 0x395
@@ -203,7 +205,10 @@ static inline uint16_t rt_flags_at(const uint8_t *r, int step)
     return (uint16_t)(r[RT_FLAGS + 2 * step] << 8 | r[RT_FLAGS + 2 * step + 1]);
 }
 
-/* the pattern's stored lock rows: used, and whether (type of sound index k, this track) has one */
+/* the pattern's stored lock rows: used, and whether (type of sound index k, this track) has one.
+ * Stock makes a lock's row (and frees it after the last lock of its type on the track goes) from
+ * a notice the lock set posts, by the next UI tick (measured, task D1); a row of a fine
+ * parameter is followed by one of type and track 0x80, which counts as used. */
 static inline int rt_rows(unsigned obj, int k, int *have)
 {
     int track = rt_track_no(obj), used = 0, j;
@@ -215,7 +220,7 @@ static inline int rt_rows(unsigned obj, int k, int *have)
         if (m[0] == 0xff || m[1] == 0xff)
             continue;
         used++;
-        if (m[0] == (uint8_t)RT_LOCK_TYPE(k) && m[1] == track)
+        if (m[0] == (uint8_t)RT_LOCK_TYPE(track, k) && m[1] == track)
             *have = 1;
     }
     return used;
@@ -423,8 +428,9 @@ static inline int rt_seed_steps(const struct seed_track *t, unsigned obj)
 }
 
 /* Room for t's locks (I8), against src. A sound index the write would set somewhere needs its
- * stored row: voice tracks, the row exists or the new ones fit (stock's count, rt_lock_room);
- * the FX track (no row table here), the track holds a lock of that index already. */
+ * stored row (type RT_LOCK_TYPE, this track): it exists, or the new ones fit as stock counts them
+ * (rt_lock_room; two sound indexes of one type cost it once, a fine parameter 2). Every track,
+ * the FX track included, keeps its locks in these rows. */
 static inline int rt_seed_room_src(int track, unsigned obj, const int16_t *parm, const struct seed_track *t,
                                    const struct rt_snap *src)
 {
@@ -446,7 +452,7 @@ static inline int rt_seed_room_src(int track, unsigned obj, const int16_t *parm,
                 return SEED_E_ARG;
     }
     for (k = 0; k < RT_SOUND_LOCKS; k++) {
-        int need = 0, held = 0;
+        int need = 0;
         counted[k] = 0;
         for (i = 0; i < n && !need; i++) {
             int16_t v = rt_seed_target_lock(src, track, parm, &t->s[i], i, k);
@@ -454,20 +460,13 @@ static inline int rt_seed_room_src(int track, unsigned obj, const int16_t *parm,
         }
         if (!need)
             continue;
-        if (track == RT_FX_TRACK) {
-            for (i = 0; i < SEED_STEPS && !held; i++)
-                held = rt_lock_at(l, i, k) >= 0 || rt_lock_at(src->locks, i, k) >= 0;
-            if (!held)
-                return SEED_E_ROOM;
-            continue;
-        }
         used = rt_rows(obj, k, &have);
         if (used < 0)
             return SEED_E_ROOM;
         if (have)
             continue;
         for (j = 0; j < k; j++)          /* two sound indexes of one row type cost it once */
-            if (counted[j] && RT_LOCK_TYPE(j) == RT_LOCK_TYPE(k))
+            if (counted[j] && RT_LOCK_TYPE(track, j) == RT_LOCK_TYPE(track, k))
                 break;
         if (j < k)
             continue;

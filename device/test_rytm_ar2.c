@@ -32,7 +32,9 @@ uint8_t *rt_locks(unsigned obj) { return lks[T(obj)]; }
 const uint8_t *rt_row_table(unsigned obj) { (void)obj; return rows; }
 int rt_track_no(unsigned obj) { return T(obj); }
 void rt_changed(unsigned obj) { (void)obj; notices++; }
-int32_t rt_host_lock_type(int k) { return k == 18 ? 17 : k; }   /* 17 and 18 share a row type */
+/* the row type of (track, sound index), shaped as stock's (task D1) but not its tables: on a voice
+ * track each index its own type, not the index itself; on the FX track 38..41 share 18..21's */
+int rt_host_lock_type(int track, int k) { return track == RT_FX_TRACK ? (k < 38 ? k : k - 20) : 41 - k; }
 
 static void put16(uint8_t *p, int v) { p[0] = (uint8_t)(v >> 8); p[1] = (uint8_t)v; }
 static int flags(int t, int i) { return rec[t][2 * i] << 8 | rec[t][2 * i + 1]; }
@@ -47,20 +49,38 @@ static int rows_used(void)
     return n;
 }
 
-/* stock's mirror: a new (type, track) row while used + cost <= 71 */
+/* stock's mirror: a new (type, track) row while used + cost <= 71, for a fine parameter followed
+ * by a row of type and track 0x80; freed after the last lock of its type on the track goes */
 static void take_row(int t, int k)
 {
-    int j, cost = lks[t][RT_LOCK_FINE + k] ? 2 : 1;
+    int j, fine = lks[t][RT_LOCK_FINE + k] != 0;
     for (j = 0; j < RT_ROWS; j++)
-        if (rows[RT_ROW * j] == rt_host_lock_type(k) && rows[RT_ROW * j + 1] == t)
+        if (rows[RT_ROW * j] == rt_host_lock_type(t, k) && rows[RT_ROW * j + 1] == t)
             return;
-    if (rows_used() + cost > 71)
+    if (rows_used() + 1 + fine > 71)
         return;
-    for (j = 0; j < RT_ROWS && cost; j++)
-        if (rows[RT_ROW * j] == 0xff) {
-            rows[RT_ROW * j] = (uint8_t)rt_host_lock_type(k);
+    for (j = 0; j < RT_ROWS - fine; j++)
+        if (rows[RT_ROW * j] == 0xff && (!fine || rows[RT_ROW * (j + 1)] == 0xff)) {
+            rows[RT_ROW * j] = (uint8_t)rt_host_lock_type(t, k);
             rows[RT_ROW * j + 1] = (uint8_t)t;
-            cost--;
+            if (fine)
+                rows[RT_ROW * (j + 1)] = rows[RT_ROW * (j + 1) + 1] = 0x80;
+            return;
+        }
+}
+
+static void free_row(int t, int k)
+{
+    int i, kk, j, type = rt_host_lock_type(t, k);
+    for (i = 0; i < SEED_STEPS; i++)
+        for (kk = 0; kk < RT_SOUND_LOCKS; kk++)
+            if (rt_host_lock_type(t, kk) == type && lks[t][RT_STEP_LOCKS * i + 2 * kk] != 0xff)
+                return;
+    for (j = 0; j < RT_ROWS; j++)
+        if (rows[RT_ROW * j] == type && rows[RT_ROW * j + 1] == t) {
+            rows[RT_ROW * j] = rows[RT_ROW * j + 1] = 0xff;
+            if (j + 1 < RT_ROWS && rows[RT_ROW * (j + 1)] == 0x80 && rows[RT_ROW * (j + 1) + 1] == 0x80)
+                rows[RT_ROW * (j + 1)] = rows[RT_ROW * (j + 1) + 1] = 0xff;
         }
 }
 
@@ -76,6 +96,8 @@ static void reset(int t, int i)
     rec[t][RT_SLOCK + i] = 0xff;
     for (k = 0; k < 44; k++)
         put16(&lks[t][RT_STEP_LOCKS * i + 2 * k], -1);
+    for (k = 0; k < RT_SOUND_LOCKS; k++)
+        free_row(t, k);
 }
 
 void rt_host_set_trig(unsigned obj, int i, int on)
@@ -130,11 +152,11 @@ void rt_host_clear_slock(unsigned obj, int i)
 int rt_host_lock_set(unsigned obj, int i, int k, int value, int fine)
 {
     int t = T(obj);
-    (void)fine;
     calls++;
     if (i > len[t])                    /* stock's check lets step == length through */
         return 0;
     put16(&lks[t][RT_STEP_LOCKS * i + 2 * k], value);
+    lks[t][RT_LOCK_FINE + k] = (uint8_t)fine;
     take_row(t, k);
     return 1;
 }
@@ -145,6 +167,7 @@ int rt_host_lock_clear(unsigned obj, int i, int k)
     if (i > len[T(obj)])
         return 0;
     put16(&lks[T(obj)][RT_STEP_LOCKS * i + 2 * k], -1);
+    free_row(T(obj), k);
     return 1;
 }
 
@@ -399,24 +422,95 @@ static void test_room(void)
     CHECK(rt_seed_write(3, tun, &a) == SEED_E_ROOM && calls == 0 && notices == 0 && same());
     CHECK(!rt_seed_state()->snap[3].valid);
     rows_max = 71;
-    /* FIN (18) shares TUN's row type: once TUN has its row, FIN needs none */
-    CHECK(rt_seed_write(3, tun, &a) == SEED_OK && rows_used() == 71);
+    /* FIN (18) has a row type of its own on a voice track: with the table full it is refused */
+    CHECK(rt_seed_write(3, tun, &a) == SEED_OK && rows_used() == 71 && lock(3, 0, 17) == 10 << 8);
     CHECK(rt_seed_read(3, fin, &b) == SEED_OK);
     b.s[1].lane[0] = 3;
-    CHECK(rt_seed_write(3, fin, &b) == SEED_OK && lock(3, 1, 18) == 3 << 8);
+    save();
+    CHECK(rt_seed_write(3, fin, &b) == SEED_E_ROOM && same() && !memcmp(rows0, rows, sizeof rows));
     /* a lock already stored on the track needs no new row even with the table full */
     CHECK(rt_seed_read(3, lanes_smp_frq, &b) == SEED_OK);
     rows_max = 0;
     rotate_origins(&b, 2);
     CHECK(rt_seed_write(3, lanes_smp_frq, &b) == SEED_OK);
     rows_max = 71;
-    /* FX track: an index the track holds no lock of is refused */
+}
+
+/* I8 by stock's own counts (task D1): the type is (track, index), not the index; a fine parameter
+ * takes two rows; the FX track keeps rows too, and its indexes 38..41 share 18..21's types */
+static void test_room_rows(void)
+{
+    const int16_t tun[SEED_LANES] = { 0, RT_P_FRQ };
+    int j, filled;
+    for (filled = 69; filled <= 70; filled++) {
+        fixture();
+        for (j = 0; rows_used() < filled; j++)
+            if (rows[RT_ROW * j] == 0xff) {
+                rows[RT_ROW * j] = 0x50;
+                rows[RT_ROW * j + 1] = (uint8_t)j;
+            }
+        lks[3][RT_LOCK_FINE + 17] = 1;                      /* TUN fine on SD: two rows */
+        save();
+        CHECK(rt_seed_read(3, tun, &a) == SEED_OK);
+        a.s[0].lane[0] = 10;
+        if (filled == 70) {
+            CHECK(rt_seed_write(3, tun, &a) == SEED_E_ROOM && same() && !memcmp(rows0, rows, sizeof rows));
+        } else {
+            CHECK(rt_seed_write(3, tun, &a) == SEED_OK && lock(3, 0, 17) == 10 << 8 && rows_used() == 71);
+        }
+    }
+    /* a row of another index's type on the track is not this index's row: the type of TUN (17) on
+     * a voice track is 24; a row (17, track) must not count */
     fixture();
-    put16(&lks[RT_FX_TRACK][2 * 10], 5 << 8);
+    for (j = 0; rows_used() < 70; j++)
+        if (rows[RT_ROW * j] == 0xff) {
+            rows[RT_ROW * j] = 0x50;
+            rows[RT_ROW * j + 1] = (uint8_t)j;
+        }
+    while (rows[RT_ROW * j] != 0xff)
+        j++;
+    rows[RT_ROW * j] = 17;
+    rows[RT_ROW * j + 1] = 3;
+    save();
+    CHECK(rt_seed_read(3, tun, &a) == SEED_OK);
+    a.s[0].lane[0] = 10;
+    CHECK(rows_used() == 71 && rt_seed_write(3, tun, &a) == SEED_E_ROOM && same());
+    rows[RT_ROW * j] = (uint8_t)rt_host_lock_type(3, 17);
+    CHECK(rt_seed_write(3, tun, &a) == SEED_OK && lock(3, 0, 17) == 10 << 8);
+    /* FX: a lock with no row (made past the limit) moved by origins takes a row when one fits, and
+     * is refused when none does; one sharing a stored type needs none */
+    fixture();
+    put16(&lks[RT_FX_TRACK][2 * 10], 5 << 8);              /* no take_row: not stored */
     save();
     CHECK(rt_seed_read(RT_FX_TRACK, 0, &a) == SEED_OK);
     rotate_origins(&a, 3);
+    rows_max = rows_used();
+    CHECK(rt_seed_write(RT_FX_TRACK, 0, &a) == SEED_E_ROOM && same());
+    rows_max = 71;
     CHECK(rt_seed_write(RT_FX_TRACK, 0, &a) == SEED_OK && lock(RT_FX_TRACK, 3, 10) == 5 << 8);
+    fixture();
+    put16(&lks[RT_FX_TRACK][2 * 18], 7 << 8);
+    take_row(RT_FX_TRACK, 18);
+    put16(&lks[RT_FX_TRACK][RT_STEP_LOCKS + 2 * 38], 6 << 8);  /* 38: 18's type, stored with it */
+    save();
+    CHECK(rt_seed_read(RT_FX_TRACK, 0, &a) == SEED_OK);
+    rotate_origins(&a, 3);
+    rows_max = 0;
+    CHECK(rt_seed_write(RT_FX_TRACK, 0, &a) == SEED_OK && lock(RT_FX_TRACK, 4, 38) == 6 << 8);
+    rows_max = 71;
+    /* two new indexes of one type (FX 21 and 41, no row yet) cost one row */
+    fixture();
+    put16(&lks[RT_FX_TRACK][2 * 21], 7 << 8);
+    put16(&lks[RT_FX_TRACK][RT_STEP_LOCKS + 2 * 41], 6 << 8);
+    save();
+    CHECK(rt_seed_read(RT_FX_TRACK, 0, &a) == SEED_OK);
+    rotate_origins(&a, 3);
+    rows_max = rows_used();
+    CHECK(rt_seed_write(RT_FX_TRACK, 0, &a) == SEED_E_ROOM && same());
+    rows_max = rows_used() + 1;
+    CHECK(rt_seed_write(RT_FX_TRACK, 0, &a) == SEED_OK && lock(RT_FX_TRACK, 3, 21) == 7 << 8 &&
+          lock(RT_FX_TRACK, 4, 41) == 6 << 8);
+    rows_max = 71;
 }
 
 /* origins: none keeps the locks stored at the position (lanes excepted); out of range is refused */
@@ -565,6 +659,7 @@ int main(void)
     test_three_locks();
     test_lanes();
     test_room();
+    test_room_rows();
     test_origins();
     test_new_trig_bits();
     test_snapshot();
