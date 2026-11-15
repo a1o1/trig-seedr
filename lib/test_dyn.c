@@ -159,13 +159,13 @@ static void test_refusals(void)
         base();
         r.shape = later[i];
         r.amt = 50;
-        CHECK(seed_render(&out, &orig, &r, &c, &work) == SEED_E_NA);
+        CHECK(seed_render(&out, &orig, &r, &c, &work) == (i == 0 && seed_have_rank ? SEED_OK : SEED_E_NA));
     }
     base();
     r.shape = SEED_SHAPE_STRONG;
     r.amt = 50;
     r.metr = SEED_METR_3_4;
-    CHECK(seed_render(&out, &orig, &r, &c, &work) == SEED_E_NA);
+    CHECK(seed_render(&out, &orig, &r, &c, &work) == (seed_have_rank ? SEED_OK : SEED_E_NA));
     base();
     r.vel.lo = 1;
     r.vel.hi = 127;

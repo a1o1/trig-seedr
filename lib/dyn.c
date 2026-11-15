@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
-/* dyn: DYNAMICS: VEL, the shapes, ACC, HUM; 0.3's metric weight.
+/* dyn: DYNAMICS: VEL, the shapes, ACC, HUM; 0.3's metric weight (the shapes use meter.c's, F1).
  * Owner: task 0.2 (docs/plan-v1.md section 4).
  * Writes the trigs' velocity and accent flag at their final positions (P5), nothing else. Each
  * part runs only when its knob is set (V4): VEL, SHAPE with AMT, and HUM write velocity; ACC
@@ -61,10 +61,10 @@ static int shape_level(const struct seed_recipe *r, const struct seed_take *k, c
                        int step, int index, int n)
 {
     switch (r->shape) {
-    case SEED_SHAPE_STRONG: case SEED_SHAPE_WEAK: case SEED_SHAPE_OFF: case SEED_SHAPE_NOT1: case SEED_SHAPE_NOTBAR:
-        if (r->metr != SEED_METR_4_4)
-            return SEED_E_NA;                  /* the weights are 4/4's; other meters come with F1 */
-        return weight_level(r->shape, seed_weight(step, r->beat)) * 255 / 4;
+    case SEED_SHAPE_STRONG: case SEED_SHAPE_WEAK: case SEED_SHAPE_OFF: case SEED_SHAPE_NOT1: case SEED_SHAPE_NOTBAR: {
+        int w = seed_meter_weight(r->metr, r->beat, step);     /* F1: every meter */
+        return w < 0 ? w : weight_level(r->shape, w) * 255 / 4;
+    }
     case SEED_SHAPE_RANK:
         return seed_shape_rank(r, step, n);
     case SEED_SHAPE_NOISE:
@@ -114,8 +114,8 @@ int seed_dyn(struct seed_track *t, const struct seed_recipe *r, const struct see
         return rc;
     if (r->acc > 0 && r->amod != SEED_AMOD_RAND && r->amod != SEED_AMOD_TOP)
         return SEED_E_ARG;
-    if (r->acc > 0 && r->amod == SEED_AMOD_TOP && !seed_have_rank)
-        return SEED_E_NA;
+    if (r->acc > 0 && r->amod == SEED_AMOD_TOP && (rc = seed_rank(r->metr, r->beat, SEED_ROLE_METER, 0, n)) < 0)
+        return rc;
 
     if ((t->fields & SEED_F_VEL) && (vel_on || shape_on || hum))
         for (i = 0; i < n; i++) {

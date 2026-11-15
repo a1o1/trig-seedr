@@ -122,6 +122,13 @@ trig-seedr builds on, and learned from, these open source projects:
 | [modwerk](https://github.com/repeat98/modwerk) | mixed (Elastic-2.0 and others) | firmware modding research |
 | [Capstone](https://www.capstone-engine.org/), [Unicorn](https://www.unicorn-engine.org/) | BSD-3 / GPL-2.0 | disassembly and function-level emulation in `tools/` |
 
+Methods taken from research:
+
+| Source | How it was used |
+|---|---|
+| Clarence Barlow, "Two Essays on Theory", *Computer Music Journal* 11(1), 1987 | indispensability: the rank of each step in a meter (BIAS, ROLE, SHAPE = RANK, AMOD = TOP), and the basic orders for the primes 2 to 13 |
+| [hmt](https://gitlab.com/rd--/hmt) by Rohan Drape, `Music.Theory.Meter.Barlow_1987` (GPL-3.0) | the reference trig-seedr's ranks were checked against: Barlow's formula as code, and its tables of values |
+
 No code from the projects under other licences is included; each is credited for what it documented or made possible.
 
 ## Contributing

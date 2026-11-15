@@ -45,5 +45,21 @@ rtrg src=random dens=50 rtrg=25 rate=6:12 rcur=-20
 # TIME (0.2)
 rand-a orig=orig-a.txt rand=50
 quant-a orig=orig-a.txt quant=100
+# RANK and meter (F1): Barlow's ranks, every meter, the roles, SHAPE = RANK, AMOD = TOP
+rank-shape-a orig=orig-a.txt vel=20:120 shape=rank amt=100
+rank-shape-68 src=random dens=75 metr=6/8 beat=2 vel=30:120 shape=rank amt=100
+acc-top src=random dens=50 acc=30 amod=top
+acc-top-64 src=random dens=40 acc=20 amod=top length=64
+bias-60-64 src=random dens=25 bias=60 length=64
+metr-34-strong src=random dens=60 metr=3/4 beat=4 vel=40:120 shape=strong amt=100
+metr-68-not1 src=random dens=60 metr=6/8 beat=2 vel=40:120 shape=not1 amt=100
+metr-1216-bias src=random dens=40 bias=80 metr=12/16 beat=1 length=24
+metr-58-bias src=random dens=40 bias=70 metr=5/8 beat=2 length=20
+metr-78-bias src=random dens=30 bias=70 metr=7/8 beat=2 length=28
+role-kick src=random dens=25 bias=80 role=kick
+role-back src=random dens=20 bias=90 role=back
+role-hat src=random dens=50 bias=70 role=hat
+role-perc src=random dens=30 bias=70 role=perc length=32
+role-hat-n src=random dens=25 bias=-50 role=hat
 # every 0.2 layer together
 all-02 src=random dens=60 bias=30 rot=2 skip=1 vel=50:110 shape=weak amt=60 acc=20 note=-3:3 len=14:46 lane1=1:8 lane1.pct=40 cond=20 rtrg=10 rand=20 fld=note frot=1
