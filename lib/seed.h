@@ -414,6 +414,10 @@ seed_stage seed_place_fields;         /* place.c (0.2): FLD, FROT, FMOD, last in
 
 /* meter.c (F1): the rank of step i of n for the meter and role, 0..SEED_RANK_MAX, or SEED_E_NA */
 int seed_rank(int metr, int beat, int role, int step, int n);
+/* meter.c (F1): the five-level metric weight of step i in the meter, 0..4 (bar, a grouping above
+ * the counted beat, a counted beat, its first division, finer), or SEED_E_ARG; in 4/4 with an
+ * even BEAT, seed_weight's */
+int seed_meter_weight(int metr, int beat, int step);
 /* dyn.c (0.2): 0.3's five-level metric weight, 0..4 (bar, half bar, beat, "&", other) */
 int seed_weight(int step, int beat);
 /* the level of a step in a velocity shape, 0 (VEL's low end) .. 255 (its high end), or SEED_E_NA */

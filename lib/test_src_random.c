@@ -62,10 +62,10 @@ static void test_bias(void)
     CHECK(rendered());
     pattern(p);
     CHECK(strcmp(p, "x...x...x...x...") == 0);
-    r.bias = -100;                                          /* the weakest steps, ties to the earlier */
+    r.bias = -100;                                          /* the weakest steps (F1: Barlow's 1, 9, 5, 13) */
     CHECK(rendered());
     pattern(p);
-    CHECK(strcmp(p, ".x.x.x.x........") == 0);
+    CHECK(strcmp(p, seed_have_rank ? ".x...x...x...x.." : ".x.x.x.x........") == 0);
     r.dens = 50;
     r.bias = 100;
     r.beat = 2;                                             /* a bar of 8 steps */
