@@ -107,6 +107,7 @@ int32_t rt_host_lock_type(int k);
 #define RT_RVEL    0x200
 #define RT_COND    0x240
 #define RT_SLOCK   0x280
+#define RT_STATE_BITS 0x0380u          /* a step's SYN / SMP / ENV on (firmware notes section 2) */
 #define RT_DEF_NOTE 0x2c0
 #define RT_DEF_VEL  0x2c1
 #define RT_EUCLID   0x2ca
@@ -504,6 +505,11 @@ static inline int rt_seed_write_step(unsigned obj, int track, const int16_t *par
         RT_SET_TRIG(obj, i, (want & SEED_TRIG) != 0);
         c = 1;
         have = rt_flags_at(rt_record(obj), i);
+        /* a new trig with no origin: stock's place routine has set its SYN / SMP / ENV bits from the
+         * track's defaults, as the TRIG keys would; keep them (lib/ leaves the bits it does not know
+         * as the position had them, here none) */
+        if ((want & SEED_TRIG) && w->origin < 0)
+            want = (uint16_t)((want & ~RT_STATE_BITS) | (have & RT_STATE_BITS));
     }
     on = (uint16_t)(want & ~have & ~SEED_TRIG);
     off = (uint16_t)(~want & have & ~SEED_TRIG);

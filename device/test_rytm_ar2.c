@@ -450,6 +450,35 @@ static void test_origins(void)
     CHECK(rt_seed_room(6, lanes_smp_frq, &a) == SEED_E_ARG && same());
 }
 
+/* A generated trig (no origin) on a step without one gets the SYN / SMP / ENV bits stock's place
+ * routine sets, as a trig from the TRIG keys; a trig that was there keeps its own */
+static void test_new_trig_bits(void)
+{
+    int i, placed = 0, kept = 0, ok = 1;
+    fixture();
+    save();
+    CHECK(rt_seed_read(6, lanes_smp_frq, &a) == SEED_OK);
+    for (i = 0; i < 16; i++) {
+        seed_step_clear(&a.s[i]);
+        a.s[i].flags |= SEED_TRIG;
+    }
+    CHECK(rt_seed_write(6, lanes_smp_frq, &a) == SEED_OK);
+    for (i = 0; i < 16; i++) {
+        int was = rec0[6][2 * i + 1] & 1;
+        uint16_t f0 = (uint16_t)(rec0[6][2 * i] << 8 | rec0[6][2 * i + 1]);
+        ok &= (flags(6, i) & 1) != 0;
+        if (!was) {
+            placed++;
+            ok &= (flags(6, i) & RT_STATE_BITS) == RT_STATE_BITS;
+        } else {
+            kept++;
+            ok &= (flags(6, i) & RT_STATE_BITS) == (f0 & RT_STATE_BITS);
+        }
+    }
+    CHECK(ok);
+    CHECK(placed > 0 && kept > 0);              /* the fixture has both kinds */
+}
+
 /* I7: snapshot, takes written from it, restore: byte-identical; the snapshot is the source */
 static void test_snapshot(void)
 {
@@ -524,6 +553,7 @@ int main(void)
     test_lanes();
     test_room();
     test_origins();
+    test_new_trig_bits();
     test_snapshot();
     test_context();
     printf("test_rytm_ar2: %d checks, %d failed\n", checks, fails);
