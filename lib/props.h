@@ -145,6 +145,7 @@ static inline void prop_layer(struct seed_recipe *r, struct prop_rng *g, enum se
         if (on && seed_have_timing) {
             r->rand = (int16_t)prop_int(g, 0, 100);
             r->quant = (int16_t)(prop_chance(g, 50) ? 0 : prop_int(g, 0, 100));
+            r->drft = (int16_t)(seed_have_drift && prop_chance(g, 50) ? prop_int(g, 0, 100) : 0);   /* F8 */
         }
         break;
     case SEED_L_FIELDS:

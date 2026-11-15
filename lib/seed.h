@@ -452,7 +452,7 @@ seed_stage seed_time_drift;
 
 /* vary.c (F9): the take offset (0..3) PHRS gives page p, or SEED_E_NA */
 int seed_phrase_take(int phrs, int page);
-/* vary.c (F9): CVAR, takes a (n) and b (n + 1) rendered into one track with conditions */
+/* vary.c (F9): CVAR, takes a (n) and b (n + 1) rendered into one track with conditions; out may be a */
 int seed_cvar_merge(struct seed_track *out, const struct seed_track *a, const struct seed_track *b,
                     const struct seed_recipe *r);
 
