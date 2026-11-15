@@ -5,9 +5,9 @@
 #      held, three FLTR knobs) and a plain trig on step 10; SYNC 100 anticipates step 5 onto step 4,
 #      all 42 lock values with it; NO restores record and lock store; kept, SAVE and RELOAD PATTERN
 #   3. lock rows (plan section 10, I8): a test build where no new row fits (RT_ROWS_MAX 0). SYNC
-#      moving the locked step is refused with NO LOCK ROWS LEFT, nothing written, no audition; so is
-#      SYNC with LOCK lane 1. (The device layer counts each moved lock as a new row: its sound index
-#      to row type table does not find the rows stock made for these locks; docs/status/F5.md.)
+#      moving the locked step is taken: its locks' rows exist, so the move needs no new one (task D1;
+#      before D1 the device layer looked up the wrong row types and refused it, docs/status/F5.md);
+#      NO restores. SYNC with LOCK lane 1 (a new row) is refused with NO LOCK ROWS LEFT, nothing written.
 R=$(cd "$(dirname "$0")/../.." && pwd); . "$R/tools/emu.sh"; . "$T/tests/fixtures.sh"
 emu_init 25-sync
 
@@ -83,9 +83,10 @@ emu_page PLACE
 emu_knob PLACE B:sync 100
 emu_yes
 emu_shot norows
-emu_check "no rows: SYNC moving the locks is refused" "NO LOCK ROWS LEFT" "$(msg)"
-emu_check "refused: record and lock store unchanged (I8)" "$S0" "$(store)"
-emu_check "refused: no audition started" 0 "$(emu_get auditioning)"
+emu_check "no new rows: SYNC moving the locks is taken (their rows exist)" " 1" "$(msg) $(emu_get auditioning)"
+emu_check "no new rows: step 4 has step 5's 42 lock values, step 5 none" "$L5 0" "$(locks 3) $(nlocks 4)"
+emu_no
+emu_check "NO: record and lock store as before (I7)" "$S0" "$(store)"
 emu_page LOCK
 emu_knob LOCK B:lane1.pct 100
 emu_yes
