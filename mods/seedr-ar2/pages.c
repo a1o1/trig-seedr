@@ -150,7 +150,7 @@ const struct pg_row pg_rows[] = {
     { PG_TIME, 2, "GVEL", REC(gvel), PK_INT, PF_SPCT, -100, 100, 0, 0, &seed_have_timing, SEED_F_VEL, ALWAYS, 0 },
     { PG_TIME, 3, "QUANT", REC(quant), PK_INT, PF_PCT, 0, 100, 0, 0, &seed_have_timing, SEED_F_UTIME, ALWAYS, 0 },
     { PG_TIME, 4, "RAND", REC(rand), PK_INT, PF_PCT, 0, 100, 0, 0, &seed_have_timing, SEED_F_UTIME, ALWAYS, 0 },
-    { PG_TIME, 5, "DRFT", REC(drft), PK_INT, PF_NUM, 0, 100, 0, 0, &seed_have_drift, SEED_F_UTIME, ALWAYS, 0 },
+    { PG_TIME, 5, "DRFT", REC(drft), PK_INT, PF_PCT, 0, 100, 0, 0, &seed_have_drift, SEED_F_UTIME, ALWAYS, 0 },
     { PG_TIME, 6, "SHFT", REC(shft), PK_INT, PF_SIGNED, -63, 63, 0, 0, &seed_have_timing, 0, ALWAYS, 0 },
 
     /* VIEW (0.3; F10 owns what it draws) */
