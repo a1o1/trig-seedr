@@ -1,7 +1,7 @@
 # trig-seedr
 
 [![License: GPL v2+](https://img.shields.io/badge/License-GPL%20v2%2B-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-v0.4.0-blue.svg)](https://github.com/a1o1/trig-seedr/releases)
+[![Version](https://img.shields.io/badge/Version-v0.4.1-blue.svg)](https://github.com/a1o1/trig-seedr/releases)
 [![Status](https://img.shields.io/badge/Status-emulator%20only-orange.svg)](#status)
 [![Device](https://img.shields.io/badge/Analog%20Rytm%20MKII-OS%201.74-black.svg)](docs/firmware-notes-os174.md)
 [![elekloader](https://img.shields.io/badge/elekloader-core--ar2%200.13-purple.svg)](https://github.com/elekloader/elekloader)

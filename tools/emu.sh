@@ -64,6 +64,7 @@ emu_init() {
 emu_core_cflags() {
     _cf_v=$(${ELEKLOADER_CROSS}gcc -dumpversion 2>/dev/null | cut -d. -f1)
     if [ "${_cf_v:-0}" -ge 15 ]; then echo '-std=gnu17'; fi
+    echo '-fno-store-merging'               # gcc 16.2's ColdFire miscompile (lib/Makefile's note)
 }
 
 # emu_elebuild MODDIR OUT [CFLAG...]: elekloader's build with an output folder and extra cflags
@@ -93,11 +94,12 @@ emu_build() {
     _build_v=${1:-seedr}; [ $# -gt 0 ] && shift
     _build_core=$W/core
     mkdir -p "$W"; emu_lock "$_build_core"
-    if emu_stale "$_build_core/stamp" "$E/elekloader/mods/core-ar2" "$E/elekloader/mods/core" "$E/elekloader/elekloader"; then
+    if emu_stale "$_build_core/stamp" "$E/elekloader/mods/core-ar2" "$E/elekloader/mods/core" "$E/elekloader/elekloader" ||
+       [ "$(emu_core_cflags | tr '\n' ' ')" != "$(cat "$_build_core/stamp" 2>/dev/null)" ]; then
         rm -rf "$_build_core"; mkdir -p "$_build_core"
         # shellcheck disable=SC2046
         if emu_elebuild "$E/elekloader/mods/core-ar2" "$_build_core" $(emu_core_cflags) > "$_build_core/build.log" 2>&1; then
-            touch "$_build_core/stamp"
+            emu_core_cflags | tr '\n' ' ' > "$_build_core/stamp"
         else
             emu_unlock "$_build_core"; cat "$_build_core/build.log" >&2; emu_die "core-ar2 build"
         fi

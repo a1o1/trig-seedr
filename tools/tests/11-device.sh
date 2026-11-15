@@ -21,7 +21,7 @@ cat > $M/mod.json <<EOF
 {
  "id": "devtest", "version": "0.4", "title": "device layer test", "category": "Test",
  "license": "GPL-2.0-or-later", "author": "trig-seedr", "description": "Test build only (tools/tests/11-device.sh).",
- "device": "analog-rytm-mk2", "os": "1.74", "sources": ["devtest.c"], "cflags": ["-I$R/device"],
+ "device": "analog-rytm-mk2", "os": "1.74", "sources": ["devtest.c"], "cflags": ["-I$R/device", "-fno-store-merging"],
  "subscribe": [{"event": "ev_key", "fn": "dt_key", "order": 40}],
  "resources": {"core": "0.13"}, "requires": ["core"]
 }
