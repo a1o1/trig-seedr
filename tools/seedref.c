@@ -5,8 +5,10 @@
  *
  *   seedref [KEY=VALUE ...]        render and print the take
  *   seedref --keys                 every key with its default
- *   seedref --fields KEY=VALUE...  the recipe fields those keys set, as "C-member-path value" (for
- *                                  writing a recipe into the mod's store: tools/emu.sh emu_recipe)
+ *   seedref --fields KEY=VALUE...  the recipe fields those keys set, as "C-member-path value"
+ *   seedref --recipe KEY=VALUE...  every recipe field, the defaults with those keys applied, in
+ *                                  the same form (writing a whole recipe into the mod's store:
+ *                                  tools/emu.sh emu_recipe)
  *   seedref --layout               every field's C path, host offset and size (checked against the
  *                                  cross compiler's by tools/tests/00-host.sh)
  *
@@ -24,6 +26,7 @@
  *   other=N:FILE   another track's trigs, for MASK and COPY (repeatable)
  *   map_x, map_y, map_chaos   the pattern's shared MAP settings
  *   all=1          also print origin and lane2 (the golden vectors)
+ * The capabilities are the Rytm's (device/rytm_params.h); grooves (grv=N) are the mod's tables.
  *
  * Output, one line per field, one value per step below the length: length; trig (x or .); flags
  * (the SEED_KNOWN and SWING bits, hex); note, vel, len (- = the track's default); utime; cond
@@ -34,6 +37,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../lib/seed.h"
+#include "../device/rytm_params.h"
 
 static const char *const n_src[] = { "track", "random", "euclid", "map", "copy", 0 };
 static const char *const n_role[] = { "meter", "kick", "back", "hat", "perc", 0 };
@@ -84,10 +88,19 @@ static const struct key keys[] = {
 #define NKEYS ((int)(sizeof keys / sizeof keys[0]))
 
 /* the Rytm MKII's capabilities as lib/ sees them; lane 1's default parameter is the sample slot */
-static const struct seed_param params[] = { { "SMPL", 19, 0, 127 } };
+/* the Rytm's capabilities, as device/rytm_ar2.h gives them to the mod */
+static const struct seed_param params[RT_NPARAMS] = RT_PARAMS;
 static const struct seed_caps caps = {
-    13, 64, 0x1ff, -23, 23, SEED_LANES, 1, params, { 0, 0 }
+    13, 64, RT_VOICE_FIELDS, -23, 23, SEED_LANES, RT_NPARAMS, params, { RT_P_SMP, RT_P_FRQ }
 };
+
+/* the groove tables the mod is built with (mods/seedr-ar2/seedr.c): grooves-live.h when it is
+ * there (local only), else grooves-swing.h */
+#if __has_include("../mods/seedr-ar2/grooves-live.h")
+#include "../mods/seedr-ar2/grooves-live.h"
+#else
+#include "../mods/seedr-ar2/grooves-swing.h"
+#endif
 
 static struct seed_work work;
 static struct seed_track orig, out, others[SEED_TRACKS];
@@ -270,6 +283,8 @@ int main(int argc, char **argv)
     memset(&c, 0, sizeof c);
     c.caps = &caps;
     c.tracks = caps.tracks;
+    c.grooves = grooves;
+    c.ngrooves = N_GROOVES;
 
     if (argc == 2 && !strcmp(argv[1], "--keys")) {
         printf("seed %u\n", (unsigned)r.seed);
@@ -286,7 +301,7 @@ int main(int argc, char **argv)
     }
     memset(touched, 0, sizeof touched);
     for (i = 1; i < argc; i++) {
-        if (!strcmp(argv[i], "--fields"))
+        if (!strcmp(argv[i], "--fields") || !strcmp(argv[i], "--recipe"))
             continue;
         char name[64], *eq = strchr(argv[i], '=');
         const struct key *k;
@@ -315,12 +330,15 @@ int main(int argc, char **argv)
     }
     if (c.track < 0 || c.track >= SEED_TRACKS)
         die("track out of range", "track");
-    if (argc > 1 && !strcmp(argv[1], "--fields")) {
+    if (argc > 1 && (!strcmp(argv[1], "--fields") || !strcmp(argv[1], "--recipe"))) {
+        int whole = !strcmp(argv[1], "--recipe"), seeded = whole;
         for (i = 1; i < argc; i++)
             if (!strncmp(argv[i], "seed=", 5))
-                printf("seed %u\n", (unsigned)r.seed);
+                seeded = 1;
+        if (seeded)
+            printf("seed %u\n", (unsigned)r.seed);
         for (i = 0; i < NKEYS; i++)
-            if (touched[i])
+            if (touched[i] || whole)
                 printf("%s %d\n", keys[i].path, *(int16_t *)((char *)&r + keys[i].off));
         return 0;
     }
