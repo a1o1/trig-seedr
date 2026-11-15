@@ -1,6 +1,7 @@
 # Golden recipes: NAME KEY=VALUE... (tools/seedref's keys; tools/golden.sh). orig-a.txt is a track
 # with trigs, every field set and sample locks (lane 1); without orig= the original is a new
-# project's empty track. Owners add lines for their layers; the lead freezes the vectors at G0.
+# project's empty track. Owners add lines for their layers; the lead froze the vectors at G0 (0.6).
+# No GRV recipes: seedref uses the mod's groove tables, and grooves-live.h exists only locally.
 #
 # SOURCE = TRACK, every layer at 0 (I1)
 identity-empty
