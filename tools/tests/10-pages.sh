@@ -136,7 +136,7 @@ key $W/r3.snap $W/r4.snap YES
 fkey $W/r4.snap $W/r5.snap YES
 same "$want" "$(steps $W/r5.snap)" "ROTATE ALL, FUNC + YES: kept"
 
-# ================= every page shown (SEEDR_SHOW_ALL): screenshots, and a layer that is not built
+# ================= every page shown (SEEDR_SHOW_ALL): screenshots
 FW=$FW_ALL MAP=$MAP_ALL
 boot $W/a0.snap
 open_ $W/a0.snap $W/a1.snap
@@ -150,14 +150,6 @@ done
 uniq=$(echo $seen | tr ' ' '\n' | sort -u | wc -l | tr -d ' ')
 same 10 "$uniq" "SHOW_ALL: RIGHT visits ten different pages"
 same "$(screen $W/a1.snap)" "$(screen $prev)" "SHOW_ALL: and wraps to TAKE"
-# TAKE (a1.snap) on the empty BD: SRC = RANDOM (V6). PHRS turned to AAAA, whose stage is a stub
-# (F9), YES writes nothing and says so.
-MAP=$MAP_ALL
-hknob $W/a1.snap $W/e0.snap TAKE C:phrs:one 1
-key $W/e0.snap $W/n1.snap YES; png $W/n1.snap all-take-not-built
-same "$(bytes $W/e0.snap)" "$(bytes $W/n1.snap)" "SHOW_ALL: YES on PHRS (not built) writes nothing"
-# the preview (F10) says NOT AVAILABLE YET in the strip before YES; YES's message is the same text
-same "$(screen $W/e0.snap)" "$(screen $W/n1.snap)" "SHOW_ALL: the strip says so before and after YES (NOT AVAILABLE YET)"
-run $W/n1.snap $W/n2.snap 700
-same "$(screen $W/e0.snap)" "$(screen $W/n2.snap)" "SHOW_ALL: no audition was started (the screen as before YES)"
+# (Until M1 ended, a layer not built yet was turned on here and YES checked to write nothing and say
+# NOT AVAILABLE YET. Every layer is built since F9; a refused YES is checked by 06-norows.)
 emu_done
