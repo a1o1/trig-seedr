@@ -106,14 +106,16 @@ int seed_place_sync(struct seed_track *t, const struct seed_recipe *r, const str
     }
     kept = seed_share(r->sync, kept);
     for (j = 0; j < kept; j++) {
-        struct seed_step tmp;
+        /* Swing is set in the copies, then each step is stored whole. Storing the steps and then
+         * their flags is miscompiled by m68k-elf-gcc 16.2 at -O2 (store merging puts one word 6
+         * bytes early; docs/status/F5.md). */
         int s = order[j], p = mod(s - g, n);
-        uint16_t sw_s = t->s[s].flags & SEED_SWING, sw_p = t->s[p].flags & SEED_SWING;
-        tmp = t->s[p];
-        t->s[p] = t->s[s];
-        t->s[s] = tmp;
-        t->s[p].flags = (uint16_t)((t->s[p].flags & ~SEED_SWING) | sw_p);
-        t->s[s].flags = (uint16_t)((t->s[s].flags & ~SEED_SWING) | sw_s);
+        struct seed_step a = t->s[s], b = t->s[p];
+        uint16_t sw_a = a.flags & SEED_SWING;
+        a.flags = (uint16_t)((a.flags & ~SEED_SWING) | (b.flags & SEED_SWING));
+        b.flags = (uint16_t)((b.flags & ~SEED_SWING) | sw_a);
+        t->s[p] = a;
+        t->s[s] = b;
     }
     return SEED_OK;
 }
