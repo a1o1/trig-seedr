@@ -300,7 +300,9 @@ emu_knob_of() {
     case $EMU_PROFILE:$1:$2 in
     v1:TOOLS:STEPS) echo 1 tool.steps ;;
     # v1: KNOB is LETTER:KEY, the knob and the seedref key it sets (emu_knob RHYTHM B:dens 58);
-    # a .lo key is the low end, FUNC + knob. Enum and grid knobs: LETTER:KEY:one.
+    # a .lo key is the low end, FUNC + knob. Enum and grid knobs: LETTER:KEY:one. LETTER:shared.FIELD:
+    # a knob that sets the pattern's shared settings (struct seed_shared: emu_knob RHYTHM D:shared.map_x 100).
+    v1:*:[A-H]:shared.*) echo "$(($(printf '%d' "'${2%%:*}") - 65)) ${2#*:} -" ;;
     v1:*:[A-H]:*)
         _ko_l=${2%%:*} _ko_k=${2#*:} _ko_one=
         case $_ko_k in *:one) _ko_k=${_ko_k%:one} _ko_one=one ;; esac

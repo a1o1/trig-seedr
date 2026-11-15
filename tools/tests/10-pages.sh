@@ -150,12 +150,12 @@ done
 uniq=$(echo $seen | tr ' ' '\n' | sort -u | wc -l | tr -d ' ')
 same 10 "$uniq" "SHOW_ALL: RIGHT visits ten different pages"
 same "$(screen $W/a1.snap)" "$(screen $prev)" "SHOW_ALL: and wraps to TAKE"
-# RHYTHM (a-take.snap) on the empty BD: SRC = RANDOM (V6). Turned to MAP, whose stage is a stub
-# (F3), YES writes nothing and says so.
+# TAKE (a1.snap) on the empty BD: SRC = RANDOM (V6). PHRS turned to AAAA, whose stage is a stub
+# (F9), YES writes nothing and says so.
 MAP=$MAP_ALL
-hknob $W/a-take.snap $W/e0.snap RHYTHM A:src:one 3
-key $W/e0.snap $W/n1.snap YES; png $W/n1.snap all-rhythm-not-built
-same "$(bytes $W/e0.snap)" "$(bytes $W/n1.snap)" "SHOW_ALL: YES on MAP (not built) writes nothing"
+hknob $W/a1.snap $W/e0.snap TAKE C:phrs:one 1
+key $W/e0.snap $W/n1.snap YES; png $W/n1.snap all-take-not-built
+same "$(bytes $W/e0.snap)" "$(bytes $W/n1.snap)" "SHOW_ALL: YES on PHRS (not built) writes nothing"
 # the preview (F10) says NOT AVAILABLE YET in the strip before YES; YES's message is the same text
 same "$(screen $W/e0.snap)" "$(screen $W/n1.snap)" "SHOW_ALL: the strip says so before and after YES (NOT AVAILABLE YET)"
 run $W/n1.snap $W/n2.snap 700

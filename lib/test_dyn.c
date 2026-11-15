@@ -159,7 +159,8 @@ static void test_refusals(void)
         base();
         r.shape = later[i];
         r.amt = 50;
-        CHECK(seed_render(&out, &orig, &r, &c, &work) == ((i == 0 && seed_have_rank) || (i == 1 && seed_have_noise) ? SEED_OK : SEED_E_NA));
+        CHECK(seed_render(&out, &orig, &r, &c, &work) ==
+              ((i == 0 && seed_have_rank) || (i == 1 && seed_have_noise) || (i == 2 && seed_have_map) ? SEED_OK : SEED_E_NA));
     }
     base();
     r.shape = SEED_SHAPE_STRONG;
