@@ -6,26 +6,9 @@
 #   2. in the emulator, on A01 BD (a new project): SRC = MAP with the RHYTHM page's knobs (PART,
 #      DENS, and X, Y, CHAOS, which are the pattern's: the mod's `shared`, not BD's recipe), YES
 #      against tools/seedref; CHAOS, and YES with no knob turned (the next seed); SHAPE = MAP on
-#      DYNAMICS; NO; FUNC + YES keeps
+#      DYNAMICS; NO; FUNC + YES keeps; the title bar's source: MAP below CHAOS 4, the seed from 4
 R=$(cd "$(dirname "$0")/../.." && pwd); . "$R/tools/emu.sh"; . "$T/tests/fixtures.sh"
 emu_init 23-map
-
-# emu_knob_of as tools/emu.sh's, and LETTER:shared.FIELD: a knob that sets the pattern's shared
-# settings (struct seed_shared, the mod's `shared`)
-emu_knob_of() {
-    case $EMU_PROFILE:$1:$2 in
-    v1:TOOLS:STEPS) echo 1 tool.steps ;;
-    v1:*:[A-H]:shared.*) echo "$(($(printf '%d' "'${2%%:*}") - 65)) ${2#*:} -" ;;
-    v1:*:[A-H]:*)
-        _ko_l=${2%%:*} _ko_k=${2#*:} _ko_one=
-        case $_ko_k in *:one) _ko_k=${_ko_k%:one} _ko_one=one ;; esac
-        _ko_p=$(seedref --fields "$_ko_k=0" | head -1 | cut -d' ' -f1)
-        [ -n "$_ko_p" ] || return 1
-        _ko_f=-; case $_ko_k in *.lo) _ko_f=F ;; esac
-        echo "$(($(printf '%d' "'$_ko_l") - 65)) recipe[${EMU_TRACK:-0}].$_ko_p $_ko_f $_ko_one" ;;
-    *) return 1 ;;
-    esac
-}
 
 # ---- 1. the original code ----
 G=$E/mi/eurorack/grids                          # E: the workspace (tools/emu.sh)
@@ -61,6 +44,16 @@ emu_page RHYTHM
 emu_knob RHYTHM A:src:one 3
 emu_check "RHYTHM: SRC = MAP" 3 "$(emu_get 'recipe[0].src')"
 emu_shot rhythm-map-defaults
+# the title's source (design section 8): MAP while CHAOS draws no random numbers (below 4), S and the
+# seed from CHAOS 4 on (emu.py title: a hash of the title bar)
+t0=$(emu_py title "$EMU_SNAP")
+emu_knob RHYTHM F:shared.map_chaos 3
+emu_check "title: CHAOS 3 shows the same source as CHAOS 0 (MAP)" "$t0" "$(emu_py title "$EMU_SNAP")"
+emu_knob RHYTHM F:shared.map_chaos 4
+emu_shot rhythm-map-chaos4
+t4=$(emu_py title "$EMU_SNAP")
+emu_check "title: CHAOS 4 shows the seed (S1), not MAP" 1 "$([ "$t4" != "$t0" ] && echo 1 || echo "same $t4")"
+emu_knob RHYTHM F:shared.map_chaos 0
 emu_check "defaults: PART 1, DENS 128 (BD's recipe); X 128, Y 128, CHAOS 0 (the pattern's)" "0 128 128 128 0" \
     "$(emu_get 'recipe[0].map_part') $(emu_get 'recipe[0].map_dens') $(emu_get shared.map_x) $(emu_get shared.map_y) $(emu_get shared.map_chaos)"
 emu_yes

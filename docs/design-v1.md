@@ -93,7 +93,7 @@ Other knobs:
 
 - Data: 25 nodes on a 5×5 map, each 3 parts × 32 steps of levels 0–255 (`mi/eurorack/grids/resources.cc`, 2,400 bytes). X / Y blend the four nearest nodes.
 - A step's key is its level plus a chaos offset (one random value per part per pass, a P3 slot). It fires when the key exceeds 255 − DENS. Steps beyond 32 repeat.
-- DYNAMICS SHAPE = MAP uses the level as velocity; ACC with AMOD = TOP reproduces Grids' accents (level above 192) approximately.
+- DYNAMICS SHAPE = MAP uses the level as velocity, so the steps Grids accents (level above 192) are the loudest. Grids' accents are not written as accent flags: ACC with AMOD = TOP ranks trigs by the meter's ranks (F1), not by map level (Alan, 2026-11-15, after F3).
 - PART and DENS are per track; X, Y and CHAOS are shared by the pattern's tracks (assumption A1).
 - Licence: Grids' sources are GPL version 3 or later; trig-seedr and elekloader are GPL-2.0-or-later (assumption A6). Names: no "Mutable Instruments" and no "Grids" in the product; the mode is MAP, credited in the acknowledgements.
 
@@ -108,7 +108,7 @@ Other knobs:
 
 ## 8. Screen and keys
 
-- **Title bar:** the sprout, page name, track, the page's place among those shown (3/10); at the right the source: TRK, EUC, CPY, or S + seed for a source that draws from it (Alan, 2026-11-15).
+- **Title bar:** the sprout, page name, track, the page's place among those shown (3/10); at the right the source: TRK, EUC, CPY, MAP (with CHAOS below 4, when it draws no random numbers), or S + seed for a source that draws from it (Alan, 2026-11-15).
 - **Body:** two rows of four cells (label, value), as 0.3.
 - **Bottom strip:** the preview: 64 steps × 2 px, bar height = velocity, the take as it would be written. It is rendered from the recipe on every knob change, before YES. Messages replace it for 2 seconds.
 

@@ -3,7 +3,7 @@
  "version": "0.4",
  "title": "trig-seedr",
  "category": "Sequencer",
- "license": "GPL-2.0-or-later",
+ "license": "GPL-3.0-or-later",
  "author": "Alan O'Leary",
  "description": "An offline pattern generator on the current track. TRIG, TRIG, TRIG opens it (after the TRIG and EUCLIDEAN pages). LEFT / RIGHT step its pages: TAKE (seed, variation), RHYTHM (the source: the track's own trigs or a generator), PLACE, DYNAMICS, NOTE, LOCK, TRIG, TIME (grooves), VIEW (read-only steps) and TOOLS (rotate every track). Each track has its own recipe; YES renders it from the original track, and while auditioning renders again from that original; NO goes back to the original; FUNC + YES keeps the result. PAGE and the TRIG keys stay stock's. Writes go through the OS's own step routines.",
  "device": "analog-rytm-mk2",

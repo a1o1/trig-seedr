@@ -36,7 +36,8 @@ comes from the seed: YES with no knob turned takes the next seed and a new lift,
 gets its own. With TAKE's VARY, takes keep their lift with VARY's share, as every other random choice does.
 
 With CHAOS below 4 there is no lift, and the seed does not change the rhythm; it changes only the later layers that
-draw random values. The title bar shows the seed (S1) either way.
+draw random values. The title bar shows which: MAP at the right while CHAOS is below 4 (as EUC for EUCLID), S and the
+seed from CHAOS 4 on.
 
 ## SHAPE = MAP
 

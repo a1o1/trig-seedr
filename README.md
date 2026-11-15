@@ -142,5 +142,5 @@ Commit messages follow Conventional Commits; scopes, checks and the commit hook:
 GPL-2.0-or-later (see `LICENSE`), as elekloader.
 
 `lib/map_data.c`, the MAP source's data, is GPL-3.0-or-later, as the project it comes from. A build that includes
-it, as the mod does (`mods/seedr-ar2/mod.json`), is therefore GPL-3.0-or-later; the rest of the repository stays
-GPL-2.0-or-later.
+it, as the mod does (`mods/seedr-ar2/mod.json`), is therefore GPL-3.0-or-later (see `LICENSES/GPL-3.0-or-later.txt`);
+the rest of the repository stays GPL-2.0-or-later.
