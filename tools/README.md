@@ -36,7 +36,7 @@ found from a worktree's path; set it for a checkout elsewhere.
 
 | File | What |
 |---|---|
-| `emu.sh` | sourced by the tests: `emu_build [VARIANT CFLAGS]`, `emu_boot`, `emu_open`, `emu_page NAME`, `emu_knob PAGE LETTER:KEY VALUE` (turns until the mod's value is VALUE), `emu_keys`, `emu_yes` / `emu_no` / `emu_keep`, `emu_poke` and `emu_recipe` (settings written with `dtboot --poke`), `emu_dump`, `emu_check`, `emu_fixture` (a shared state made once per build) |
+| `emu.sh` | sourced by the tests: `emu_build [VARIANT CFLAGS]`, `emu_boot`, `emu_open`, `emu_page NAME`, `emu_knob PAGE LETTER:KEY VALUE` (turns until the mod's value is VALUE), `emu_sknob ENCODER ADDRESS VALUE` (a stock knob, until a byte is VALUE), `emu_keys`, `emu_yes` / `emu_no` / `emu_keep`, `emu_poke` and `emu_recipe` (settings written with `dtboot --poke`), `emu_dump`, `emu_check`, `emu_fixture` (a shared state made once per build) |
 | `emu.py` | symbols from the patched OS's `.map.json`, memory, pokes, the track dump, struct layouts from the cross compiler |
 | `seedref.c` | the version 1 chain on the host, with the Rytm's capabilities (`device/rytm_params.h`) and the mod's grooves: `seedref KEY=VALUE...` (every `struct seed_recipe` field by name; `orig=FILE` an original track as a dump) prints the take in `emu.py dump`'s format; `--keys`, `--fields`, `--recipe`, `--layout` |
 | `golden.sh` | `lib/golden/recipes.txt` through seedref against `lib/golden/NAME.txt` |
