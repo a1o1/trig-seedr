@@ -66,7 +66,7 @@ Workspace `~/dev/github/elektron` on the Mac, where development, tests and relea
 | `mods/seedr-ar2/pages.h`, `test_pages.c`, `Makefile` | the page-table types and their host test | 0.3, then the lead |
 | `mods/seedr-ar2/mod.json` | the mod's sources and metadata | lead; a workstream adding a `lib/` file adds its line to `sources` and says so in its status file |
 | `mods/seedr-ar2/pages.c` | every page's knob table | 0.3 creates all; owners edit only their page's rows |
-| `mods/seedr-ar2/preview.c`, `view.c` | preview strip; VIEW | F10 |
+| `mods/seedr-ar2/preview.c`, `preview.h`, `view.c` | preview strip; VIEW | F10 |
 | `tools/seedref.c`, `tools/emu.sh`, `emu.py`, `golden.sh`, `doctor.sh`, `run_tests.sh`, `tests/fixtures.sh` | reference renderer, emulator helpers, golden vectors, environment check | 0.5, then the lead |
 | `tools/tests/NN-<name>.sh` | one test file per task: `00`..`11` are M0's; F1..F11 use `21`..`31` (F1 `21-rank.sh`, F5 `25-sync.sh`, …) | each owner adds its file |
 | `docs/screens/` | screenshots: the top level is what the README and the site show; `docs/screens/<id>/` a task's own | each owner |
