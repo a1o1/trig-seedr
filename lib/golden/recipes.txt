@@ -78,3 +78,15 @@ mask-only-a orig=orig-a.txt other=3:other-hat.txt mask=only mtrk=3
 mask-avoid-rot-a orig=orig-a.txt other=3:other-hat.txt rot=3 mask=avoid mtrk=3 skip=1
 mask-only-random-64 other=3:other-hat.txt src=random dens=60 mask=only mtrk=3 acc=30 length=64
 copy-mask other=3:other-hat.txt other=2:orig-a.txt src=copy copy_trk=3 rot=1 mask=avoid mtrk=2 vel=60:110
+# SYNC (F5): anticipation onto the weaker step before; whole steps move (origins), runs resolve
+sync-a orig=orig-a.txt sync=100
+sync-a-50 orig=orig-a.txt sync=50
+sync-rot-a orig=orig-a.txt rot=1 sync=100
+sync-lock-a orig=orig-a.txt sync=100 lane1=1:8 lane1.pct=100
+sync-random src=random dens=50 sync=100
+sync-40 src=random dens=50 sync=40
+sync-grid2 src=random grid=2 dens=60 sync=100
+sync-skip3 src=random dens=50 sync=100 skip=3
+sync-strong src=random dens=50 sync=100 vel=40:127 shape=strong amt=100
+sync-78 src=random dens=40 metr=7/8 beat=2 length=28 sync=100
+sync-64 src=random dens=40 sync=70 length=64
