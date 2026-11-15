@@ -3,8 +3,8 @@
 0.4 has 0.3's features on version 1's structure (`design-v1.md`, `plan-v1.md` milestone M0). It is the base the
 version 1 features (EUCLID, MAP, SYNC, value lists, noise, phrases, …) are added to in 0.5 to 0.9.
 
-Status: every check of `tools/run_tests.sh` passes in analog-emu on the Mac (Homebrew m68k-elf-gcc 16.2). Not yet
-built with the reference compiler in the Linux shell, and not yet run on a unit.
+Status: every check of `tools/run_tests.sh` passes in analog-emu on the Mac (Homebrew m68k-elf-gcc 16.2, the
+reference since 0.4). Not yet run on a unit.
 
 ## Changed on purpose
 

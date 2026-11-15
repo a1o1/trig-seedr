@@ -24,8 +24,8 @@ make -C lib test coldfire        # the algorithms: host tests (sanitizers) and a
 sh tools/run_tests.sh            # builds the mod, patches the OS into build/emu/seedr.syx, runs every check
 ```
 
-`build/emu/seedr.syx` contains Elektron's firmware: keep it to yourself. The details of each system (the Mac, the
-Linux shell) are in the developer pages' Development environment.
+`build/emu/seedr.syx` contains Elektron's firmware: keep it to yourself. The tools, versions and variables are in the
+developer pages' Development environment.
 
 ## Grooves
 

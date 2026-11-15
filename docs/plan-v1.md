@@ -26,7 +26,7 @@ The rule that makes parallel work possible: **M0 creates every enum value, recip
 
 Full description, per operating system, with first-run checks: **`dev-environment.md`**. In short:
 
-Workspace `~/dev/github/elektron` on the Mac (`~/mnt/elektron` in the folder's Linux shell):
+Workspace `~/dev/github/elektron` on the Mac, where development, tests and releases are (`dev-environment.md`):
 
 | Folder | Use |
 |---|---|
@@ -35,9 +35,9 @@ Workspace `~/dev/github/elektron` on the Mac (`~/mnt/elektron` in the folder's L
 | `analog-emu/` | `dtboot`, `dtpeek`, `dtcard` (headless), `rytm` (window, Mac) |
 | `Official Firmwares/` | the stock OS 1.74 `.syx` (local only) |
 | `mi/eurorack/grids/` | Grids' source and map data |
-| `.toolchains/` | Linux Rust and the m68k-elf cross compiler |
+| `.toolchains/` | the Linux toolchain 0.3 was built with (history; does not run on macOS) |
 
-- In the Linux shell: `. ~/mnt/elektron/.toolchains/env.sh` first. It sets `ELEKLOADER_CROSS=m68k-elf-` and `CARGO_TARGET_DIR` (Linux emulator binaries in `.toolchains/target-linux/release`). `analog-emu/target/` holds the Mac build: do not run or overwrite it from Linux.
+- On the Mac: Homebrew's `m68k-elf-gcc` (`ELEKLOADER_CROSS=m68k-elf-`) and analog-emu's Mac build in `analog-emu/target/release`.
 - `make -C lib test` (host, ASan / UBSan), `make -C lib coldfire` (no undefined symbols), `sh tools/run_tests.sh` (every check: `00-host` runs the `make` targets of `lib/`, `device/` and the page tables, then the emulator files; `NAME...` for some).
 - One git worktree per task. Claude Code creates them under `.claude/worktrees/<name>/` (git-ignored) on a branch of their own. Inside a worktree `export WORKSPACE=~/dev/github/elektron` (the test scripts otherwise look for `elekloader/` beside the checkout). `.worktreeinclude` copies the local-only `grooves-live.h` into each worktree; it stays untracked.
 - New worktrees branch from the default branch **on the remote**. A task's prerequisites must be merged and pushed to `main` before its agent starts.

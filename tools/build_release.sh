@@ -3,8 +3,8 @@
 #   sh tools/build_release.sh            -> build/trig-seedr-<version>-os1.74.syx (OS version field TSxy)
 # It builds through tools/emu.sh, the same build the emulator checks use (core-ar2 into this
 # checkout's build/emu/core, with -std=gnu17 on gcc 15 or later), and stops when a build fails.
-# Needs WORKSPACE, the stock OS (STOCK) and ELEKLOADER_CROSS (docs/dev-environment.md). Run
-# tools/run_tests.sh first. Release files are built in the Linux shell (gcc 14.2, the reference).
+# Needs WORKSPACE, the stock OS (STOCK) and ELEKLOADER_CROSS. Run
+# tools/run_tests.sh first. Releases are built on the Mac (docs/dev-environment.md).
 # The output contains Elektron's firmware: flash it to your own unit, don't share it.
 R=$(cd "$(dirname "$0")/.." && pwd); . "$R/tools/emu.sh"
 EMU_NAME=build_release

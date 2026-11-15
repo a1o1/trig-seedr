@@ -1,6 +1,6 @@
 #!/bin/sh
 # tools/doctor.sh: checks this environment for building and testing (docs/dev-environment.md
-# section 7), on the Mac or in the Linux shell. Runs no emulator suite.
+# section 6), on the Mac. Runs no emulator suite.
 #     sh tools/doctor.sh          the tools, the folders, the stock OS
 #     sh tools/doctor.sh --host   also make -C lib test and make -C lib coldfire
 # Each line starts OK, WARN or MISSING; the exit status is 1 when something is MISSING.
@@ -13,9 +13,9 @@ miss() { echo "MISSING $*"; missing=1; }
 os=$(uname -sm)
 case $os in
 "Darwin arm64") ok "system: $os (the Mac)" ;;
-"Linux aarch64") ok "system: $os (the Linux shell)"
-    [ -n "$CARGO_TARGET_DIR" ] || warn "CARGO_TARGET_DIR is not set: run . ~/mnt/elektron/.toolchains/env.sh" ;;
-*) warn "system: $os (the scripts know Darwin arm64 and Linux aarch64)" ;;
+"Linux aarch64") warn "system: $os: the Claude desktop app's Linux VM; development, tests and releases are on the Mac" \
+    "(docs/dev-environment.md sections 7, 8)" ;;
+*) warn "system: $os (the scripts are run on Darwin arm64, the Mac)" ;;
 esac
 ok "workspace: $E${WORKSPACE:+ (WORKSPACE)}"
 for d in elekloader analog-emu; do [ -d "$E/$d" ] && ok "$d: $E/$d" || miss "$d: not in $E"; done
@@ -25,7 +25,6 @@ if command -v "${ELEKLOADER_CROSS}gcc" > /dev/null 2>&1; then
     ok "cross compiler: $(command -v "${ELEKLOADER_CROSS}gcc") $v"
     [ "${v%%.*}" -ge 15 ] && warn "gcc $v defaults to C23: core-ar2 0.13 needs -std=gnu17 (tools/emu.sh adds it, so" \
         "tools/run_tests.sh and tools/build_release.sh build; a plain elekloader build of core-ar2 fails)"
-    [ "${v%%.*}" -ne 14 ] && warn "the reference compiler is gcc 14.2 (Linux); release builds are made there"
 else
     miss "cross compiler: ${ELEKLOADER_CROSS}gcc (docs/dev-environment.md sections 2, 3)"
 fi

@@ -66,7 +66,7 @@ What changed from 0.3: [`docs/release-0.4.md`](docs/release-0.4.md). Website: [a
 
 ## Building and testing
 
-Expected next to this repository (or set `WORKSPACE`), as [`docs/dev-environment.md`](docs/dev-environment.md) describes for the Mac and the Linux shell:
+Expected next to this repository (or set `WORKSPACE`), as [`docs/dev-environment.md`](docs/dev-environment.md) describes (development and releases are on the Mac):
 
 - `elekloader/` ([elekloader/elekloader](https://github.com/elekloader/elekloader)) — the mod loader and the Rytm core (core-ar2 0.13).
 - `analog-emu/` ([trigcondition/analog-emu](https://github.com/trigcondition/analog-emu)) — the whole-device emulator, built (`cargo build --release`).
