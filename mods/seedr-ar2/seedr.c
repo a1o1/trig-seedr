@@ -30,6 +30,7 @@
 #include "analog-rytm-mk2/load.h"
 #include "../../device/rytm_ar2.h"
 #include "pages.h"
+#include "preview.h"
 /* the groove tables: tools/groove2h.py. grooves-live.h (from your own Ableton Live grooves) is
  * kept out of the repository; without it the swing-only grooves-swing.h is used */
 #if __has_include("grooves-live.h")
@@ -144,7 +145,6 @@ static struct seed_shared shared = { 128, 128, 0 };
 static struct seed_tool tool = { SEED_TOOL_ROTATE_ALL, 1 };
 static struct seed_track orig, take_out, shown;
 static struct seed_work work;
-static uint8_t shown_defvel;
 
 static void lane_parms(const struct seed_recipe *r, int16_t *parm)
 {
@@ -629,106 +629,38 @@ static void draw_cells(void *bmp, const struct pg_ctx *c)
     }
 }
 
-static char *val(char *o, const char *label, int v)
+/* The strip: a message for two seconds, else the preview (preview.c): what YES would write on
+ * this track, rendered from the recipe and the original. With an audition of this track's take
+ * running, the original is the one take() read after restoring the snapshot. */
+static void draw_strip(void *bmp, uint8_t *p, int n, const struct seed_recipe *r)
 {
-    o = pg_put(o, label);
-    return v == SEED_DEFAULT ? pg_put(o, "-") : pg_num(o, v);
-}
-
-/* VIEW: the 16 steps around the cursor and the cursor step's fields, read-only */
-static void draw_view(void *bmp, uint8_t *p, const struct seed_track *t, int parm0)
-{
-    char line[48], *o;
-    const struct seed_step *s;
-    int i, pg;
-    if (cursor >= t->length)
-        cursor = t->length - 1;
-    pg = cursor / 16 * 16;
-    for (i = 0; i < 16; i++) {
-        int x = 2 + 8 * i, st = pg + i;
-        if (st >= t->length)
-            break;
-        s = &t->s[st];
-        if (s->flags & SEED_TRIG) {
-            if (s->flags & 0x0380)
-                box(p, x, 14, x + 5, 20, 1);
-            else
-                box(p, x + 2, 16, x + 3, 18, 1);
-        }
-        if (s->flags & SEED_ACCENT)
-            box(p, x, 22, x + 5, 22, 1);
-        if (s->flags & SEED_RETRIG)
-            box(p, x + 2, 12, x + 3, 12, 1);
-        if (st == cursor) {
-            box(p, x + 2, 24, x + 3, 24, 1);
-            box(p, x + 1, 25, x + 4, 25, 1);
-        }
-    }
-    s = &t->s[cursor];
-    o = pg_put(line, "S");
-    o = pg_num(o, cursor + 1);
-    o = val(o, " N", s->note);
-    o = val(o, " V", s->vel);
-    o = val(o, " L", s->len);
-    o = pg_put(o, " U");
-    o = pg_snum(o, s->utime);
-    *o = 0;
-    text_at(bmp, 2, 28, line, 0);
-    o = pg_put(line, "C");
-    o = pg_cond(o, s->cond);
-    o = pg_put(o, " R");
-    if (s->flags & SEED_RETRIG) {
-        o = pg_rate(o, s->rrate);
-        *o++ = ' ';
-        o = pg_num(o, s->rvel);
-    } else
-        o = pg_put(o, "-");
-    if (s->lane[0] != SEED_NO_LOCK) {
-        *o++ = ' ';
-        o = pg_put(o, dev->caps->params[clampi(parm0, 0, dev->caps->nparams - 1)].name);
-        o = pg_num(o, s->lane[0]);
-    }
-    *o = 0;
-    text_at(bmp, 2, 38, line, 0);
-    {
-        /* the flag word and the track defaults on the right of the same line; the defaults drop
-         * out when a long retrig text leaves no room */
-        char right[24];
-        int lw = core_text_width(CORE_FONT_MAIN, line);
-        o = pg_put(right, "F");
-        for (i = 12; i >= 0; i -= 4)
-            *o++ = "0123456789ABCDEF"[(s->flags >> i) & 15];
-        o = pg_put(o, " DN");
-        o = pg_num(o, t->default_note);
-        o = pg_put(o, " DV");
-        o = pg_num(o, shown_defvel);
-        *o = 0;
-        if (2 + lw + 6 + core_text_width(CORE_FONT_MAIN, right) > 127)
-            right[5] = 0;
-        text_right(bmp, 126, 38, right, 0);
-    }
-}
-
-/* The strip: a message for two seconds, or the track as it is now, 2 pixels a step, bar height
- * = velocity (a dot on every 4th step marks the beat). A placeholder for the preview (task F10:
- * the take as it would be written, from the recipe on every knob change). */
-static void draw_strip(void *bmp, uint8_t *p, const struct seed_track *t)
-{
-    int i;
+    struct pv_in in;
+    unsigned obj;
+    const char *why = 0;
+    int rc;
     if (msg && (int)(msg_until - ticks) > 0) {
         text_at(bmp, 1, STRIP_TOP + 3, msg, 0);
         return;
     }
-    for (i = 0; i < t->length && i < SEED_STEPS; i++) {
-        const struct seed_step *s = &t->s[i];
-        int x = 2 * i;
-        if (s->flags & SEED_TRIG) {
-            int v = s->vel == SEED_DEFAULT ? shown_defvel : s->vel;
-            int h = 1 + clampi(v, 1, 127) * (STRIP_BOTTOM - STRIP_TOP - 1) / 127;
-            box(p, x, STRIP_BOTTOM - h + 1, x, STRIP_BOTTOM, 1);
-        } else if (!(i & 3))
-            dot(p, x, STRIP_BOTTOM);
+    rt_current(&obj, 0);
+    if (n == FX_TRACK)
+        why = "NOT ON THE FX TRACK";
+    else if (rt_euclid(obj))
+        why = "EUCLID IS ON: TURN IT OFF";
+    else {
+        in.device = dev;
+        in.track = n;
+        in.r = r;
+        in.shared = &shared;
+        in.grooves = grooves;
+        in.ngrooves = N_GROOVES;
+        in.orig = auditioning == A_TAKE && n == aud_track ? &orig : &shown;
+        rc = pv_draw(p, &in, STRIP_TOP, STRIP_BOTTOM);
+        if (rc < 0)
+            why = error_text(rc);
     }
+    if (why)
+        text_at(bmp, 1, STRIP_TOP + 3, why, 0);
 }
 
 void gr_draw(void *bmp, void *ctrl)
@@ -748,18 +680,17 @@ void gr_draw(void *bmp, void *ctrl)
         lane = c.lane = 0;
     lane_parms(c.r, parm);
     ok = dev->read(n, parm, &shown) == SEED_OK;
-    shown_defvel = shown.default_vel;
     p = px(bmp);
     for (i = 0; i < 1024; i++)
         p[i] = 0;
     draw_title(bmp, p, &c, n);
     if (page == PG_VIEW) {
         if (ok)
-            draw_view(bmp, p, &shown, parm[0]);
+            view_draw(bmp, p, &shown, &cursor, dev->caps, parm);
         draw_footer(bmp, p);                    /* VIEW draws the steps itself: no strip */
     } else {
         draw_cells(bmp, &c);
         if (ok)
-            draw_strip(bmp, p, &shown);
+            draw_strip(bmp, p, n, c.r);
     }
 }

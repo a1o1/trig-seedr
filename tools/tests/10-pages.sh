@@ -66,7 +66,9 @@ same "xff .ff .ff .ff xff .ff .ff .ff .ff .ff .ff .ff .ff .ff .ff .ff xff .ff .f
     "$(steps $W/k0.snap)" "stock: grid recording with PAGE puts trigs on 1 5 17 25"
 same "$(steps $W/k0.snap)" "$(steps $W/k2.snap)" "seedr open: RECORD, the TRIG keys and PAGE do the same"
 same "$(tled $W/k0.snap)" "$(tled $W/k2.snap)" "seedr open: the TRIG keys' LEDs as stock's (page 2 of 2)"
-differ "$(screen $W/k1.snap)" "$(screen $W/k2.snap)" "seedr's screen stays up and its strip follows the track"
+# (the strip is the preview of BD's recipe, RANDOM on the empty track (V6): the recorded trigs do not change it)
+same "$(DTEMU_FW=$FW python3 $T/emu.py title $W/k1.snap)" "$(DTEMU_FW=$FW python3 $T/emu.py title $W/k2.snap)" \
+    "seedr's screen stays up"
 
 # 2. LEFT / RIGHT: with 0.2's layers every page is built: RIGHT visits ten different pages and
 #    wraps to TAKE; LEFT from TAKE is TOOLS
@@ -154,7 +156,8 @@ MAP=$MAP_ALL
 hknob $W/a-take.snap $W/e0.snap RHYTHM A:src:one 2
 key $W/e0.snap $W/n1.snap YES; png $W/n1.snap all-rhythm-not-built
 same "$(bytes $W/e0.snap)" "$(bytes $W/n1.snap)" "SHOW_ALL: YES on EUCLID (not built) writes nothing"
-differ "$(screen $W/e0.snap)" "$(screen $W/n1.snap)" "SHOW_ALL: and says so (NOT AVAILABLE YET)"
+# the preview (F10) says NOT AVAILABLE YET in the strip before YES; YES's message is the same text
+same "$(screen $W/e0.snap)" "$(screen $W/n1.snap)" "SHOW_ALL: the strip says so before and after YES (NOT AVAILABLE YET)"
 run $W/n1.snap $W/n2.snap 700
 same "$(screen $W/e0.snap)" "$(screen $W/n2.snap)" "SHOW_ALL: no audition was started (the screen as before YES)"
 emu_done
