@@ -67,3 +67,14 @@ all-02 src=random dens=60 bias=30 rot=2 skip=1 vel=50:110 shape=weak amt=60 acc=
 euclid-16-5 src=euclid eu_steps=16 eu_puls=5
 euclid-12-5-64 src=euclid eu_steps=12 eu_puls=5 length=64
 euclid-7-3-a orig=orig-a.txt src=euclid eu_steps=7 eu_puls=3 rot=1 vel=60:120 shape=strong amt=50
+# RHYTHM: COPY and PLACE: MASK (F4). other-hat.txt is a 12-step track, given as track 3 (HT)
+copy-hat other=3:other-hat.txt src=copy copy_trk=3
+copy-hat-64 other=3:other-hat.txt src=copy copy_trk=3 length=64
+copy-hat-a orig=orig-a.txt other=3:other-hat.txt src=copy copy_trk=3 vel=40:120 shape=strong amt=80 note=-2:2
+copy-self-a orig=orig-a.txt src=copy copy_trk=0 rot=2
+copy-none other=3:other-hat.txt src=copy copy_trk=5
+mask-avoid-a orig=orig-a.txt other=3:other-hat.txt mask=avoid mtrk=3
+mask-only-a orig=orig-a.txt other=3:other-hat.txt mask=only mtrk=3
+mask-avoid-rot-a orig=orig-a.txt other=3:other-hat.txt rot=3 mask=avoid mtrk=3 skip=1
+mask-only-random-64 other=3:other-hat.txt src=random dens=60 mask=only mtrk=3 acc=30 length=64
+copy-mask other=3:other-hat.txt other=2:orig-a.txt src=copy copy_trk=3 rot=1 mask=avoid mtrk=2 vel=60:110
