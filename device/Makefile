@@ -4,7 +4,10 @@
 CC ?= cc
 CROSS ?= m68k-elf-
 CFLAGS_HOST = -std=c99 -Wall -Wextra -Werror -O2 -fsanitize=address,undefined
-CFLAGS_CF = -mcpu=54455 -O2 -ffreestanding -fno-builtin -nostdlib -Wall -Wextra -Werror
+# -fno-store-merging: m68k-elf-gcc 16.2 at -O2 miscompiles a struct copy followed by stores to its
+# fields (one 4-byte store lands 6 bytes early; docs/status/F5.md finding 1). Kept for every ColdFire
+# build until the reference compiler is one without the bug.
+CFLAGS_CF = -mcpu=54455 -O2 -ffreestanding -fno-builtin -nostdlib -Wall -Wextra -Werror -fno-store-merging
 
 LIB := $(sort $(filter-out ../lib/test_%.c,$(wildcard ../lib/*.c)))
 HDR := $(wildcard *.h) $(wildcard ../lib/*.h)

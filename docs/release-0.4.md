@@ -1,5 +1,21 @@
 # trig-seedr 0.4
 
+## 0.4.1
+
+Two fixes for the hardware, nothing else changed. Build 0.4.1 to flash, not 0.4.0.
+
+- **The compiler.** Homebrew's m68k-elf-gcc 16.2 miscompiles, at `-O2`, a struct copy followed by stores to its
+  fields: one 4-byte store lands 6 bytes early ("store merging"). Found by task F5 (`docs/status/F5.md`), where a
+  moved step lost its note and velocity and corrupted the step before it. Every ColdFire build (the mod, core-ar2,
+  the `lib/` and `device/` checks) now uses `-fno-store-merging`. 0.4.0 was built without it; no emulator check
+  failed, but the same optimisation may have touched code the checks do not reach.
+- **New trigs keep stock's SYN / SMP / ENV bits.** A trig the mod placed on an empty step had the flag word
+  0x0001 / 0x0011: the device layer cleared the bits (0x0380) that stock's place routine sets from the track's
+  defaults. In the emulator the synth still sounded; whether the sample layer plays without them on a unit was not
+  known. New trigs are now made as the TRIG keys make them.
+
+## 0.4.0
+
 0.4 has 0.3's features on version 1's structure (`design-v1.md`, `plan-v1.md` milestone M0). It is the base the
 version 1 features (EUCLID, MAP, SYNC, value lists, noise, phrases, …) are added to in 0.5 to 0.9.
 
