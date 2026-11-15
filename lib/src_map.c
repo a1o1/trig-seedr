@@ -48,27 +48,31 @@ int seed_map_level(int part, int x, int y, int step)
                wy);
 }
 
-/* the part's chaos offset for a pass of 32 steps (P3: one slot per part per pass) */
-static int chaos_offset(const struct seed_take *k, int part, int pass, int chaos)
+/* the part's chaos offset for the pass of 32 steps holding step (P3: one slot per part per pass);
+ * also AMOD = TOP's key with SRC = MAP (dyn_rank.c) */
+int seed_map_lift(const struct seed_take *k, int part, int step, int chaos)
 {
     int r;
+    if (part < 0 || part >= MAP_PARTS || step < 0)
+        return SEED_E_ARG;
+    chaos = clamp(chaos, 0, 255) >> 2;
     if (chaos == 0)
         return 0;
-    r = (int)(seed_rand(k, SEED_SLOT(SEED_L_RHYTHM, SEED_P_CHAOS, part * 256 + pass)) >> 24);
+    r = (int)(seed_rand(k, SEED_SLOT(SEED_L_RHYTHM, SEED_P_CHAOS, part * 256 + step / MAP_STEPS)) >> 24);
     return r * chaos >> 8;
 }
 
 int seed_src_map(struct seed_track *t, const struct seed_recipe *r, const struct seed_take *k, const struct seed_ctx *c)
 {
     int n = t->length, part = r->map_part, i, pert = 0;
-    int threshold = 255 - clamp(r->map_dens, 0, 255), chaos = clamp(c->shared.map_chaos, 0, 255) >> 2;
+    int threshold = 255 - clamp(r->map_dens, 0, 255);
 
     if (part < 0 || part >= MAP_PARTS)
         return SEED_E_ARG;
     for (i = 0; i < n; i++) {
         int key = seed_map_level(part, c->shared.map_x, c->shared.map_y, i);
         if (i % MAP_STEPS == 0)
-            pert = chaos_offset(k, part, i / MAP_STEPS, chaos);
+            pert = seed_map_lift(k, part, i, c->shared.map_chaos);
         key = key < 255 - pert ? key + pert : 255;
         if (key > threshold)
             t->s[i].flags |= SEED_TRIG;

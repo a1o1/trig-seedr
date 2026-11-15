@@ -48,10 +48,29 @@ VEL's low end, 255 its high end (with VEL = DEF, half the trig's velocity to the
 VEL as for every shape. It works with any source, so the map's levels can shape a rhythm from RAND, EUCLID or the
 track's own trigs.
 
+## Accents: ACC with AMOD = TOP
+
+![DYNAMICS with ACC 30 % and AMOD = TOP on a MAP track](../screens/f12/dynamics-map-top.png)
+
+The original sequencer accents a step that fires when its level, with the CHAOS lift, is above 192. On DYNAMICS,
+AMOD = TOP with SRC = MAP gives the accent flag to the ACC % of trigs with the highest level (with the CHAOS lift,
+as the trigs themselves; equal levels go to the earlier step). So the trigs the original accents are always the top
+ones, and the ACC % that counts them writes exactly the original's accents. Raising ACC beyond that accents the next
+strongest trigs; lowering it keeps only the strongest.
+
+Example: PART 1, DENS 200, X 60, Y 190, CHAOS 0 on a 16-step track gives 5 trigs (steps 1, 5, 7, 13, 15), 2 of
+them above 192 (steps 1 and 5); ACC 30 % accents those 2 (30 % of 5 trigs, rounded). Which ACC % matches depends on
+the place on the map and on DENS: DENS changes how many trigs there are, and from DENS 63 on not which of them are
+above 192 (below 63 every trig is).
+
+Like SHAPE = MAP, TOP reads the level at each trig's final position: after PLACE (ROT, SYNC) a trig takes the level
+of the step it lands on. With any other source TOP ranks trigs by the meter (see the meter page), and AMOD = RAND
+picks them at random.
+
 ## Differences from the original sequencer
 
 - trig-seedr writes ordinary trigs into the pattern; the result can be edited by hand afterwards. The map is read
   once per YES, not as the pattern plays.
-- The original's accent outputs (steps whose level is above 192) are not written as accents. SHAPE = MAP makes those
-  steps the loudest; DYNAMICS' ACC sets the accent flag on its own terms.
+- The original has an accent output per part; trig-seedr writes the accent flag on the track's trigs (ACC with
+  AMOD = TOP, above), and SHAPE = MAP can make the same steps the loudest.
 - The original's swing and its Euclidean mode are not part of MAP (TIME's grooves and SRC = EUCLID cover them).

@@ -1,11 +1,14 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 /* dyn_rank: DYNAMICS: SHAPE = RANK, AMOD = TOP (flag: seed_have_rank in meter.c).
- * Owner: task F1 (docs/plan-v1.md section 4).
+ * Owner: task F1 (docs/plan-v1.md section 4); TOP with SRC = MAP: task F12.
  * Both use the meter's Barlow ranks (ROLE = METER, whatever ROLE says: ROLE is a RHYTHM knob, and
  * DYNAMICS changes only its own fields, I3). SHAPE = RANK: a step's level is its indispensability
  * in the bar, spread evenly over 0..255 (4/4: 16 levels, the bar's first step loudest). AMOD = TOP:
  * the ACC % highest-ranked trigs get the accent flag, the others lose it; ties between bars go to
- * the bars' Barlow order. Freestanding. */
+ * the bars' Barlow order. With SRC = MAP, TOP ranks by the key the source fires on (the map level
+ * at the final position plus the part's chaos lift, at most 255), so the trigs whose key is above
+ * 192, the original's accents, are a top share: the ACC % that counts them reproduces them. Ties go
+ * to the earlier step. Freestanding. */
 #include "seed.h"
 
 int seed_shape_rank(const struct seed_recipe *r, int step, int n)
@@ -23,11 +26,20 @@ int seed_acc_top(struct seed_track *t, const struct seed_recipe *r, const struct
     uint32_t key[SEED_STEPS];
     uint8_t elig[SEED_STEPS], order[SEED_STEPS], chosen[SEED_STEPS];
     int i, m, n = t->length;
-    (void)c;
     if (n <= 0 || n > SEED_STEPS)
         return SEED_OK;
     for (i = 0; i < n; i++) {
-        int v = seed_rank(r->metr, r->beat, SEED_ROLE_METER, i, n);
+        int v;
+        if (r->src == SEED_SRC_MAP) {
+            int lift = seed_map_lift(k, r->map_part, i, c->shared.map_chaos);
+            if (lift < 0)
+                return lift;
+            v = seed_map_level(r->map_part, c->shared.map_x, c->shared.map_y, i);
+            if (v >= 0)
+                v = v < 255 - lift ? v + lift : 255;
+        } else {
+            v = seed_rank(r->metr, r->beat, SEED_ROLE_METER, i, n);
+        }
         if (v < 0)
             return v;
         rank[i] = (uint16_t)v;

@@ -63,4 +63,4 @@ between them.
   and every other step in between in rank order (16 levels in a 4/4 bar). It always uses the METER order, whatever
   ROLE says.
 - **AMOD = TOP** gives the accent flag to the ACC % of trigs with the highest rank (METER order). The seed does
-  not change which trigs these are.
+  not change which trigs these are. With SRC = MAP, TOP ranks by the map's level instead (the MAP page).

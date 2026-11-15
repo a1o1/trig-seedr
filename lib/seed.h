@@ -429,6 +429,9 @@ seed_stage seed_acc_top;
 
 /* src_map.c (F3): the map level of step i for part, X and Y, 0..255, or SEED_E_NA */
 int seed_map_level(int part, int x, int y, int step);
+/* src_map.c (F3, F12): the part's chaos lift for the pass of 32 steps holding step, 0..62 (CHAOS
+ * 0..255), or SEED_E_ARG; a step's key is its level plus the lift, at most 255 */
+int seed_map_lift(const struct seed_take *k, int part, int step, int chaos);
 
 /* A field's value for the trig at `step`, the index-th trig of the track, from v (values.c, 0.2).
  * `slot` is SEED_SLOT(layer, purpose, 0): RANGE draws slot + step, LIST its item i from

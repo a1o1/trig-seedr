@@ -93,7 +93,7 @@ Other knobs:
 
 - Data: 25 nodes on a 5×5 map, each 3 parts × 32 steps of levels 0–255 (`mi/eurorack/grids/resources.cc`, 2,400 bytes). X / Y blend the four nearest nodes.
 - A step's key is its level plus a chaos offset (one random value per part per pass, a P3 slot). It fires when the key exceeds 255 − DENS. Steps beyond 32 repeat.
-- DYNAMICS SHAPE = MAP uses the level as velocity, so the steps Grids accents (level above 192) are the loudest. Grids' accents are not written as accent flags: ACC with AMOD = TOP ranks trigs by the meter's ranks (F1), not by map level (Alan, 2026-11-15, after F3).
+- DYNAMICS SHAPE = MAP uses the level as velocity, so the steps Grids accents are the loudest. ACC with AMOD = TOP reproduces Grids' accents: with SRC = MAP it ranks trigs by their key (the level plus the chaos offset, at most 255; Grids accents a trig whose key is above 192), so ACC at the share that counts those trigs sets the accent flag on exactly them (F12). With any other source TOP ranks by the meter (F1).
 - PART and DENS are per track; X, Y and CHAOS are shared by the pattern's tracks (assumption A1).
 - Licence: Grids' sources are GPL version 3 or later; trig-seedr and elekloader are GPL-2.0-or-later (assumption A6). Names: no "Mutable Instruments" and no "Grids" in the product; the mode is MAP, credited in the acknowledgements.
 
