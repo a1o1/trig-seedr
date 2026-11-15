@@ -1,0 +1,48 @@
+# Golden recipes: NAME KEY=VALUE... (tools/seedref's keys; tools/golden.sh). orig-a.txt is a track
+# with trigs, every field set and sample locks (lane 1); without orig= the original is a new
+# project's empty track. Owners add lines for their layers; the lead freezes the vectors at G0.
+#
+# SOURCE = TRACK, every layer at 0 (I1)
+identity-empty
+identity-a orig=orig-a.txt
+identity-a-seed orig=orig-a.txt seed=7 vary=50
+identity-a-64 orig=orig-a.txt length=64
+# RHYTHM: RANDOM (0.2)
+random-d50 src=random dens=50
+random-d50-s2 src=random dens=50 seed=2
+random-d50-t3 src=random dens=50 track=3
+random-g4 src=random grid=4 dens=100
+random-bias-n40 src=random dens=40 bias=-40 seed=2
+random-bias-100 src=random dens=25 bias=100
+random-d50-64 src=random dens=50 length=64
+random-vary50 src=random dens=50 seed=5 vary=50
+init-empty init=1
+init-a init=1 orig=orig-a.txt
+# PLACE (0.2)
+rot3-a orig=orig-a.txt rot=3
+rot-n5-random src=random dens=50 rot=-5
+skip2-random src=random dens=60 skip=2
+fld-vel-a orig=orig-a.txt fld=vel frot=2
+fld-vel-grid-a orig=orig-a.txt fld=vel frot=2 fmod=grid
+fld-all-a orig=orig-a.txt fld=all frot=-1
+# DYNAMICS (0.2)
+vel-range src=random dens=50 vel=60:120
+vel-not1 src=random dens=50 vel=60:120 shape=not1 amt=100
+vel-strong-a orig=orig-a.txt vel=40:127 shape=strong amt=50
+acc-30 src=random dens=50 acc=30
+hum-a orig=orig-a.txt hum=40
+# NOTE (0.2)
+note-pm5-a orig=orig-a.txt note=-5:5
+len-a orig=orig-a.txt len=14:30
+# LOCK (0.2): lane 1 = sample slot
+lock-1-8 src=random dens=50 lane1=1:8 lane1.pct=100
+lock-50-a orig=orig-a.txt lane1=1:4 lane1.pct=50
+# TRIG (0.2)
+cond-prob src=random dens=50 cond=30 cval=0:21
+cond-ab-a orig=orig-a.txt cond=100 ctyp=ab cval=4
+rtrg src=random dens=50 rtrg=25 rate=6:12 rcur=-20
+# TIME (0.2)
+rand-a orig=orig-a.txt rand=50
+quant-a orig=orig-a.txt quant=100
+# every 0.2 layer together
+all-02 src=random dens=60 bias=30 rot=2 skip=1 vel=50:110 shape=weak amt=60 acc=20 note=-3:3 len=14:46 lane1=1:8 lane1.pct=40 cond=20 rtrg=10 rand=20 fld=note frot=1
