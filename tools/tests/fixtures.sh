@@ -12,6 +12,12 @@ check_take() {
 # save_orig NAME: BD as it is now, as $D/NAME.txt, for seedref's orig=
 save_orig() { emu_dump > "$D/$1.txt"; }
 
+# state_bits: ok when every trig on BD has the SYN / SMP / ENV bits (0x0380) its flag word gets from
+# the TRIG keys (the dump shows only the bits lib/ knows; emucmp's second line has whole words)
+state_bits() {
+    emu_cmp 2 | python3 -c "import sys; w=[int(x, 16) for x in sys.stdin.read().split()[1:]]; bad=[i + 1 for i, v in enumerate(w) if v & 1 and v & 0x380 != 0x380]; print('ok' if w and not bad else 'steps %s: %s' % (bad, ' '.join('%04x' % v for v in w)))"
+}
+
 # Release 0.3's part 1 on version 1: boot; open on the empty BD (its new recipe is RANDOM, V6);
 # YES seed 1; seed 2 from the original; NO; FUNC + YES; closing keeps. Ends with seed 2 kept and
 # the mod closed with NO on TAKE.
@@ -23,6 +29,7 @@ fix_kept2() {
     emu_yes
     emu_shot take1
     check_take "YES: seed 1" src=random seed=1
+    emu_check "YES: each new trig has SYN / SMP / ENV on (0x0380), as from the TRIG keys" ok "$(state_bits)"
     emu_knob TAKE A:seed 2
     emu_yes
     check_take "SEED 2, YES: from the original" src=random seed=2

@@ -3,8 +3,7 @@
  * Owner: task 0.2 (docs/plan-v1.md section 4).
  * Each step gets a key from rank and chance (P2, seed_keys); the grid positions with the top
  * DENS % of keys get a trig, exactly round(DENS * positions / 100) of them (I5). Raising DENS
- * adds to the trigs there were (I4). The rank is meter.c's when F1 has landed; until then it is
- * 0.3's five-level metric weight, which covers ROLE = METER in 4/4 only. Freestanding. */
+ * adds to the trigs there were (I4). The rank is meter.c's (F1). Freestanding. */
 #include "seed.h"
 
 const uint8_t seed_have_random = 1;
@@ -14,15 +13,10 @@ static int clamp(int v, int lo, int hi)
     return v < lo ? lo : v > hi ? hi : v;
 }
 
-/* the step's rank, 0..SEED_RANK_MAX, or SEED_E_NA */
+/* the step's rank, 0..SEED_RANK_MAX (meter.c, F1), or < 0 */
 static int rank_of(const struct seed_recipe *r, int step, int n)
 {
-    int v = seed_rank(r->metr, r->beat, r->role, step, n);
-    if (v >= 0 || seed_have_rank)
-        return v;
-    if (r->role != SEED_ROLE_METER || r->metr != SEED_METR_4_4)
-        return SEED_E_NA;
-    return (seed_weight(step, r->beat) * SEED_RANK_MAX + 2) / 4;
+    return seed_rank(r->metr, r->beat, r->role, step, n);
 }
 
 int seed_src_random(struct seed_track *t, const struct seed_recipe *r, const struct seed_take *k, const struct seed_ctx *c)
