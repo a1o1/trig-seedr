@@ -63,3 +63,15 @@ role-perc src=random dens=30 bias=70 role=perc length=32
 role-hat-n src=random dens=25 bias=-50 role=hat
 # every 0.2 layer together
 all-02 src=random dens=60 bias=30 rot=2 skip=1 vel=50:110 shape=weak amt=60 acc=20 note=-3:3 len=14:46 lane1=1:8 lane1.pct=40 cond=20 rtrg=10 rand=20 fld=note frot=1
+# SYNC (F5): anticipation onto the weaker step before; whole steps move (origins), runs resolve
+sync-a orig=orig-a.txt sync=100
+sync-a-50 orig=orig-a.txt sync=50
+sync-rot-a orig=orig-a.txt rot=1 sync=100
+sync-lock-a orig=orig-a.txt sync=100 lane1=1:8 lane1.pct=100
+sync-random src=random dens=50 sync=100
+sync-40 src=random dens=50 sync=40
+sync-grid2 src=random grid=2 dens=60 sync=100
+sync-skip3 src=random dens=50 sync=100 skip=3
+sync-strong src=random dens=50 sync=100 vel=40:127 shape=strong amt=100
+sync-78 src=random dens=40 metr=7/8 beat=2 length=28 sync=100
+sync-64 src=random dens=40 sync=70 length=64
