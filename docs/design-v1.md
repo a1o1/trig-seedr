@@ -167,4 +167,4 @@ A device provides, for `lib/`:
 | A3 | Recipes live in RAM only (lost at power-off; the written steps are ordinary pattern data). | nothing |
 | A4 | Keep stays FUNC + YES on the Rytm; the key is a device choice. | nothing |
 | A6 | The map data lives in its own file under GPL-3.0-or-later and the README says a build with it is GPL-3.0-or-later. Alternative: move the repository to GPL-3.0-or-later. | F3 |
-| A7 | Meter (METR, BEAT) is per track; a new recipe starts from the last one used. | F1 |
+| A7 | Meter (METR, BEAT) is per track; a new recipe starts from the last one used. **Confirmed 2026-11-15** (as built in 0.4: `seed_recipe_init`). | F1 |
