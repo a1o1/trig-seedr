@@ -24,6 +24,8 @@ The rule that makes parallel work possible: **M0 creates every enum value, recip
 
 ## 3. Environment
 
+Full description, per operating system, with first-run checks: **`dev-environment.md`**. In short:
+
 Workspace `~/dev/github/elektron` on the Mac (`~/mnt/elektron` in the folder's Linux shell):
 
 | Folder | Use |
