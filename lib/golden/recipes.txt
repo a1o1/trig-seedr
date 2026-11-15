@@ -90,3 +90,12 @@ sync-skip3 src=random dens=50 sync=100 skip=3
 sync-strong src=random dens=50 sync=100 vel=40:127 shape=strong amt=100
 sync-78 src=random dens=40 metr=7/8 beat=2 length=28 sync=100
 sync-64 src=random dens=40 sync=70 length=64
+# TAKE: PHRS and CVAR (F9)
+phrs-abab-64 src=random dens=50 length=64 phrs=abab
+phrs-aaab-a-64 orig=orig-a.txt length=64 phrs=aaab vel=60:120 cond=50
+phrs-abcd-40 src=random dens=50 length=40 phrs=abcd skip=3
+phrs-abac-vary src=random dens=60 length=64 phrs=abac vary=60 rot=2
+cvar-12 src=random dens=50 cvar=1:2
+cvar-aaab src=random dens=50 cvar=aaab
+cvar-12-vary src=random dens=50 cvar=1:2 vary=70 vel=60:120
+cvar-phrs-64 src=random dens=40 length=64 phrs=abab cvar=aaab vary=50
