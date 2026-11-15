@@ -1,0 +1,142 @@
+# trig-seedr: plan for version 1
+
+For agents working in parallel. Read `design-v1.md` first: it is the specification; this file is how the work is cut up. `requirements.md` and `firmware-notes-os174.md` describe what exists (0.3).
+
+## 1. Shape of the work
+
+| Milestone | What | Agents | Result |
+|---|---|---|---|
+| **M0 Foundation** | new engine structure, page framework, device contract, test harness; 0.3's features ported onto it | 1 lead, then 4 in parallel | release 0.4: same features, new structure, SOURCE = TRACK, LEFT / RIGHT |
+| **M1 Features** | eleven workstreams, each a layer or source | up to 8 in parallel | releases 0.5 … 0.9 as workstreams land |
+| **M2 Integration** | interplay tests, fuzzing, performance, docs, site, hardware checklist | 2–3 | release 1.0 |
+
+The rule that makes parallel work possible: **M0 creates every enum value, recipe field, page table entry and function stub that version 1 needs.** An M1 workstream then fills bodies in files it owns and flips its `SEED_HAVE_…` flag; it does not edit the contract, the framework or another workstream's files.
+
+## 2. Hard rules
+
+1. **Never commit** Elektron firmware or anything built from it (`.syx`, snapshots, card images, unpacked sections), nor Ableton-derived data (`grooves-live.h`). `build/` and `out/` stay untracked.
+2. **Never put Alan's email address** in commits, files or requests to outside services.
+3. Do not look for tools that decrypt Ableton's protected `.agr` files.
+4. No "Mutable Instruments" and no "Grids" in product names, pages or the mod's metadata; credit in the acknowledgements only. Map data keeps its GPL-3.0-or-later header.
+5. Conventional Commits (`CONTRIBUTING.md`); one workstream per branch `feat/<id>-<name>`; nothing is pushed to `main` except by the lead after the gates in section 7.
+6. Get a missing tool working before reaching for a workaround. Ask Alan one question at a time.
+7. Factual wording in docs: no weasel words, no hyperbole.
+
+## 3. Environment
+
+Workspace `~/dev/github/elektron` on the Mac (`~/mnt/elektron` in the folder's Linux shell):
+
+| Folder | Use |
+|---|---|
+| `trig-seedr/` | this repository |
+| `elekloader/` | `python3 -m elekloader.sdk.build`, `elekloader.patch`; core-ar2 0.13 |
+| `analog-emu/` | `dtboot`, `dtpeek`, `dtcard` (headless), `rytm` (window, Mac) |
+| `Official Firmwares/` | the stock OS 1.74 `.syx` (local only) |
+| `mi/eurorack/grids/` | Grids' source and map data |
+| `.toolchains/` | Linux Rust and the m68k-elf cross compiler |
+
+- In the Linux shell: `. ~/mnt/elektron/.toolchains/env.sh` first. It sets `ELEKLOADER_CROSS=m68k-elf-` and `CARGO_TARGET_DIR` (Linux emulator binaries in `.toolchains/target-linux/release`). `analog-emu/target/` holds the Mac build: do not run or overwrite it from Linux.
+- `make -C lib test` (host, ASan / UBSan), `make -C lib coldfire` (no undefined symbols), `sh tools/test_seedr.sh` (emulator; `PART=n` for one part).
+- One git worktree per workstream, outside the main checkout, with `WORKSPACE` pointing at the workspace folder. Git needs permission to delete files in the folder (its lock files).
+- Known hazards, fixed in task 0.5: the test script writes snapshots and card images into `analog-emu/`; `elekloader/mods/core-ar2/out` is shared. Until then, do not run two emulator suites at once.
+
+## 4. Files and owners
+
+| Path | Content | Owner |
+|---|---|---|
+| `lib/seed.h` | the contract: step, track, recipe, capabilities, enums, stage prototypes | lead (frozen after 0.1; changes by request) |
+| `lib/seed_rng.c` | streams, slots, keys, VARY (P1–P3) | lead |
+| `lib/seed_render.c` | the chain | lead |
+| `lib/meter.c` | rank tables, meters, roles | F1 |
+| `lib/src_random.c`, `src_euclid.c`, `src_map.c` + `map_data.c`, `src_copy.c` | sources | 0.2, F2, F3, F4 |
+| `lib/place.c`, `place_sync.c`, `place_mask.c` | ROT, SKIP, field rotation; SYNC; MASK | 0.2, F5, F4 |
+| `lib/dyn.c`, `dyn_rank.c`, `dyn_noise.c` | range, shapes, accent; RANK / TOP; NOISE | 0.2, F1, F7 |
+| `lib/values.c`, `values_list.c`, `noise.c` | range; lists and orders; value noise | 0.2, F6, F7 |
+| `lib/trig.c`, `timing.c`, `timing_drift.c`, `groove.c` | conditions, retrigs; random and groove timing; drift | 0.2, 0.2, F8, existing |
+| `lib/vary.c`, `score.c` | PHRS, CVAR; candidate scoring | F9, F11 |
+| `lib/test_<module>.c`, `test_props.c`, `golden/` | host tests, invariants, frozen vectors | each owner; 0.5 for the framework |
+| `device/rytm_ar2.h` | device layer | 0.4 only |
+| `mods/seedr-ar2/seedr.c` | keys, navigation, audition, recipe store, drawing | 0.3 only |
+| `mods/seedr-ar2/pages.c` | every page's knob table | 0.3 creates all; owners edit only their page's rows |
+| `mods/seedr-ar2/preview.c`, `view.c` | preview strip; VIEW | F10 |
+| `tools/seedref.c`, `tools/emu.sh`, `tools/tests/NN-<name>.sh`, `tools/run_tests.sh` | reference renderer, emulator helpers, one test file per workstream | 0.5; each owner adds its test file |
+| `docs/v1/<layer>.md` | user-facing text per layer | each owner |
+| `docs/status/<id>.md` | state, decisions taken, how to test, open points | each owner |
+
+`lib/gen.c` and `lib/gen.h` are retired at the end of M0 (kept until gate G0 for comparison).
+
+## 5. M0 Foundation
+
+| Task | Owner | Content | Done when |
+|---|---|---|---|
+| **0.1 Contract** | lead, alone, first | `lib/seed.h` with every version-1 field, enum and prototype (stubs return "not available"); `seed_rng.c` with tests for I2, I4, I10; `seed_render.c` skeleton; `docs/status/` and branch layout | header reviewed against `design-v1.md` sections 3–7 and 10; host tests pass |
+| **0.2 Engine port** | A | 0.3's features as stages: RANDOM source (GRID, DENS, BIAS on today's five-level weights), ROT, SKIP, field rotation, VEL range and METER's shapes, LEN, NOTE, sample lock as lane 1, COND, RTRG, random and groove micro timing; SOURCE = TRACK; layer-at-0 rule | `test_props.c` proves I1–I6 for these layers; ColdFire build clean |
+| **0.3 Page framework** | B | table-driven pages; per-track recipe store; LEFT / RIGHT; PAGE and TRIG keys passed to stock (verify in the emulator, report if stock misbehaves); title bar; preview strip placeholder; pages hidden when their `SEED_HAVE_…` flag or a capability is off; VIEW cursor on a knob; TOOLS page with ROTATE ALL | every 0.3 function reachable; screenshots of each page |
+| **0.4 Device layer** | C | capabilities; read any track; write with origins (single-step moves carrying all 44 lock values through stock's lock set / clear); lock lanes on a chosen parameter with names; room check per lane | emulator test: a hand-made step with three parameter locks moved by one step, locks intact after save and reload; I7–I9 |
+| **0.5 Test harness** | D | `tools/seedref` (recipe as `key=value` → step dump); `tools/emu.sh` (build, boot, open, go to a page by name, set a knob to a value, YES, compare with `seedref`); recipe injection for tests (`dtboot --poke` into the recipe store, or a test build with `-D` defaults as the lock-row test does); snapshots and cards under each worktree's `build/`; a lock around the core-ar2 build; `tools/run_tests.sh` running `tools/tests/*.sh`; golden-vector generator; `tools/doctor.sh` checking the environment | 0.3's parts 1–8 re-expressed and passing on the new structure; two suites run side by side without interfering |
+| **0.6 Integration** | lead | merge A–D; docs and site for the new navigation and SOURCE = TRACK; `build_release.sh` for 0.4 | gate G0 |
+
+0.2–0.5 run in parallel once 0.1 is merged. B and C work against stub renders until A lands.
+
+**Gate G0** (all required): host tests and I1–I10 pass; every 0.3 emulator check has a passing equivalent; SOURCE = TRACK identity shown in the emulator on the step record and the lock store; no undefined symbols; mod size and `.bss` reported and inside the loader's limits; golden vectors frozen; Alan has tried 0.4 in the emulator window.
+
+## 6. M1 Feature workstreams
+
+Each workstream delivers: the module with host tests, its rows in `pages.c`, its `tools/tests/` file, `docs/v1/<layer>.md`, `docs/status/<id>.md`, and a screenshot.
+
+| Id | Workstream | Content | Needs | Waits for |
+|---|---|---|---|---|
+| F1 | Rank and meter | Barlow's indispensability (formula or tables; check 6-pulse values 5 0 3 1 4 2 and 5 0 2 4 1 3, and 4/4 = 15 0 8 4 12 2 10 6 14 1 9 5 13 3 11 7); METR and BEAT; ROLE tables; SHAPE = RANK; AMOD = TOP | G0 | A7 |
+| F2 | EUCLID source | STEPS, PULS; the same patterns as stock's Euclidean mode for the same settings | G0 | |
+| F3 | MAP source | map data from `mi/eurorack/grids/resources.cc` with its licence header; X / Y blend as `ReadDrumMap`; DENS threshold; CHAOS as a P3 slot; SHAPE = MAP; a host test comparing levels with the original code's for a set of X / Y | G0 | A1, A6 |
+| F4 | COPY and MASK | COPY source; MASK AVOID / ONLY against another track | G0 | |
+| F5 | SYNC | anticipation onto the preceding weaker step; count preserved; SKIP respected; runs resolve onto a strong step; works on SOURCE = TRACK through origins | G0, 0.4 | |
+| F6 | Value lists | LIST source with ORDR and its own length for NOTE and both LOCK lanes; LMOD = LEGATO | G0 | |
+| F7 | Noise | integer value noise; NOISE source for NOTE and LOCK; SHAPE = NOISE with ZOOM | G0 | |
+| F8 | Drift | correlated micro timing (DRFT) | G0 | |
+| F9 | Variation | PHRS over pages; CVAR as conditions; interaction with a track shorter than four pages | G0 | A2 |
+| F10 | Preview and VIEW | the preview strip from the work buffer on every knob change; VIEW on the new step type; drawing cost measured | G0 | |
+| F11 | Candidate scoring | QUAL; must keep P3 (a take stays a function of n) | F1 | design note agreed with the lead first |
+
+Suggested release grouping: 0.5 = F1, F2, F10; 0.6 = F4, F5; 0.7 = F6, F7, F8; 0.8 = F3; 0.9 = F9, F11.
+
+## 7. Gates for merging a workstream
+
+1. `make -C lib test` and `make -C lib coldfire` pass; the workstream's host tests cover its rows of the invariants table.
+2. `tools/run_tests.sh` passes in full, not only the new file.
+3. Golden vectors unchanged, unless the workstream's status file says why and the lead agrees.
+4. With the feature's knobs at their defaults, every other test's output is unchanged.
+5. Screenshot and `docs/v1/` text present; no file outside the workstream's rows in section 4 changed without a note in the status file.
+
+The lead merges in the order workstreams pass; after each merge the others rebase and re-run.
+
+## 8. M2 Integration and 1.0
+
+| Task | Content |
+|---|---|
+| Interplay matrix | every source × PLACE × DYNAMICS shape × VARY / PHRS on 16- and 64-step tracks in the emulator; the "not applicable" combinations hidden or refused with a message |
+| Fuzzing | random recipes on the host against I1–I6 and I10 (hours, ASan / UBSan); a sample of them in the emulator against I7–I9 |
+| Performance and size | render and preview time on the emulator's instruction counter; mod size and `.bss`; lock-row use |
+| Docs and site | `docs/v1/*.md` assembled into the site's pages; README, screenshots, requirements renumbered to the version-1 design |
+| Hardware | `build_release.sh`; a checklist for Alan per release (flash, the first-checks list in `flashing.md`, the new features); findings filed as issues |
+| 1.0 | golden vectors frozen again; tag |
+
+## 9. Regression policy
+
+- **Kept:** every behaviour 0.3's emulator checks cover (generation, audition, keep, NO, save paths, lock rows, groove, rotate, sample locks, the key cycle), re-expressed in 0.5 and required at G0.
+- **Changed on purpose at 0.4:** what a seed produces (A5); the page set and navigation (V10); ROT's relation to BIAS (design section 4). These are listed in the 0.4 release notes.
+- **From 0.4 on:** golden vectors and gate rule 4 hold results fixed.
+
+## 10. Risks
+
+| Risk | Handling |
+|---|---|
+| Stock PAGE or TRIG keys misbehave while the mod draws | checked first in task 0.3; fallback: PAGE stays the mod's, FUNC + LEFT / RIGHT shows the pattern pages |
+| Single-step moves with locks are slow or exhaust lock rows | 0.4 measures; SYNC on SOURCE = TRACK refuses with a message when rows run out (I8) |
+| The mod outgrows the loader's limits | sizes reported at G0 and at every merge |
+| core-ar2 0.13 has not run on a unit | Alan's first flash of 0.3; findings go to the lead before 0.6 |
+| Contract changes ripple through parallel work | only the lead edits `seed.h`; requests go through `docs/status/` |
+
+## 11. Starting an agent
+
+> You are working on trig-seedr. Read `docs/design-v1.md`, then `docs/plan-v1.md`. Your task is **<id>** in section 5 or 6. Work in your own worktree on branch `feat/<id>-<name>`; edit only the files that task owns (section 4); follow the hard rules (section 2). Keep `docs/status/<id>.md` current. You are done when the task's "done when" and the gates in section 7 are met; then report what you built, the test results and anything the lead must decide.
