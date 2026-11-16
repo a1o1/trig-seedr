@@ -6,13 +6,14 @@
 #     sh tools/golden.sh --write [NAME]  write the vectors (all, or those named); the lead freezes
 #                                        them at gate G0, and after that a change needs a reason in
 #                                        the workstream's status file
-# A recipe whose layer is not built yet (seedref: result -1) is pending: not written, not a
+# A recipe whose layer is not built yet (seedref: result -1) is pending, and one seedref refuses
+# on purpose (result -2, a setting out of range, as fld-all-a) is refused: neither is written or a
 # failure. A recipe with no vector is reported as not frozen. Exit status: 0 when nothing differs.
 R=$(cd "$(dirname "$0")/.." && pwd); . "$R/tools/emu.sh"
 G=$R/lib/golden
 write=; [ "$1" = --write ] && { write=1; shift; }
 mkdir -p "$W"
-same=0 differ=0 pending=0 unfrozen=0 written=0
+same=0 differ=0 pending=0 refused=0 unfrozen=0 written=0
 while read -r name args; do
     case $name in ''|\#*) continue ;; esac
     if [ $# -gt 0 ]; then
@@ -22,7 +23,7 @@ while read -r name args; do
     # shellcheck disable=SC2086
     got=$(cd "$G" && seedref all=1 $args 2> "$W/golden.err"); rc=$?
     if [ $rc -eq 3 ]; then
-        pending=$((pending + 1))
+        if grep -q 'result -2' "$W/golden.err"; then refused=$((refused + 1)); else pending=$((pending + 1)); fi
         [ -f "$G/$name.txt" ] && { echo "FAIL golden $name: frozen, but seedref now says $(cat "$W/golden.err")"; differ=$((differ + 1)); }
         continue
     fi
@@ -38,7 +39,7 @@ while read -r name args; do
         echo "$got" | diff "$G/$name.txt" - | sed 's/^/  /'
     fi
 done < "$G/recipes.txt"
-if [ -n "$write" ]; then echo "golden: $written written, $pending pending (layer not built)"
-else echo "golden: $same same, $differ differ, $unfrozen not frozen, $pending pending (layer not built)"
+if [ -n "$write" ]; then echo "golden: $written written, $refused refused (on purpose), $pending pending (layer not built)"
+else echo "golden: $same same, $differ differ, $unfrozen not frozen, $refused refused (on purpose), $pending pending (layer not built)"
 fi
 [ $differ -eq 0 ]
