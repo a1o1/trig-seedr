@@ -8,6 +8,7 @@
 [![Language](https://img.shields.io/badge/C99-freestanding%20ColdFire-informational.svg)](lib/)
 [![Tests](https://img.shields.io/badge/tests-636k%20host%20%7C%20449%20emulator-brightgreen.svg)](tools/README.md)
 [![Emulator](https://img.shields.io/badge/tested%20in-analog--emu-lightgrey.svg)](https://github.com/trigcondition/analog-emu)
+[![Hardware](https://img.shields.io/badge/hardware%20tested-v0.5.1%20on%20Rytm%20MKII%20OS%201.74-orange.svg)](docs/flashing.md#tested-on-hardware)
 [![Grooves](https://img.shields.io/badge/Grooves-Ableton%20.agr%20%7C%20MIDI-yellowgreen.svg)](#grooves)
 [![AI](https://img.shields.io/badge/AI-Claude%20Opus%205.5-purple.svg)](https://www.anthropic.com/claude)
 [![Website](https://img.shields.io/badge/Website-a1o1.github.io%2Ftrig--seedr-4d9bff.svg)](https://a1o1.github.io/trig-seedr/)

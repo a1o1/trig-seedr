@@ -34,8 +34,18 @@ As for any OS update:
 
 ## First checks on the unit
 
-Tested so far: 0.5 on an Analog Rytm MKII with stock OS 1.74 (2026-11-16, first pass: every feature worked as
-expected). The checks below are for each release and each unit.
+The checks below are for each release and each unit.
+
+### Tested on hardware
+
+Every hardware pass, newest first. Each release is tested in analog-emu in full (`docs/testing.md`); this table is
+what has run on a real unit.
+
+| Version | Date | Unit | OS | Result |
+|---|---|---|---|---|
+| 0.5.1 | 2026-11-16 | Analog Rytm MKII | 1.74 | first pass: every feature worked as expected; UX notes became 0.5.1's generate and apply and 0.7's changes |
+
+0.6.0 and 0.7.0 have not had a hardware pass yet; checks 12 to 15 below are new in them.
 
 1. The boot screen shows the version (**TS07** for 0.7) while the Rytm starts (OS 1.74 has no menu that shows it;
    GLOBAL > SYSTEM > OS UPGRADE shows only WAITING FOR SYSEX).

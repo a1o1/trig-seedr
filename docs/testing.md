@@ -36,7 +36,7 @@ them.
 | Interplay | `mods/seedr-ar2/test_interplay.c`: recipes the pages can reach, from every source on 13–64 steps; every hidden knob, turned, must leave the take byte-identical, and each source must keep the trig counts it promises through ROT and SYNC | about 533,000 checks in every `make test`; a 60,000-recipe run made 10 million | I3, I5, I6 |
 | Emulator | `tools/run_tests.sh` boots the patched OS in [analog-emu](https://github.com/trigcondition/analog-emu) and drives it through the Rytm's own keys and knobs: generate, NO, apply, save, reload, power cycle, the lock-row limit, every page | 29 test files, 449 checks; the full run takes about 75 minutes on the Mac (42-perf alone 25) | I1, I2, I7–I9 |
 | Emulator fuzz sample | `tools/tests/41-fuzz-sample.sh`: recipes from the fuzzer replayed on the emulated Rytm | 6 recipes per run (more with `FUZZ_SAMPLES`) | I2, I7–I9 |
-| Hardware | `docs/flashing.md`'s checks on a Rytm MKII with OS 1.74 | one unit (0.5.1) | I7, I9 |
+| Hardware | `docs/flashing.md`'s checks on a Rytm MKII with OS 1.74; every pass is listed there (Tested on hardware) | one unit (0.5.1) | I7, I9 |
 
 Each test level catches a different kind of mistake. The host tests and the fuzzer test the engine's logic on millions
 of cases in minutes. The emulator runs the real stock firmware with the mod in it, so it tests what the engine cannot
