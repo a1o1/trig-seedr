@@ -6,6 +6,7 @@
  * one (tools/tests/04-device.sh). Covers read, identity (I1), moves by origin with every lock
  * (design section 4), lanes, the room check (I8), the snapshot (I7), length and scope (I6). */
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #define RT_HOST
 #define RT_ROWS_MAX rows_max
@@ -178,13 +179,13 @@ static int rnd(int n) { rng = rng * 1103515245u + 12345u; return (int)(rng >> 16
 
 /* a pattern with trigs, fields, swing and other flag bits, sound locks, parameter locks on
  * several sound indexes (some fine), and locks on trigless steps */
-static void fixture(void)
+static void fixture_n(uint32_t seed)
 {
     int t, i, k;
     memset(rec, 0, sizeof rec);
     memset(lks, 0xff, sizeof lks);
     memset(rows, 0xff, sizeof rows);
-    rng = 7;
+    rng = seed;
     for (t = 0; t < RT_TRACKS; t++) {
         len[t] = 16;
         memset(&lks[t][RT_LOCK_FINE], 0, RT_LOCKS_SIZE - RT_LOCK_FINE);
@@ -213,6 +214,8 @@ static void fixture(void)
         }
     }
 }
+
+static void fixture(void) { fixture_n(7); }
 
 static uint8_t rec0[RT_TRACKS][RT_RECORD_SIZE], lks0[RT_TRACKS][RT_LOCKS_SIZE], rows0[sizeof rows];
 static void save(void) { memcpy(rec0, rec, sizeof rec); memcpy(lks0, lks, sizeof lks); memcpy(rows0, rows, sizeof rows); }
@@ -650,6 +653,129 @@ static void test_context(void)
     CHECK(notices == 1);
 }
 
+
+/* Fuzzing the layer (0.7): random patterns, lengths, lane parameters, row limits and takes, each
+ * written from the snapshot and checked: a refused write changes nothing (I8); other tracks and
+ * steps past the length are untouched (I6); a trig carries the take's fields and lanes, and its
+ * origin's sound lock and other locks; the row table stays within the limit; the restore gives
+ * the original back byte for byte (I7). DEV_FUZZ=n sets the number of cases. */
+
+static void random_take(struct seed_track *t, int n)
+{
+    int i, l;
+    for (i = 0; i < n; i++) {
+        struct seed_step *s = &t->s[i];
+        int o = rnd(5) == 0 ? SEED_NO_ORIGIN : rnd(n);
+        *s = t->s[o >= 0 && o < n ? o : i];
+        s->origin = (int8_t)o;
+        s->flags = (uint16_t)(rnd(2) ? s->flags | SEED_TRIG : s->flags & ~SEED_TRIG);
+        if (rnd(3) == 0)
+            s->flags ^= SEED_ACCENT;
+        if (s->flags & SEED_TRIG) {
+            s->note = (uint8_t)(rnd(128));
+            s->vel = (uint8_t)(1 + rnd(127));
+            s->len = (uint8_t)rnd(128);
+            s->utime = (int8_t)(rnd(47) - 23);
+            s->cond = (int8_t)(rnd(3) ? -1 : rnd(65));
+            s->rrate = (uint8_t)rnd(17);
+            s->rvel = (int8_t)(rnd(256) - 128);
+        }
+        for (l = 0; l < SEED_LANES; l++)
+            s->lane[l] = (int16_t)(rnd(4) == 0 ? SEED_NO_LOCK : rnd(128));
+    }
+    /* one take in 20 has a lane value out of range, one in 20 an origin past the length: refused */
+    if (rnd(20) == 0)
+        t->s[rnd(n)].lane[rnd(SEED_LANES)] = (int16_t)(rnd(2) ? 128 : -1);
+    if (rnd(20) == 0)
+        t->s[rnd(n)].origin = (int8_t)(n + rnd(4));
+}
+
+static void test_fuzz(int cases)
+{
+    int c;
+    for (c = 0; c < cases; c++) {
+        int t, n, i, k, l, w, e, ok = 1, took, kl[SEED_LANES];
+        int16_t parm[SEED_LANES];
+        fixture_n(1000u + (uint32_t)c);
+        rng = 0x9e3779b9u * (uint32_t)(c + 1);
+        t = rnd(RT_TRACKS);
+        len[t] = n = 1 + rnd(64);
+        parm[0] = (int16_t)rnd(RT_NPARAMS);
+        do
+            parm[1] = (int16_t)rnd(RT_NPARAMS);              /* the engine refuses two lanes on one */
+        while (parm[1] == parm[0]);
+        for (l = 0; l < SEED_LANES; l++)
+            kl[l] = rt_seed_lane_k(t, parm, l);
+        rows_max = rnd(3) ? 71 : rows_used() + rnd(3);
+        save();
+        CHECK(rt_seed_snapshot(1u << t) == SEED_OK);
+        for (w = took = 0; w < 1 + rnd(3); w++) {
+            CHECK(rt_seed_read(t, parm, &a) == SEED_OK);
+            for (i = 0; i < SEED_STEPS; i++)                   /* a take from the original */
+                a.s[i].origin = (int8_t)i;
+            random_take(&a, n);
+            memcpy(&b, &a, sizeof b);
+            {
+                static uint8_t r1[RT_TRACKS][RT_RECORD_SIZE], l1[RT_TRACKS][RT_LOCKS_SIZE];
+                memcpy(r1, rec, sizeof rec);
+                memcpy(l1, lks, sizeof lks);
+                e = rt_seed_room(t, parm, &b);
+                calls = 0;
+                CHECK(rt_seed_write(t, parm, &b) == e);
+                if (e != SEED_OK) {                            /* I8: refused, nothing written */
+                    CHECK(calls == 0 && !memcmp(r1, rec, sizeof rec) && !memcmp(l1, lks, sizeof lks));
+                    continue;
+                }
+            }
+            took++;
+            CHECK(rows_used() <= 71);
+            for (i = 0; i < RT_TRACKS; i++)                    /* I6 */
+                if (i != t)
+                    ok &= same_track(i);
+            for (i = n; i < SEED_STEPS; i++)
+                ok &= step_is(t, i, i);
+            for (i = 0; i < n; i++) {
+                const struct seed_step *s = &b.s[i];
+                int from = s->origin >= 0 ? s->origin : i;
+                if (!(s->flags & SEED_TRIG)) {
+                    ok &= !(flags(t, i) & 1);
+                    continue;
+                }
+                ok &= (flags(t, i) & 1) && !!(flags(t, i) & SEED_ACCENT) == !!(s->flags & SEED_ACCENT);
+                ok &= (flags(t, i) & SEED_SWING) == (flags0(t, i) & SEED_SWING);
+                ok &= rec[t][RT_NOTE + i] == s->note && rec[t][RT_VEL + i] == s->vel && rec[t][RT_LEN + i] == s->len;
+                ok &= (int8_t)rec[t][RT_UTIME + i] == s->utime && (int8_t)rec[t][RT_COND + i] == s->cond;
+                ok &= rec[t][RT_RRATE + i] == s->rrate && (int8_t)rec[t][RT_RVEL + i] == s->rvel;
+                ok &= rec[t][RT_SLOCK + i] == (t == RT_FX_TRACK ? 0xff : rec0[t][RT_SLOCK + from]);
+                for (k = 0; k < RT_SOUND_LOCKS; k++) {
+                    int lane = -1, v0 = (int16_t)(lks0[t][RT_STEP_LOCKS * from + 2 * k] << 8 |
+                                                  lks0[t][RT_STEP_LOCKS * from + 2 * k + 1]);
+                    for (l = 0; l < SEED_LANES; l++)
+                        if (kl[l] == k)
+                            lane = l;
+                    if (lane < 0)
+                        ok &= lock(t, i, k) == v0;             /* the origin's lock */
+                    else if (s->lane[lane] == SEED_NO_LOCK)
+                        ok &= lock(t, i, k) == -1;
+                    else
+                        ok &= lock(t, i, k) >> 8 == s->lane[lane];
+                }
+            }
+            if (!ok) {
+                printf("FAIL device fuzz case %d: track %d length %d parm %d %d write %d\n", c, t, n, parm[0], parm[1], w);
+                break;
+            }
+        }
+        CHECK(ok);
+        rt_seed_restore();                                     /* I7 */
+        CHECK(same());
+        if (!same())
+            printf("FAIL device fuzz case %d: restore (track %d, %d takes written)\n", c, t, took);
+        rt_seed_drop();
+        rows_max = 71;
+    }
+}
+
 int main(void)
 {
     test_caps();
@@ -664,6 +790,7 @@ int main(void)
     test_new_trig_bits();
     test_snapshot();
     test_context();
+    test_fuzz(getenv("DEV_FUZZ") ? atoi(getenv("DEV_FUZZ")) : 3000);
     printf("test_rytm_ar2: %d checks, %d failed\n", checks, fails);
     return fails != 0;
 }
