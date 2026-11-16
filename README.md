@@ -132,6 +132,7 @@ Methods taken from research:
 |---|---|
 | Clarence Barlow, "Two Essays on Theory", *Computer Music Journal* 11(1), 1987 | indispensability: the rank of each step in a meter (BIAS, ROLE, SHAPE = RANK, AMOD = TOP), and the basic orders for the primes 2 to 13 |
 | [hmt](https://gitlab.com/rd--/hmt) by Rohan Drape, `Music.Theory.Meter.Barlow_1987` (GPL-3.0) | the reference trig-seedr's ranks were checked against: Barlow's formula as code, and its tables of values |
+| George Sioros and Carlos Guedes, their work on syncopation transformations | SYNC: anticipation, an onset moved onto the preceding weaker pulse, which leaves the stronger one silent |
 
 Apart from Grids' map data in `lib/map_data.c`, no code or data from the projects under other licences is included;
 each is credited for what it documented or made possible.

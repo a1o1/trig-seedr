@@ -18,6 +18,7 @@ Trig Seedr builds on, and learned from, these open source projects:
 | [digikit](https://github.com/ElekLabs/digikit) | AGPL-3.0 | Digitakt II / Digitone II firmware research |
 | [modwerk](https://github.com/repeat98/modwerk) | mixed | firmware modding research |
 | [Capstone](https://www.capstone-engine.org/), [Unicorn](https://www.unicorn-engine.org/) | BSD-3 / GPL-2.0 | disassembly and function-level emulation in the study tools |
+| [Mutable Instruments' Eurorack modules](https://github.com/pichenettes/eurorack): Grids by Emilie Gillet | GPL-3.0-or-later | the MAP source: its map of drum patterns is Grids' (`lib/map_data.c`, copied with its licence notice), and X / Y, DENS, CHAOS and the accents follow Grids' code; the tests compare the two |
 | [Astro Starlight](https://starlight.astro.build/) | MIT | this website |
 
 Methods taken from research:
@@ -26,3 +27,4 @@ Methods taken from research:
 |---|---|
 | Clarence Barlow, "Two Essays on Theory", *Computer Music Journal* 11(1), 1987 | indispensability: the rank of each step in a meter (BIAS, ROLE, SHAPE = RANK, AMOD = TOP), and the basic orders for the primes 2 to 13 |
 | [hmt](https://gitlab.com/rd--/hmt) by Rohan Drape, `Music.Theory.Meter.Barlow_1987` (GPL-3.0) | the reference trig-seedr's ranks were checked against: Barlow's formula as code, and its tables of values |
+| George Sioros and Carlos Guedes, their work on syncopation transformations | SYNC: anticipation, an onset moved onto the preceding weaker pulse, which leaves the stronger one silent |

@@ -11,7 +11,7 @@ Trig Seedr is a third page behind the **TRIG** key, after the Euclidean page:
 
 **TAKE → RHYTHM → PLACE → DYNAMICS → NOTE → LOCK → TRIG → TIME → VIEW → TOOLS → TAKE**
 
-A page, knob or value whose feature is not built yet is not shown. The title bar shows the page, the track and the page's place among the pages shown (`3/10`), and at the right the source: `TRK` (the track's own trigs), `EUC` (EUCLID), `CPY` (COPY), or `S` and the seed for a source that draws from it, after `AUD` while a take is being auditioned. The place is left out when a long title would not fit.
+A page, knob or value whose feature is not built yet is not shown. The title bar shows the page, the track and the page's place among the pages shown (`3/10`), and at the right the source: `TRK` (the track's own trigs), `EUC` (EUCLID), `CPY` (COPY), `MAP` (MAP while CHAOS is below 4), or `S` and the seed for a source that draws from it, after `AUD` while a take is being auditioned. The place is left out when a long title would not fit.
 
 | Key | What it does |
 |---|---|
@@ -51,7 +51,11 @@ Every track has a recipe: the settings of all the pages. **YES renders the whole
 |---|---|---|---|
 | A | SEED | 0–9999 | the take number |
 | B | VARY | 0–100 % | how much of take n the next take keeps: 0 every seed is unrelated, 100 every seed gives the same take |
-| F | BEAT | 1–16 | steps per beat, for BIAS and the velocity shapes |
+| C | PHRS | OFF, AAAA, AAAB, ABAB, ABAC, ABCD | a phrase of takes over the 16-step pages ([Phrases and CVAR](../../features/vary/)) |
+| D | CVAR | OFF, 1:2, AAAB | takes n and n + 1 written as alternating trig conditions ([Phrases and CVAR](../../features/vary/)) |
+| E | METR | 4/4, 3/4, 6/8, 12/16, 5/8, 7/8 | the meter, for BIAS, ROLE and the velocity shapes ([Meters and roles](../../features/meter/)) |
+| F | BEAT | 1–16 | steps per note value of the meter (4/4: a quarter; 6/8: an eighth) |
+| G | QUAL | 1–8 | the best spread of this many candidate takes ([QUAL](../../features/score/)) |
 
 ## VIEW
 
@@ -66,5 +70,6 @@ Knob A moves the cursor. The 16 steps around it (filled: a note trig; small: a l
 ## The other pages
 
 - [The layers](../generator/): RHYTHM, PLACE, DYNAMICS, NOTE, LOCK, TRIG.
+- The Features section: a page for each of version 1's features.
 - [TIME](../groove/): grooves, random micro timing.
 - [Rotating](../rotate/): PLACE's rotations and TOOLS' ROTATE ALL.
