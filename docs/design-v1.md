@@ -149,7 +149,7 @@ A device provides, for `lib/`:
 | I4 | Monotonic shares: raising a share knob keeps every step it had already chosen (P2). |
 | I5 | Counts: DENS gives its exact count at the source; MASK and SKIP only remove. |
 | I6 | Scope: only the tracks in scope change; the track's length is respected. |
-| I7 | Audition: NO restores byte-identical state; keep and leaving keep. |
+| I7 | Generate and apply: NO, and leaving with a take pending, restore byte-identical state; FUNC + YES (apply) keeps the take. |
 | I8 | Lock rows: a lock that cannot be stored is refused before anything is written. |
 | I9 | Stock data: the result plays, saves, reloads and survives a power cycle on the stock OS. |
 | I10 | VARY: at 0 consecutive takes are independent; at 100 identical; in between the share of kept keys matches. |

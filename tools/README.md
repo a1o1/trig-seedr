@@ -20,7 +20,7 @@ found from a worktree's path; set it for a checkout elsewhere.
 | File | Checks |
 |---|---|
 | `00-host` | no emulator: `make test` and `coldfire` for `lib/` and `device/`, the page-table tests, the recipe layout on the host and on ColdFire, `--fields`, identity, the golden vectors |
-| `01-generate` | boot empty; the new recipe is RANDOM (V6); YES seed 1; seed 2 from the original; NO; FUNC + YES; closing keeps |
+| `01-generate` | boot empty; the new recipe is RANDOM (V6); YES seed 1 (new trigs with stock's SYN / SMP / ENV bits); seed 2 from the original; NO; FUNC + YES applies; the applied take stays after closing |
 | `02-groove` | TIME GRV on a RANDOM take; NO; SOURCE = TRACK with a groove on the kept take; GVEL (needs `grooves-live.h`); the regenerate rule |
 | `03-save` | SAVE / RELOAD PATTERN; power cycle; the project's modified mark |
 | `04-smplocks` | LOCK lane 1 (sample slot) locks; NO removes them; they survive SAVE + RELOAD PATTERN |
@@ -31,6 +31,9 @@ found from a worktree's path; set it for a checkout elsewhere.
 | `09-inject` | a whole recipe written into the mod's store with `dtboot --poke` |
 | `10-pages` | stock PAGE and TRIG keys while seedr is open (V10); LEFT / RIGHT over the ten pages; VIEW's cursor; SOURCE = TRACK identity on the record and the lock store (I1); the TRIG cycle; ROTATE ALL; a source not built refuses; a screenshot of every page |
 | `11-device` | the device layer through a test mod (`11-device.c`): a step with three locks moved, saved, reloaded, power-cycled (I9); restore (I7); a lock with no room refused (I8) |
+| `12-lock-rows` | stock's lock-row type for every lockable parameter on BD, MT and FX (test mod `12-lock-rows.c`); near the 72-row limit a lock that fits survives SAVE + RELOAD, one that does not is refused (I8) (task D1) |
+| `13-apply` | generate and apply: RECORD off writes nothing (RECORD TO GENERATE); YES, NO, FUNC + YES (APPLIED); RECORD off, closing or another pattern with a take pending restore the original (NOT APPLIED) |
+| `21`..`32` | one file per version 1 workstream (F1 `21-rank` … F12 `32-map-accents`): each feature against `seedref`, and against the original code where there is one |
 
 `01` leaves the fixture `kept2` (seed 2 kept) that `02`, `03`, `05`, `07` and `08` start from; `04` leaves `smp3` for `05`.
 

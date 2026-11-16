@@ -30,4 +30,4 @@ The field rotation runs last, after every page has written its fields, so it mov
 | A | TOOL | ROT ALL | |
 | B | STEPS | −63…+63 | how far |
 
-**YES** on TOOLS rotates every track of the pattern through the OS's own trig shift (tracks in Euclid mode are skipped). It is separate from the recipes and has its own audition: **NO** puts every track back, **FUNC + YES** keeps.
+**YES** on TOOLS rotates every track of the pattern through the OS's own trig shift (tracks in Euclid mode are skipped). It is separate from the recipes, and follows the same generate-and-apply rules: it needs RECORD, **FUNC + YES** applies, **NO** or leaving puts every track back.

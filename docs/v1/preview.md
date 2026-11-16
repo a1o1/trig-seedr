@@ -16,9 +16,9 @@ The strip is rendered from the track's recipe and its original:
 - **Trigs recorded with the TRIG keys** while seedr is open change the original: with SOURCE = TRACK the strip
   follows them.
 
-Messages (KEPT, BACK TO THE ORIGINAL, a groove's name) replace the strip for 2 seconds. When YES would write
-nothing, the strip says why instead: NOT ON THE FX TRACK, EUCLID IS ON: TURN IT OFF, or the recipe's error (NOT
-AVAILABLE YET for a layer that is not built). A lock that does not fit in the pattern's lock rows is reported only
+Messages (APPLIED, NOT APPLIED, BACK TO THE ORIGINAL, RECORD TO GENERATE, a groove's name) replace the strip for 2
+seconds. When YES would write nothing, the strip says why instead: NOT ON THE FX TRACK, EUCLID IS ON: TURN IT OFF,
+or the recipe's error. With RECORD off the strip still previews the take: YES needs RECORD to write it. A lock that does not fit in the pattern's lock rows is reported only
 at YES (NO LOCK ROWS LEFT).
 
 ## VIEW

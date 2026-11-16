@@ -15,7 +15,7 @@ Everything it writes is ordinary Rytm data (trigs, velocities, lengths, micro ti
 
 ## How it feels
 
-Every algorithm is an **audition**. The first YES snapshots the track; each YES after that starts again from the original, so you are always choosing between takes, never piling changes on changes. NO puts the original back; FUNC + YES keeps the take.
+You **generate** and then **apply**. With RECORD on, YES writes a take so you can hear it and keeps your original; each YES after that starts again from the original, so you are always choosing between takes, never piling changes on changes. **FUNC + YES applies** the take, the only way it stays; NO, or leaving the track or pattern, puts the original back. With RECORD off, YES writes nothing, so looking around is always safe. ([Generate and apply](../../using/pages/#generate-and-apply))
 
 ## Status
 
