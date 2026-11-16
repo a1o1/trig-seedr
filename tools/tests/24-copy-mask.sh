@@ -28,9 +28,13 @@ check_preview() {
 }
 # sd_record KEY...: on SD, TRIG keys in grid recording, then back to BD (stock's keys)
 sd_record() {
+    # TRK + a TRIG key selects a track only with grid recording off (with it on, it edits that step)
+    emu_rec 0
     emu_keys TRK+T2
-    emu_rec 1                                   # grid recording (it may be on already)
-    emu_keys "$@" TRK+T1
+    emu_rec 1
+    emu_keys "$@"
+    emu_rec 0
+    emu_keys TRK+T1
     emu_dump 1 > "$D/sd.txt"
 }
 
@@ -113,6 +117,7 @@ sd_euclid() {                                   # SD's Euclidean table, its firs
     emu_py peek "$EMU_SNAP" "$((SD + 0x2d1))" 1 16 | tr -s ' \n' '\n' |
         awk 'NF { r = r ($1 == 255 ? " ." : " x") } END { print "trig" r }'
 }
+emu_rec 0                                       # TRK + T2 selects SD only with grid recording off
 emu_keys TRK+T2
 for _ in 1 2 3; do                              # TRIG until stock's EUCLIDEAN page, seedr closed
     [ "$(emu_get open) $(emu_py trigpage "$MAP" "$EMU_SNAP")" = "0 1" ] && break
