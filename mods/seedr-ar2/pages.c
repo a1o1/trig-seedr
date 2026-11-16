@@ -139,22 +139,22 @@ const struct pg_row pg_rows[] = {
 
     /* TRIG (0.2) */
     { PG_TRIG, 0, "COND", REC(cond), PK_INT, PF_PCT, 0, 100, 0, 0, &seed_have_trig, SEED_F_COND, ALWAYS, 0 },
-    { PG_TRIG, 1, "CTYP", REC(ctyp), PK_CHOICE, PF_NUM, 0, SEED_CTYP_N - 1, 0, 0, &seed_have_trig, SEED_F_COND, ALWAYS, c_ctyp },
-    { PG_TRIG, 2, "CVAL", REC(cval), PK_RANGE, PF_PROB, 0, 21, 0, 0, &seed_have_trig, SEED_F_COND,
+    { PG_TRIG, 1, "CTYP", REC(ctyp), PK_CHOICE, PF_NUM, 0, SEED_CTYP_N - 1, 0, PR_SENSE, &seed_have_trig, SEED_F_COND, ALWAYS, c_ctyp },
+    { PG_TRIG, 2, "CVAL", REC(cval), PK_RANGE, PF_PROB, 0, 21, 0, PR_SENSE, &seed_have_trig, SEED_F_COND,
       WHEN(ctyp, PG_V(SEED_CTYP_PROB) | PG_V(SEED_CTYP_MIX)), 0 },
-    { PG_TRIG, 2, "CVAL", REC(cval.lo), PK_INT, PF_CYCLE, 2, 8, 0, 0, &seed_have_trig, SEED_F_COND, WHEN(ctyp, PG_V(SEED_CTYP_AB)), 0 },
+    { PG_TRIG, 2, "CVAL", REC(cval.lo), PK_INT, PF_CYCLE, 2, 8, 0, PR_SENSE, &seed_have_trig, SEED_F_COND, WHEN(ctyp, PG_V(SEED_CTYP_AB)), 0 },
     { PG_TRIG, 3, "RTRG", REC(rtrg), PK_INT, PF_PCT, 0, 100, 0, 0, &seed_have_trig, SEED_F_RETRIG, ALWAYS, 0 },
-    { PG_TRIG, 4, "RATE", REC(rate), PK_RANGE, PF_RATE, 0, 16, 0, 0, &seed_have_trig, SEED_F_RETRIG, ALWAYS, 0 },
-    { PG_TRIG, 5, "RCUR", REC(rcur), PK_INT, PF_SIGNED, -128, 127, 0, 0, &seed_have_trig, SEED_F_RETRIG, ALWAYS, 0 },
+    { PG_TRIG, 4, "RATE", REC(rate), PK_RANGE, PF_RATE, 0, 16, 0, PR_SENSE, &seed_have_trig, SEED_F_RETRIG, ALWAYS, 0 },
+    { PG_TRIG, 5, "RCUR", REC(rcur), PK_INT, PF_SIGNED, -128, 127, 0, PR_SENSE, &seed_have_trig, SEED_F_RETRIG, ALWAYS, 0 },
 
     /* TIME (0.2; DRFT: F8) */
     { PG_TIME, 0, "GRV", REC(grv), PK_INT, PF_GROOVE, 0, 0, 0, 0, &seed_have_timing, 0, ALWAYS, 0 },
-    { PG_TIME, 1, "TIME", REC(timing), PK_INT, PF_SPCT, -100, 100, 0, 0, &seed_have_timing, SEED_F_UTIME, ALWAYS, 0 },
-    { PG_TIME, 2, "GVEL", REC(gvel), PK_INT, PF_SPCT, -100, 100, 0, 0, &seed_have_timing, SEED_F_VEL, ALWAYS, 0 },
+    { PG_TIME, 1, "TIME", REC(timing), PK_INT, PF_SPCT, -100, 100, 0, PR_SENSE, &seed_have_timing, SEED_F_UTIME, ALWAYS, 0 },
+    { PG_TIME, 2, "GVEL", REC(gvel), PK_INT, PF_SPCT, -100, 100, 0, PR_SENSE, &seed_have_timing, SEED_F_VEL, ALWAYS, 0 },
     { PG_TIME, 3, "QUANT", REC(quant), PK_INT, PF_PCT, 0, 100, 0, 0, &seed_have_timing, SEED_F_UTIME, ALWAYS, 0 },
     { PG_TIME, 4, "RAND", REC(rand), PK_INT, PF_PCT, 0, 100, 0, 0, &seed_have_timing, SEED_F_UTIME, ALWAYS, 0 },
     { PG_TIME, 5, "DRFT", REC(drft), PK_INT, PF_PCT, 0, 100, 0, 0, &seed_have_drift, SEED_F_UTIME, ALWAYS, 0 },
-    { PG_TIME, 6, "SHFT", REC(shft), PK_INT, PF_SIGNED, -63, 63, 0, 0, &seed_have_timing, 0, ALWAYS, 0 },
+    { PG_TIME, 6, "SHFT", REC(shft), PK_INT, PF_SIGNED, -63, 63, 0, PR_SENSE, &seed_have_timing, 0, ALWAYS, 0 },
 
     /* VIEW (0.3; F10 owns what it draws) */
     { PG_VIEW, 0, "STEP", PB_UI, 0, PK_CURSOR, PF_STEP, 0, 0, 0, PR_KEEP, 0, 0, ALWAYS, 0 },
@@ -211,7 +211,10 @@ static int choices_built(const struct pg_row *w)
  *               (seed_map_lift), or SYNC above 0. Otherwise takes n and n + 1, and every
  *               candidate, have the same trigs, and CVAR and QUAL work only on where trigs are.
  *   ROLE        BIAS is not 0 (the rank table is only read through BIAS)
- *   AMOD        ACC is above 0 */
+ *   AMOD        ACC is above 0
+ *   CTYP, CVAL  COND is above 0 (trig.c reads them only for the trigs COND picks; 0.7)
+ *   RATE, RCUR  RTRG is above 0 (likewise)
+ *   TIME, GVEL, SHFT  a groove is chosen (GRV above 0: timing.c reads them only from the groove) */
 static int sense(const struct pg_ctx *c, const struct pg_row *w)
 {
     const struct seed_recipe *r = c->r;
@@ -228,6 +231,16 @@ static int sense(const struct pg_ctx *c, const struct pg_row *w)
         return r->bias != 0;
     case offsetof(struct seed_recipe, amod):
         return r->acc > 0;
+    case offsetof(struct seed_recipe, ctyp):
+    case offsetof(struct seed_recipe, cval):       /* both CVAL rows: cval.lo is at the same place */
+        return r->cond > 0;
+    case offsetof(struct seed_recipe, rate):
+    case offsetof(struct seed_recipe, rcur):
+        return r->rtrg > 0;
+    case offsetof(struct seed_recipe, timing):
+    case offsetof(struct seed_recipe, gvel):
+    case offsetof(struct seed_recipe, shft):
+        return r->grv > 0;
     default:
         return 1;
     }

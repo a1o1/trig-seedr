@@ -10,12 +10,12 @@ TIME sets the trigs' micro timing: a groove's timing and velocity, after Ableton
 | Knob | Name | Range | What |
 |---|---|---|---|
 | A | GRV | 0…N | the groove (0: none); its name is on the bottom line while the knob turns |
-| B | TIME | −100…+100 % | how much of the groove's timing is added |
-| C | GVEL | −100…+100 % | how far velocities follow the groove's accents (negative inverts) |
+| B | TIME | −100…+100 % | how much of the groove's timing is added; shown while a groove is chosen |
+| C | GVEL | −100…+100 % | how far velocities follow the groove's accents (negative inverts); shown while a groove is chosen |
 | D | QUANT | 0–100 % | pull existing micro timing to the grid first |
 | E | RAND | 0–100 % | random micro timing, up to ±23/24 of a step at 100 % (0.3's GROOVE RAND 100 is about RAND 50) |
 | F | DRFT | 0–100 | correlated drift: micro timing that wanders slowly, up to ±23/24 of a step at 100 ([Drift](../../features/drift/)) |
-| G | SHFT | −63…+63 | move the groove against the pattern |
+| G | SHFT | −63…+63 | move the groove against the pattern; shown while a groove is chosen |
 
 A step is taken as a 1/16 whatever the track's speed. Micro timing is limited to ±23/24 of a step. RAND draws from the take's seed, so it changes with SEED like the other layers.
 

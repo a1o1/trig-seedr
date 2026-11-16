@@ -204,6 +204,17 @@ static void test_ranges(void)
     r.len.lo = r.len.hi = 127;
     CHECK(!strcmp(text(&c, w, 0), "INF"), "LEN 127: %s", text(&c, w, 0));
 
+    /* RATE and RCUR only while RTRG is above 0, CTYP and CVAL while COND is, TIME, GVEL and SHFT
+     * with a groove (0.7: knobs that cannot change the take are hidden) */
+    CHECK(!row(&c, PG_TRIG, "RATE") && !row(&c, PG_TRIG, "RCUR") && !row(&c, PG_TRIG, "CTYP") &&
+          !row(&c, PG_TRIG, "CVAL") && row(&c, PG_TRIG, "COND") && row(&c, PG_TRIG, "RTRG"), "TRIG at 0: only COND, RTRG");
+    CHECK(!row(&c, PG_TIME, "TIME") && !row(&c, PG_TIME, "GVEL") && !row(&c, PG_TIME, "SHFT") &&
+          row(&c, PG_TIME, "QUANT"), "TIME without a groove: no TIME, GVEL, SHFT");
+    r.grv = 1;
+    CHECK(row(&c, PG_TIME, "TIME") && row(&c, PG_TIME, "SHFT"), "TIME with a groove");
+    r.grv = 0;
+    r.rtrg = 50;
+    r.cond = 50;
     w = row(&c, PG_TRIG, "RATE");
     r.rate.lo = 9; r.rate.hi = 12;
     CHECK(!strcmp(text(&c, w, 0), "1/16-32"), "RATE: %s", text(&c, w, 0));
@@ -216,6 +227,8 @@ static void test_ranges(void)
     CHECK(r.cval.lo == 2 && !strcmp(text(&c, w, 0), "/2"), "CVAL A:B: %d %s", r.cval.lo, text(&c, w, 0));
     r.ctyp = SEED_CTYP_1ST;
     CHECK(!row(&c, PG_TRIG, "CVAL"), "CVAL hidden for 1ST");
+    r.ctyp = SEED_CTYP_PROB;
+    r.rtrg = r.cond = 0;
 
     /* LOCK: the range from the lane's parameter */
     c.lane = 1;

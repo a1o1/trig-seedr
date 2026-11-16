@@ -87,8 +87,8 @@ A lock the pattern has no room for (the Rytm keeps 72 lock rows per pattern) is 
 | Knob | Name | Range | What |
 |---|---|---|---|
 | A | COND | 0–100 % | the share of trigs with a trig condition; at 0 conditions are left as they are |
-| B | CTYP | X%, A:B, 1ST, FILL, MIX | the kind of condition (MIX: any of the four) |
-| C | CVAL | 1 %…100 %; 2–8 | X%: the probability range; A:B: the cycle length B (A is random) |
+| B | CTYP | X%, A:B, 1ST, FILL, MIX | the kind of condition (MIX: any of the four); shown while COND is above 0 |
+| C | CVAL | 1 %…100 %; 2–8 | X%: the probability range; A:B: the cycle length B (A is random); shown while COND is above 0 |
 | D | RTRG | 0–100 % | the share of trigs with a retrig |
-| E | RATE | 1/1…1/80 | the retrig rate range |
-| F | RCUR | −128…+127 | the retrig velocity curve |
+| E | RATE | 1/1…1/80 | the retrig rate range; shown while RTRG is above 0 |
+| F | RCUR | −128…+127 | the retrig velocity curve; shown while RTRG is above 0 |
