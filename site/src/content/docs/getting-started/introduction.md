@@ -19,4 +19,4 @@ You **generate** and then **apply**. With RECORD on, YES writes a take so you ca
 
 ## Status
 
-Version 0.6 runs in [analog-emu](https://github.com/trigcondition/analog-emu), a whole-device emulator running the stock OS, where every scripted check passes (`tools/run_tests.sh`). Version 0.5 passed a **first test on an Analog Rytm MKII running stock OS 1.74**: every feature worked as expected. To try it on yours, see [Flashing](../flashing/).
+Version 0.7 runs in [analog-emu](https://github.com/trigcondition/analog-emu), a whole-device emulator running the stock OS, where every scripted check passes (`tools/run_tests.sh`). Version 0.5 passed a **first test on an Analog Rytm MKII running stock OS 1.74**: every feature worked as expected. To try it on yours, see [Flashing](../flashing/).

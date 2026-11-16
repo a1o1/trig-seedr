@@ -16,7 +16,7 @@ cost you anything, with the recovery route below ready.
 
 ```sh
 sh tools/run_tests.sh           # every file should pass
-sh tools/build_release.sh       # -> build/trig-seedr-0.6-os1.74.syx, OS version field TS06
+sh tools/build_release.sh       # -> build/trig-seedr-0.7-os1.74.syx, OS version field TS07
 ```
 
 `build_release.sh` builds core-ar2 and seedr, patches them into your stock OS and has elekloader verify the result
@@ -29,7 +29,7 @@ As for any OS update:
 
 1. Connect the Rytm over USB and open Elektron Transfer.
 2. Select the Rytm and **Connect**.
-3. Drag `trig-seedr-0.6-os1.74.syx` onto **Drop files here**.
+3. Drag `trig-seedr-0.7-os1.74.syx` onto **Drop files here**.
 4. Press **YES** on the Rytm. Don't turn it off until the update is done and it has restarted.
 
 ## First checks on the unit
@@ -37,7 +37,7 @@ As for any OS update:
 Tested so far: 0.5 on an Analog Rytm MKII with stock OS 1.74 (2026-11-16, first pass: every feature worked as
 expected). The checks below are for each release and each unit.
 
-1. The boot screen shows the version (**TS06** for 0.6) while the Rytm starts (OS 1.74 has no menu that shows it;
+1. The boot screen shows the version (**TS07** for 0.7) while the Rytm starts (OS 1.74 has no menu that shows it;
    GLOBAL > SYSTEM > OS UPGRADE shows only WAITING FOR SYSEX).
 2. The Rytm plays as before: load a project, play a pattern, turn some knobs.
 3. **TRIG**, **TRIG** (EUCLIDEAN), **TRIG**: trig-seedr's page. **TRIG** again: back to stock's TRIG page.
@@ -57,6 +57,12 @@ expected). The checks below are for each release and each unit.
 12. With Trig Seedr open on VIEW (0.6 draws its screen only when something changed): record trigs with the TRIG keys,
     change track and pattern, and let a message run out (about 2 s). The screen follows each at once and nothing
     stays stale. LOCK: turning one lane's PARM never stops on the other lane's parameter.
+13. A take pending shows a dot before the source in the title bar (`● S42`); FUNC + YES, NO or turning RECORD off
+    clears it. After NO, YES brings the same take back (the same seed).
+14. A range (DYNAMICS VEL): the knob moves only the high end, FUNC + knob only the low end; each stops at the other.
+15. TOOLS, TOOL = YOLO, RECORD on: YES rolls a recipe and plays it (ROLL n on the strip), YES again the next; NO puts
+    the track and every page's settings back; a roll, then FUNC + YES, keeps it. Try BD, SD and CH: each should
+    sound like its part (kick, backbeat, hats).
 
 Please note what you saw, good or bad, in an issue: the unit, the OS version, the steps and what happened.
 

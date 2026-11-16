@@ -1,5 +1,6 @@
 #!/bin/sh
-# tools/screens.sh: the screenshots of the ten pages the README and the site show (docs/screens/<page>.png).
+# tools/screens.sh: the screenshots of the ten pages the README and the site show (docs/screens/<page>.png),
+# and TOOLS with a YOLO roll pending (yolo.png).
 #     sh tools/screens.sh             writes them to build/emu/screens/ to look at
 #     sh tools/screens.sh --install   also copies them into docs/screens/
 # One rich example, so every page shows real values and the strip's bars (velocity) vary: A01 BD made
@@ -30,8 +31,17 @@ for p in TAKE RHYTHM PLACE DYNAMICS NOTE LOCK TRIG TIME VIEW TOOLS; do
     emu_run -s 600M
     emu_shot "$(echo "$p" | tr 'A-Z' 'a-z')"
 done
+# TOOLS with YOLO: a roll pending (the dot in the title bar), WILD 60
+emu_page TOOLS
+emu_knob TOOLS TOOL 1
+emu_knob TOOLS WILD 60
+emu_knob TOOLS ROLL 3
+emu_keys YES
+emu_run -s 2400M                                # past the ROLL message, so the strip shows
+emu_shot yolo
+emu_no
 echo "screens: $D"
 if [ "$1" = --install ]; then
-    for p in take rhythm place dynamics note lock trig time view tools; do cp "$D/$p.png" "$R/docs/screens/$p.png"; done
+    for p in take rhythm place dynamics note lock trig time view tools yolo; do cp "$D/$p.png" "$R/docs/screens/$p.png"; done
     echo "copied into docs/screens/"
 fi

@@ -16,7 +16,7 @@ One coherent product that holds all nine researched ideas: preview, Barlow ranki
 | V4 | **A layer at 0 does not touch its fields.** |
 | V5 | **A recipe per track.** |
 | V6 | **Protective default.** A track that has trigs and no recipe yet starts on SOURCE = TRACK; an empty track on RANDOM. The title bar always shows the source (TRK or the seed). |
-| V7 | Pattern-wide operations (ROTATE ALL) are a separate tool with its own YES. |
+| V7 | Pattern-wide operations (ROTATE ALL) are a separate tool with its own YES. TOOLS also holds YOLO (0.7): a recipe rolled for the track in scope only, undone with the take by NO. |
 | V8 | **Elektron-sequencer generic.** Terms and keys common to Elektron's sequencers; device-only items become instances of generic ones (sample slot = a lock on a chosen parameter); a device states its capabilities and layers it lacks are not shown. |
 | V9 | **No one-way doors for the A4 / Syntakt.** Every per-trig field takes the same value source (range, list with an order, contour), so note pools and pattern lists can be added to NOTE later. |
 | V10 | **Navigation: LEFT / RIGHT move between layer pages.** PAGE returns to its stock job (which 16 steps the TRIG keys show), so pages 2–4 of a take can be seen while auditioning. The VIEW cursor moves to a knob. To verify in the emulator: stock PAGE and the TRIG keys behave normally while trig-seedr is open. |
@@ -68,7 +68,7 @@ LEFT / RIGHT order. Knob letters may move; the page tables make that cheap. FUNC
 | TRIG | COND | CTYP | CVAL | RTRG | RATE | RCUR | | |
 | TIME | GRV | TIME | GVEL | QUANT | RAND | DRFT | SHFT | |
 | VIEW | step cursor | | | | | | | |
-| TOOLS | TOOL | STEPS | | | | | | (own YES) |
+| TOOLS | TOOL | STEPS (ROT ALL); WILD (YOLO) | ROLL (YOLO) | | | | | (own YES) |
 
 RHYTHM by source:
 

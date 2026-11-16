@@ -5,6 +5,8 @@ sidebar: { order: 5 }
 
 **YOLO** rolls a whole recipe for the track you are on, so you can hear ideas without setting every page yourself. It is a tool on the **TOOLS** page.
 
+![TOOLS with YOLO: a roll pending, the dot in the title bar](../../../assets/screens/yolo.png)
+
 | Knob | Name | Range | What |
 |---|---|---|---|
 | A | TOOL | ROT ALL, YOLO | YOLO |
