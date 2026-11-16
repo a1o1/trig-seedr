@@ -7,8 +7,8 @@
 #                     other twelve tracks' dumps), lane 2's locks included
 #   I7                NO puts BD back byte for byte (its step record and lock store); FUNC + YES
 #                     keeps the take (the third recipe)
-#   I9                an applied take plays (PLAY, STOP), saves and reloads (SAVE / RELOAD PATTERN);
-#                     the last one survives a power cycle
+#   I9                an applied take plays (PLAY, STOP), saves and reloads (SAVE / RELOAD PATTERN)
+#                     and survives a power cycle
 #   I8                on a build with no lock rows left, a recipe with a lock lane is refused with
 #                     NO LOCK ROWS LEFT and nothing written
 #   two lanes on one parameter (found by the fuzzer) are refused with nothing written
@@ -76,7 +76,7 @@ want() {
 got() { emu_dump; lane2 "$(DEFAULT=12 arg lane2.parm "$@")"; }
 
 emu_fixture smp3 fix_smp3
-K=0 APPLIED=
+K=0
 while read -r line <&3; do
     K=$((K + 1))
     # shellcheck disable=SC2086
@@ -117,7 +117,12 @@ while read -r line <&3; do
     emu_rec 0
     emu_keys NO+SCNE w:300
     emu_check "sample $K: SAVE, another take kept, RELOAD PATTERN: the applied take (I9)" "$B1" "$(bd)"
-    APPLIED=$B1
+    # a power cycle now, before a later sample sets BD's length again (lengths are poked into the live
+    # pattern, which a power cycle need not keep as poked)
+    PD=$(emu_dump)
+    emu_power_off
+    emu_boot "$EMU_CARD"
+    emu_check "sample $K: power cycle: BD byte for byte, the applied take in it (I9)" "$B1 $PD" "$(bd) $(emu_dump)"
 done 3< "$D/sample.txt"
 
 # two lanes on one parameter: lane 1 at 100 % on the sample slot, lane 2 left on it too
@@ -131,15 +136,6 @@ if [ "$(emu_get auditioning)" != 0 ]; then
     emu_dump | grep '^lane1' | sed 's/^/  /'
 fi
 emu_keys NO
-
-# I9: BD after a power cycle (the last applied take, at the length the later samples left)
-if [ -n "$APPLIED" ]; then
-    emu_rec 0
-    P=$(bd) PD=$(emu_dump)
-    emu_power_off
-    emu_boot "$EMU_CARD"
-    emu_check "power cycle: BD byte for byte, the applied take in it (I9)" "$P $PD" "$(bd) $(emu_dump)"
-fi
 
 # I8: no lock rows left (a test build): a sample recipe with lane 1 on is refused, nothing written
 EMU_VERSION=GR0T emu_build norows -DRT_ROWS_MAX=0
