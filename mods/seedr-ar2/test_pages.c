@@ -389,7 +389,17 @@ static void test_reachable(void)
     CHECK(found == 3, "MAP X, Y, CHAOS: %d rows", found);
     for (i = found = 0; i < pg_nrows; i++)
         found += pg_rows[i].base == PB_TOOL;
-    CHECK(found == 2, "TOOLS: TOOL and STEPS: %d rows", found);
+    CHECK(found == 4, "TOOLS: TOOL, STEPS, WILD, ROLL: %d rows", found);
+    /* STEPS with ROT ALL, WILD and ROLL with YOLO (0.7) */
+    {
+        struct pg_ctx c;
+        ctx(&c);
+        tool.tool = SEED_TOOL_ROTATE_ALL;
+        CHECK(row(&c, PG_TOOLS, "STEPS") && !row(&c, PG_TOOLS, "WILD") && !row(&c, PG_TOOLS, "ROLL"), "ROT ALL: STEPS only");
+        tool.tool = SEED_TOOL_YOLO;
+        CHECK(!row(&c, PG_TOOLS, "STEPS") && row(&c, PG_TOOLS, "WILD") && row(&c, PG_TOOLS, "ROLL"), "YOLO: WILD, ROLL");
+        tool.tool = SEED_TOOL_ROTATE_ALL;
+    }
 #undef F
 }
 

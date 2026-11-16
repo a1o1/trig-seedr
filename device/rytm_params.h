@@ -37,4 +37,10 @@
                          SEED_F_ACCENT | SEED_F_SLIDE | SEED_F_LOCKS)
 #define RT_FX_FIELDS    (SEED_F_UTIME | SEED_F_COND)
 
+/* what each track plays, for TOOLS YOLO's ranges (0.7): BD; SD, RS, CP; BT and the toms; CH, OH, CY;
+ * CB; the FX track none */
+#define RT_TRACK_ROLES { SEED_ROLE_KICK, SEED_ROLE_BACK, SEED_ROLE_BACK, SEED_ROLE_BACK, \
+                         SEED_ROLE_PERC, SEED_ROLE_PERC, SEED_ROLE_PERC, SEED_ROLE_PERC, \
+                         SEED_ROLE_HAT, SEED_ROLE_HAT, SEED_ROLE_HAT, SEED_ROLE_PERC, SEED_ROLE_METER }
+
 #endif

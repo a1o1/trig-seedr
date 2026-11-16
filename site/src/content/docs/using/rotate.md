@@ -27,7 +27,7 @@ The field rotation runs last, after every page has written its fields, so it mov
 
 | Knob | Name | Range | What |
 |---|---|---|---|
-| A | TOOL | ROT ALL | |
+| A | TOOL | ROT ALL, YOLO | ROT ALL here; YOLO rolls a recipe for one track ([YOLO](../yolo/)) |
 | B | STEPS | −63…+63 | how far |
 
 **YES** on TOOLS rotates every track of the pattern through the OS's own trig shift (tracks in Euclid mode are skipped). It is separate from the recipes, and follows the same generate-and-apply rules: it needs RECORD, **FUNC + YES** applies, **NO** or leaving puts every track back.

@@ -15,8 +15,12 @@
  *   YES               generate (needs grid recording; otherwise RECORD TO GENERATE): renders the
  *                     track's recipe from the original (V2) and writes it to be heard. The first YES
  *                     snapshots the track, every YES after it starts again from that original. A
- *                     YES with no knob turned since the track's last YES takes the next seed.
- *                     TOOLS: runs the tool (ROTATE ALL) over every track, the same way
+ *                     YES with no knob turned takes the next seed only while the track's take is
+ *                     playing or just after it was applied; after NO or NOT APPLIED it brings the
+ *                     same take back, so FUNC + YES applies the take that was heard (M2.5)
+ *                     TOOLS: runs the tool: ROTATE ALL over every track, the same way; YOLO rolls a
+ *                     recipe for this track (WILD: how far) and generates it. NO puts the track and
+ *                     the recipe back as they were before the first roll
  *   NO                with a take pending: back to the original; otherwise: close
  *   FUNC + YES        apply: the take stays, the original is dropped. The only way a take stays
  *   PAGE, TRIG keys   stock's: PAGE picks which 16 steps the TRIG keys show
@@ -143,10 +147,15 @@ static int aud_track;
 static struct seed_recipe recipe[SEED_TRACKS], last;
 static unsigned recipe_set;             /* a bit per track (an int: tools/emu.sh reads it) */
 static uint16_t turned = 0xffff;        /* a knob turned since the track's last YES (a bit per track) */
+static uint16_t kept;                   /* the track's last take was applied (FUNC + YES): YES moves on */
 static int have_last;
 static unsigned recipe_pat;
 static struct seed_shared shared = { 128, 128, 0 };
-static struct seed_tool tool = { SEED_TOOL_ROTATE_ALL, 1 };
+static struct seed_tool tool = { SEED_TOOL_ROTATE_ALL, 1, 50, 0 };
+/* YOLO's undo (0.7): the track's recipe before its first roll; kept until FUNC + YES, dropped with
+ * the take otherwise (NO, NOT APPLIED put it back) */
+static struct seed_recipe yolo_undo;
+static int yolo_track = -1, yolo_used = -1;
 static struct seed_track orig, take_out, shown;
 static struct seed_work work;
 
@@ -245,7 +254,7 @@ static const char *error_text(int rc)
 
 /* YES (generate): the track's recipe rendered from the original (V2) and written so it can be
  * heard; the original is kept until FUNC + YES applies the take. Needs grid recording. */
-static void take(void)
+static int take(void)
 {
     unsigned obj;
     int n = rt_current(&obj, 0), rc, fresh = !auditioning;
@@ -255,22 +264,25 @@ static void take(void)
     struct seed_recipe *r;
     if (n == FX_TRACK) {
         say("NOT ON THE FX TRACK");
-        return;
+        return 0;
     }
     if (!rt_grid_recording()) {
         say("RECORD TO GENERATE");      /* generate and apply need grid recording, as editing does */
-        return;
+        return 0;
     }
     if (rt_euclid(obj)) {
         say("EUCLID IS ON: TURN IT OFF");
-        return;
+        return 0;
     }
     r = recipe_of(n);
-    if (!(turned & bit))
-        r->seed = r->seed < SEED_MAX ? r->seed + 1 : 0;     /* YES again: the next seed */
+    /* YES again on the take being heard, or after applying it: the next seed. A take that was put
+     * back (NO, NOT APPLIED) comes back as it was (Alan, M2.5) */
+    if (!(turned & bit) && ((auditioning == A_TAKE && aud_mask == bit) || (kept & bit)))
+        r->seed = r->seed < SEED_MAX ? r->seed + 1 : 0;
     turned &= (uint16_t)~bit;
+    kept &= (uint16_t)~bit;
     if (!audition(A_TAKE, bit))
-        return;
+        return 0;
     lane_parms(r, parm);
     rc = dev->read(n, parm, &orig);     /* the original: the snapshot, or the track just restored */
     if (rc >= 0) {
@@ -288,11 +300,71 @@ static void take(void)
             auditioning = A_NONE;
         }
         say(error_text(rc));
-        return;
+        return 0;
     }
     last = *r;
     have_last = 1;
     core_project_edited();
+}
+
+/* what a Rytm track plays, for YOLO's ranges (device/rytm_params.h) */
+static int track_role(int n)
+{
+    static const int8_t role[NTRACKS] = RT_TRACK_ROLES;
+    return n >= 0 && n < NTRACKS ? role[n] : SEED_ROLE_METER;
+}
+
+/* TOOLS, YOLO (0.7): roll a recipe for this track and generate it, as YES on a page would. YES with
+ * ROLL as it was after the last roll takes the next roll (as SEED). The first roll keeps the recipe it
+ * replaces: NO, or the take not applied, puts it back with the track; FUNC + YES keeps the roll. */
+static void yolo_run(void)
+{
+    unsigned obj;
+    int n = rt_current(&obj, 0), i;
+    int16_t parm[SEED_LANES];
+    struct seed_recipe *r;
+    struct seed_yolo_in in;
+    char *o;
+    if (n == FX_TRACK) {
+        say("NOT ON THE FX TRACK");
+        return;
+    }
+    if (!rt_grid_recording()) {
+        say("RECORD TO GENERATE");
+        return;
+    }
+    if (auditioning && !(auditioning == A_TAKE && aud_mask == (1u << n)))
+        not_applied();                          /* ROTATE ALL pending: put back first, not mid-roll */
+    r = recipe_of(n);
+    if (yolo_track != n) {
+        yolo_undo = *r;                         /* the recipe before the first roll: NO's */
+        yolo_track = n;
+    }
+    if (tool.roll == yolo_used)
+        tool.roll = (int16_t)(tool.roll < 9999 ? tool.roll + 1 : 0);
+    yolo_used = tool.roll;
+    lane_parms(r, parm);
+    if (dev->read(n, parm, &shown) != SEED_OK)
+        shown.length = 0;
+    in.caps = dev->caps;
+    in.role = track_role(n);
+    in.length = clampi(RT_TRACK_LENGTH(obj), 1, SEED_STEPS);
+    in.fields = track_fields(n);
+    in.ngrooves = N_GROOVES;
+    for (in.any = 0, i = 0; i < shown.length && i < SEED_STEPS; i++)
+        in.any |= shown.s[i].flags & SEED_TRIG;
+    seed_yolo(r, &yolo_undo, tool.roll, tool.wild, &in);
+    turned |= (uint16_t)(1u << n);              /* take() writes the rolled seed, not the next */
+    if (!take()) {                              /* not written (the screen says why): the recipe back */
+        recipe[n] = yolo_undo;
+        if (!auditioning)
+            yolo_track = -1;
+        return;
+    }
+    o = pg_put(status, "ROLL ");
+    o = pg_num(o, tool.roll);
+    *o = 0;
+    say(status);
 }
 
 /* TOOLS, ROTATE ALL: every track's whole steps by STEPS (Euclid tracks are skipped), through
@@ -335,6 +407,11 @@ static void tool_run(void)
 /* the originals back, the take dropped; `m` says why */
 static void back(const char *m)
 {
+    if (yolo_track >= 0) {                      /* a roll not applied: the recipe as it was too */
+        recipe[yolo_track] = yolo_undo;
+        turned |= (uint16_t)(1u << yolo_track);
+        yolo_track = -1;
+    }
     if (auditioning) {
         dev->restore();
         core_project_edited();
@@ -360,6 +437,9 @@ static void not_applied(void)
 /* FUNC + YES: the take stays, the original is dropped */
 static void apply(void)
 {
+    yolo_track = -1;                            /* the rolled recipe stays with its take */
+    if (auditioning == A_TAKE)
+        kept |= (uint16_t)aud_mask;
     if (auditioning)
         say("APPLIED");
     auditioning = A_NONE;
@@ -448,6 +528,8 @@ int gr_key(void *brain, void *ev)
         if (down) {
             if (func_held)
                 apply();
+            else if (page == PG_TOOLS && tool.tool == SEED_TOOL_YOLO)
+                yolo_run();
             else if (page == PG_TOOLS)
                 tool_run();
             else
@@ -577,7 +659,10 @@ static const char *const sprout[7] = {
 
 /* The title bar: the sprout, then the page (and LOCK's lane), the track and the page's place
  * among the pages shown (3/10); at the right the source: TRK, EUC, CPY, MAP (CHAOS below 4), or S
- * and the seed (V6; the seed only for a source that draws from it), after AUD while a take is auditioned. The place is left out when the two sides would not fit. */
+ * and the seed (V6; the seed only for a source that draws from it), after a dot while a take is pending (not applied:
+ * FUNC + YES keeps it; M2.5, was AUD). The place is left out when the two sides would not fit. */
+#define DOT_W 7                                 /* the pending dot, 5 x 5, and the 2 pixels after it */
+static const char dot5[5][6] = { ".###.", "#####", "#####", "#####", ".###." };
 #define TITLE_X 13                              /* the sprout (2..8), a space, then the text */
 static void draw_title(void *bmp, uint8_t *p, const struct pg_ctx *c, int n)
 {
@@ -614,8 +699,6 @@ static void draw_title(void *bmp, uint8_t *p, const struct pg_ctx *c, int n)
     }
     *o = 0;
     o = right;
-    if (auditioning)
-        o = pg_put(o, "AUD ");
     if (c->r->src == SEED_SRC_TRACK)
         o = pg_put(o, "TRK");
     else if (c->r->src == SEED_SRC_EUCLID)       /* the sources that draw no random numbers */
@@ -629,10 +712,18 @@ static void draw_title(void *bmp, uint8_t *p, const struct pg_ctx *c, int n)
         o = pg_num(o, (int)c->r->seed);
     }
     *o = 0;
-    if (TITLE_X + core_text_width(CORE_FONT_MAIN, line) + 6 + core_text_width(CORE_FONT_MAIN, right) > 126)
+    if (TITLE_X + core_text_width(CORE_FONT_MAIN, line) + 6 + core_text_width(CORE_FONT_MAIN, right) +
+            (auditioning ? DOT_W : 0) > 126)
         *place = 0;
     text_at(bmp, TITLE_X, 1, line, CORE_TEXT_INVERT);
     text_right(bmp, 126, 1, right, CORE_TEXT_INVERT);
+    if (auditioning) {                          /* cut out of the bar, as the sprout is */
+        int x = 126 - core_text_width(CORE_FONT_MAIN, right) - DOT_W, y, k;
+        for (y = 0; y < 5; y++)
+            for (k = 0; k < 5; k++)
+                if (dot5[y][k] == '#')
+                    undot(p, x + k, 2 + y);
+    }
 }
 
 /* VIEW's footer, as 0.3's: the name at the left, with the sprout after it */

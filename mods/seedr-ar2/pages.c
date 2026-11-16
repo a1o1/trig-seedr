@@ -47,7 +47,7 @@ static const struct pg_choice c_order[SEED_ORDR_N] = {
 static const struct pg_choice c_ctyp[SEED_CTYP_N] = {
     { "X%", 0 }, { "A:B", 0 }, { "1ST", 0 }, { "FILL", 0 }, { "MIX", 0 }
 };
-static const struct pg_choice c_tool[SEED_TOOL_N] = { { "ROT ALL", 0 } };
+static const struct pg_choice c_tool[SEED_TOOL_N] = { { "ROT ALL", 0 }, { "YOLO", &seed_have_yolo } };
 
 /* ---- the rows ---- */
 
@@ -57,6 +57,7 @@ static const struct pg_choice c_tool[SEED_TOOL_N] = { { "ROT ALL", 0 } };
 #define TOOL(f) PB_TOOL, (uint16_t)offsetof(struct seed_tool, f)
 #define WHEN(f, mask)  (int16_t)offsetof(struct seed_recipe, f), (mask)
 #define LWHEN(f, mask) (int16_t)offsetof(struct seed_lane, f), (mask)
+#define TWHEN(f, mask) (int16_t)offsetof(struct seed_tool, f), (mask)
 #define ALWAYS -1, PG_ANY
 #define NOT(v) (0xffffffffu & ~PG_V(v))
 
@@ -161,7 +162,10 @@ const struct pg_row pg_rows[] = {
 
     /* TOOLS: its own YES (V7) */
     { PG_TOOLS, 0, "TOOL", TOOL(tool), PK_CHOICE, PF_NUM, 0, SEED_TOOL_N - 1, 0, PR_KEEP, 0, 0, ALWAYS, c_tool },
-    { PG_TOOLS, 1, "STEPS", TOOL(steps), PK_INT, PF_SIGNED, -63, 63, 0, PR_KEEP, 0, 0, ALWAYS, 0 },
+    { PG_TOOLS, 1, "STEPS", TOOL(steps), PK_INT, PF_SIGNED, -63, 63, 0, PR_KEEP, 0, 0, TWHEN(tool, PG_V(SEED_TOOL_ROTATE_ALL)), 0 },
+    /* YOLO (0.7): a recipe rolled for this track; WILD how far, ROLL which (YES with ROLL unturned: the next) */
+    { PG_TOOLS, 1, "WILD", TOOL(wild), PK_INT, PF_PCT, 0, 100, 0, PR_KEEP, &seed_have_yolo, 0, TWHEN(tool, PG_V(SEED_TOOL_YOLO)), 0 },
+    { PG_TOOLS, 2, "ROLL", TOOL(roll), PK_INT, PF_NUM, 0, 9999, 0, PR_KEEP, &seed_have_yolo, 0, TWHEN(tool, PG_V(SEED_TOOL_YOLO)), 0 },
 };
 const int pg_nrows = (int)(sizeof pg_rows / sizeof pg_rows[0]);
 
@@ -255,7 +259,8 @@ int pg_row_shown(const struct pg_ctx *c, const struct pg_row *w)
     if ((w->flags & PR_LANES) && (!c->caps || c->lane >= c->caps->lanes || !c->caps->nparams))
         return 0;
     if (w->when_off >= 0) {
-        const uint8_t *b = w->base == PB_LANE ? (const uint8_t *)lane_base(c) : (const uint8_t *)c->r;
+        const uint8_t *b = w->base == PB_LANE ? (const uint8_t *)lane_base(c)
+                         : w->base == PB_TOOL ? (const uint8_t *)c->tool : (const uint8_t *)c->r;
         int v = *(const int16_t *)(b + w->when_off);
         if (v < 0 || v > 31 || !(w->when_mask & PG_V(v)))
             return 0;

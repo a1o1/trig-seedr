@@ -26,6 +26,8 @@
  *   other=N:FILE   another track's trigs, for MASK and COPY (repeatable)
  *   map_x, map_y, map_chaos   the pattern's shared MAP settings
  *   all=1          also print origin and lane2 (the golden vectors)
+ *   yolo=ROLL:WILD TOOLS YOLO (lib/yolo.c): the recipe rolled from the one the other keys make, for
+ *                  the track in scope (its role: device/rytm_params.h), as the mod rolls it
  * The capabilities are the Rytm's (device/rytm_params.h); grooves (grv=N) are the mod's tables.
  *
  * Output, one line per field, one value per step below the length: length; trig (x or .); flags
@@ -264,7 +266,7 @@ int main(int argc, char **argv)
     struct seed_recipe r;
     struct seed_ctx c;
     const char *orig_path = NULL;
-    int i, rc, all = 0, init = 0, length = 0;
+    int i, rc, all = 0, init = 0, length = 0, yroll = -1, ywild = 0;
     for (i = 1; i < argc; i++) {
         if (!strncmp(argv[i], "orig=", 5)) orig_path = argv[i] + 5;
         else if (!strcmp(argv[i], "init=1")) init = 1;
@@ -313,6 +315,11 @@ int main(int argc, char **argv)
         eq++;
         if (!strcmp(name, "orig") || !strcmp(name, "init") || !strcmp(name, "length"))
             continue;
+        if (!strcmp(name, "yolo")) {
+            if (sscanf(eq, "%d:%d", &yroll, &ywild) != 2)
+                die("not yolo=ROLL:WILD", eq);
+            continue;
+        }
         if (!strcmp(name, "seed")) r.seed = (uint32_t)strtoul(eq, NULL, 0);
         else if (!strcmp(name, "track")) c.track = atoi(eq);
         else if (!strcmp(name, "all")) all = atoi(eq);
@@ -330,6 +337,20 @@ int main(int argc, char **argv)
     }
     if (c.track < 0 || c.track >= SEED_TRACKS)
         die("track out of range", "track");
+    if (yroll >= 0) {
+        static const int8_t roles[] = RT_TRACK_ROLES;
+        struct seed_recipe from = r;
+        struct seed_yolo_in in;
+        in.caps = &caps;
+        in.role = c.track < (int)sizeof roles ? roles[c.track] : SEED_ROLE_METER;
+        in.length = orig.length;
+        in.fields = c.track == 12 ? RT_FX_FIELDS : RT_VOICE_FIELDS;
+        in.ngrooves = N_GROOVES;
+        for (in.any = 0, i = 0; i < orig.length; i++)
+            in.any |= orig.s[i].flags & SEED_TRIG;
+        seed_yolo(&r, &from, yroll, ywild, &in);
+        memset(touched, 1, sizeof touched);
+    }
     if (argc > 1 && (!strcmp(argv[1], "--fields") || !strcmp(argv[1], "--recipe"))) {
         int whole = !strcmp(argv[1], "--recipe"), seeded = whole;
         for (i = 1; i < argc; i++)

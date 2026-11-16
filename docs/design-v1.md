@@ -11,7 +11,7 @@ One coherent product that holds all nine researched ideas: preview, Barlow ranki
 | # | Decision |
 |---|---|
 | V1 | All researched ideas are in scope for version 1, delivered in stages. Refactoring the 0.3 pages and engine is accepted; the base mechanics (write, audition, locks, keys) are proven. |
-| V2 | **One recipe per take.** Every YES renders the whole chain from the original track. NO returns to the original. YES with no knob turned takes the next seed. YES means the same on every page. |
+| V2 | **One recipe per take.** Every YES renders the whole chain from the original track. NO returns to the original. YES with no knob turned takes the next seed while a take is playing or just after one was applied; after NO or NOT APPLIED it brings the same take back (M2.5). YES means the same on every page. |
 | V3 | **The generator is a layer that can be off: SOURCE = TRACK** uses the trigs that are there, and every later layer shapes or dresses them. |
 | V4 | **A layer at 0 does not touch its fields.** |
 | V5 | **A recipe per track.** |

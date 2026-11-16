@@ -126,7 +126,7 @@ enum seed_vsrc    { SEED_VSRC_RANGE, SEED_VSRC_LIST, SEED_VSRC_NOISE, SEED_VSRC_
 enum seed_order   { SEED_ORDR_UP, SEED_ORDR_DOWN, SEED_ORDR_PING, SEED_ORDR_PNG2, SEED_ORDR_ODD, SEED_ORDR_RAND,
                     SEED_ORDR_N };
 enum seed_ctyp    { SEED_CTYP_PROB, SEED_CTYP_AB, SEED_CTYP_1ST, SEED_CTYP_FILL, SEED_CTYP_MIX, SEED_CTYP_N };
-enum seed_tool_id { SEED_TOOL_ROTATE_ALL, SEED_TOOL_N };
+enum seed_tool_id { SEED_TOOL_ROTATE_ALL, SEED_TOOL_YOLO, SEED_TOOL_N };
 
 #define SEED_LIST_MAX 16            /* the longest value list */
 
@@ -214,6 +214,8 @@ struct seed_shared {
 struct seed_tool {
     int16_t tool;                     /* enum seed_tool_id */
     int16_t steps;                    /* ROTATE ALL: -63..63 */
+    int16_t wild;                     /* YOLO: 0..100, how far a roll goes (0.7) */
+    int16_t roll;                     /* YOLO: 0..9999, the roll: the same roll gives the same recipe */
 };
 
 /* a groove (TIME GRV), as tools/groove2h.py writes them: per step the micro timing at 100 % in 1/24
@@ -381,6 +383,19 @@ int seed_layer_active(const struct seed_recipe *r, enum seed_layer layer);
 int seed_render(struct seed_track *out, const struct seed_track *orig, const struct seed_recipe *r,
                 const struct seed_ctx *c, struct seed_work *w);
 
+/* TOOLS YOLO (lib/yolo.c, 0.7): a recipe rolled for one track, at random within ranges that sound like
+ * music. `from` is the recipe it replaces (METR, BEAT and the lanes' parameters are kept); the roll
+ * decides everything else, so the same roll, WILD and track give the same recipe. WILD 0..100: how
+ * many layers, which sources, how wide the ranges. `role` (enum seed_role: KICK, BACK, HAT, PERC;
+ * METER for none) is what the track plays; `fields` the track's fields; `any` whether it has trigs.
+ * Only the recipe is written: shared settings (MAP's X, Y, CHAOS) and other tracks are untouched. */
+struct seed_yolo_in {
+    const struct seed_caps *caps;
+    int role, length, any, ngrooves;
+    uint16_t fields;
+};
+void seed_yolo(struct seed_recipe *r, const struct seed_recipe *from, int roll, int wild, const struct seed_yolo_in *in);
+
 /* the step a generating source starts from: no trig, fields at their defaults, swing, unknown
  * flags and lanes kept, origin none (P4: untouched means the default) */
 void seed_step_clear(struct seed_step *s);
@@ -486,5 +501,6 @@ extern const uint8_t seed_have_noise;   /* noise.c (F7): NOISE values, SHAPE = N
 extern const uint8_t seed_have_drift;   /* timing_drift.c (F8) */
 extern const uint8_t seed_have_vary;    /* vary.c (F9): PHRS, CVAR */
 extern const uint8_t seed_have_score;   /* score.c (F11): QUAL */
+extern const uint8_t seed_have_yolo;    /* yolo.c (0.7): TOOLS YOLO */
 
 #endif

@@ -15,7 +15,7 @@
   "../../lib/dyn.c", "../../lib/dyn_rank.c", "../../lib/dyn_noise.c", "../../lib/meter.c",
   "../../lib/values.c", "../../lib/values_list.c", "../../lib/noise.c",
   "../../lib/trig.c", "../../lib/timing.c", "../../lib/timing_drift.c",
-  "../../lib/vary.c", "../../lib/score.c"],
+  "../../lib/vary.c", "../../lib/score.c", "../../lib/yolo.c"],
  "subscribe": [
   {"event": "ev_tick", "fn": "gr_tick", "order": 60},
   {"event": "ev_draw", "fn": "gr_draw", "order": 60},

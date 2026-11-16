@@ -44,7 +44,7 @@ expected). The checks below are for each release and each unit.
 4. With RECORD off: **YES** writes nothing and the screen says **RECORD TO GENERATE**; the preview strip still
    follows the knobs.
 5. On a scratch pattern with an empty track, RECORD on: **YES** (a take: an empty track starts on RAND), **YES**
-   (the next seed), **NO** (the original back), **YES**, **FUNC + YES** (**APPLIED**). The steps change on the
+   (the next seed), **NO** (the original back), **YES** (the same take again), **FUNC + YES** (**APPLIED**). The steps change on the
    grid and play.
 6. A take not applied comes back to the original (**NOT APPLIED**) when you: select another track (with the pads),
    select another pattern, close Trig Seedr, or turn RECORD off.

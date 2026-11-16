@@ -59,7 +59,8 @@ fix_smp3() {
     check_take "LOCK SMP 100 %, slots 1-8, seed 2" src=random seed=2 lane1.pct=100 orig="$D/kept2.txt"
     emu_no
     check_take "NO: no sample locks" src=random seed=2 orig="$D/kept2.txt"
-    emu_yes
+    emu_yes                             # after NO, YES brings seed 2 back (M2.5); YES again: seed 3
+    emu_keys YES
     emu_keep
     emu_no
     check_take "YES, keep: seed 3 with sample locks" src=random seed=3 lane1.pct=100 orig="$D/kept2.txt"

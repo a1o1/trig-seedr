@@ -11,7 +11,7 @@ Trig Seedr is a third page behind the **TRIG** key, after the Euclidean page:
 
 **TAKE → RHYTHM → PLACE → DYNAMICS → NOTE → LOCK → TRIG → TIME → VIEW → TOOLS → TAKE**
 
-A page, knob or value whose feature is not built yet is not shown, and neither is a knob that cannot change the take with the present settings (PHRS on a track of 16 steps or fewer; CVAR and QUAL while the trig positions do not come from the seed; ROLE at BIAS 0; AMOD at ACC 0; CTYP and CVAL at COND 0; RATE and RCUR at RTRG 0; TIME, GVEL and SHFT with no groove). A hidden knob keeps its value and comes back with its row. The title bar shows the page, the track and the page's place among the pages shown (`3/10`), and at the right the source: `TRK` (the track's own trigs), `EUC` (EUCLID), `CPY` (COPY), `MAP` (MAP while CHAOS is below 4), or `S` and the seed for a source that draws from it, after `AUD` while a take is being auditioned. The place is left out when a long title would not fit.
+A page, knob or value whose feature is not built yet is not shown, and neither is a knob that cannot change the take with the present settings (PHRS on a track of 16 steps or fewer; CVAR and QUAL while the trig positions do not come from the seed; ROLE at BIAS 0; AMOD at ACC 0; CTYP and CVAL at COND 0; RATE and RCUR at RTRG 0; TIME, GVEL and SHFT with no groove). A hidden knob keeps its value and comes back with its row. The title bar shows the page, the track and the page's place among the pages shown (`3/10`), and at the right the source: `TRK` (the track's own trigs), `EUC` (EUCLID), `CPY` (COPY), `MAP` (MAP while CHAOS is below 4), or `S` and the seed for a source that draws from it. A **dot** before the source (`● S42`) means a take is playing that is not applied yet: **FUNC + YES** keeps it. The place is left out when a long title would not fit.
 
 | Key | What it does |
 |---|---|
@@ -48,12 +48,15 @@ why generating needs RECORD (as any editing of trigs does) and why a take stays 
 | You do | RECORD off | RECORD on (grid recording) |
 |---|---|---|
 | Open Trig Seedr, change page, turn knobs | Everything works. The strip at the bottom previews the take you would get. Nothing is written | The same |
-| **YES** (generate) | Nothing is written. The screen says **RECORD TO GENERATE** | The take is written so you can hear it; your original is kept. The title shows **AUD** |
+| **YES** (generate) | Nothing is written. The screen says **RECORD TO GENERATE** | The take is written so you can hear it; your original is kept. The title shows a **dot** until you apply it |
 | **YES** again | | A new take, always from your original: the next seed if you turned no knob, otherwise your change |
+| **YES** after your original came back (NO, NOT APPLIED) | | The take you were hearing comes back, the same seed, so **FUNC + YES** then keeps the take you heard. YES once more moves to the next seed |
+| **YES** after **FUNC + YES** | | The next seed |
 | **NO** | Closes Trig Seedr | Your original comes back. With no take pending, NO closes Trig Seedr |
 | **FUNC + YES** (apply) | Nothing to apply | **The take stays and your original is dropped.** This is the only way to keep a take. The screen says **APPLIED** |
 | Change track or pattern, close Trig Seedr, or turn RECORD off, with a take not applied | | Your original comes back. The screen says **NOT APPLIED** |
 | TOOLS: ROTATE ALL | Nothing happens (**RECORD TO GENERATE**) | YES rotates every track, FUNC + YES applies, NO or leaving puts every track back |
+| TOOLS: YOLO | Nothing happens (**RECORD TO GENERATE**) | YES rolls a recipe for this track and plays it, YES again the next roll; FUNC + YES keeps it; NO or leaving puts the track **and** the recipe back as before the first roll ([YOLO](../yolo/)) |
 | Save the pattern with a take not applied | | The save stores the take as it is at that moment |
 
 Good to know:

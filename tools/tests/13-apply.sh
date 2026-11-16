@@ -31,28 +31,32 @@ emu_check "RECORD on: a take is pending" 1 "$(pending)"
 emu_no
 check_take "NO: BD's original is back" "$K"
 
-# 4. FUNC + YES applies; the take stays after seedr closes and opens again
+# 4. YES after NO brings the same take back (M2.5); FUNC + YES applies it; it stays after seedr
+# closes and opens again
 emu_yes
-check_take "YES: seed 4" src=random seed=4 "$K"
+check_take "YES after NO: the same take (seed 3)" src=random seed=3 "$K"
 emu_keep
 emu_check "FUNC + YES: APPLIED" "APPLIED" "$(emu_msg)"
 emu_keys TRIG
 emu_check "applied, then closed: no NOT APPLIED" "APPLIED 0" "$(emu_msg) $(emu_get open)"
 emu_open
-check_take "applied: the take stays after closing" src=random seed=4 "$K"
+check_take "applied: the take stays after closing" src=random seed=3 "$K"
 save_orig kept4
 K4="orig=$D/kept4.txt"
 
-# 5. grid recording off with a take pending: not applied
+# 5. YES after applying: the next seed; grid recording off with a take pending: not applied
 emu_yes
-check_take "YES: seed 5" src=random seed=5 "$K4"
+check_take "YES after applying: the next seed (4)" src=random seed=4 "$K4"
 emu_rec 0
 emu_check "RECORD off: NOT APPLIED" "NOT APPLIED" "$(emu_msg)"
-check_take "RECORD off: the applied take (seed 4) is back" "$K4"
+check_take "RECORD off: the applied take (seed 3) is back" "$K4"
 
-# 6. closing seedr with a take pending: not applied
+# 6. YES after NOT APPLIED brings the take that was heard back; YES while it plays moves on;
+# closing seedr with a take pending: not applied
 emu_yes
-check_take "YES: seed 6" src=random seed=6 "$K4"
+check_take "YES after NOT APPLIED: the same take (seed 4)" src=random seed=4 "$K4"
+emu_keys YES
+check_take "YES while the take plays: the next seed (5)" src=random seed=5 "$K4"
 emu_keys TRIG
 emu_check "closed with TRIG: NOT APPLIED, seedr closed" "NOT APPLIED 0" "$(emu_msg) $(emu_get open)"
 check_take "closed: the applied take is back" "$K4"
@@ -69,7 +73,7 @@ check_take "TOOLS, RECORD off: nothing rotated" "$K4"
 A02=$(emu_py dump "$EMU_SNAP" 0 0 1)
 emu_page TAKE
 emu_yes
-check_take "YES: seed 7" src=random seed=7 "$K4"
+check_take "YES after closing: the same take (seed 5)" src=random seed=5 "$K4"
 emu_keys BANK_A+T2
 emu_check "pattern A02: NOT APPLIED" "NOT APPLIED" "$(emu_msg)"
 emu_check "pattern A02: A01's BD is the applied take again" "$(seedref "$K4")" "$(emu_py dump "$EMU_SNAP" 0 0 0)"

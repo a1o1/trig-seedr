@@ -12,7 +12,8 @@ The strip is rendered from the track's recipe and its original:
 - **While a take is auditioned**, the strip renders from the original track, as the next YES will, not from the
   take that is playing. Turn a knob and the strip shows the next take while the current one keeps playing.
 - **After YES** the strip and the track are the same take. A second YES with no knob turned takes the next seed;
-  the strip shows it once the seed changes in the title bar.
+  the strip shows it once the seed changes in the title bar. After NO or NOT APPLIED, YES brings back the take the
+  strip shows, the one you heard.
 - **Trigs recorded with the TRIG keys** while seedr is open change the original: with SOURCE = TRACK the strip
   follows them.
 

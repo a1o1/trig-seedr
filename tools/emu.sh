@@ -299,6 +299,9 @@ emu_pages() {
 emu_knob_of() {
     case $EMU_PROFILE:$1:$2 in
     v1:TOOLS:STEPS) echo 1 tool.steps ;;
+    v1:TOOLS:TOOL) echo 0 tool.tool - one ;;
+    v1:TOOLS:WILD) echo 1 tool.wild ;;
+    v1:TOOLS:ROLL) echo 2 tool.roll ;;
     # v1: KNOB is LETTER:KEY, the knob and the seedref key it sets (emu_knob RHYTHM B:dens 58);
     # a .lo key is the low end, FUNC + knob. Enum and grid knobs: LETTER:KEY:one. LETTER:shared.FIELD:
     # a knob that sets the pattern's shared settings (struct seed_shared: emu_knob RHYTHM D:shared.map_x 100).
