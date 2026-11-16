@@ -338,14 +338,15 @@ static int turn_range(struct seed_values *v, int d, int lo_end, int lo, int hi, 
         v->lo = v->hi = SEED_DEF;
         return 1;
     }
-    was = *a;
-    *a = (int16_t)clampi(*a + d, lo, hi);
-    if (v->lo > v->hi) {                      /* the other end follows */
-        if (lo_end)
-            v->hi = v->lo;
-        else
-            v->lo = v->hi;
+    if (v->lo > v->hi) {                      /* a range stored either way round: low end first */
+        int16_t t = v->lo;
+        v->lo = v->hi;
+        v->hi = t;
     }
+    was = *a;
+    /* each end moves only with its own control (the knob the top, FUNC + knob the bottom) and stops
+     * at the other end instead of pushing it (Alan, M2.5, 2026-11-16) */
+    *a = (int16_t)(lo_end ? clampi(*a + d, lo, v->hi) : clampi(*a + d, v->lo, hi));
     return *a != was;
 }
 

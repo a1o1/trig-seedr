@@ -12,5 +12,9 @@ lead's small items.
 
 ## Changed
 
+- **Range knobs** (VEL, LEN, NOTE, RNGE, CVAL, RATE): the knob sets only the high end and FUNC + knob only the low
+  end. An end stops where it meets the other; before, turning the high end down past the low end pushed the low end
+  down with it (Alan, hardware test).
+
 - **More knobs hidden while they cannot change the take**, as 0.6 began (they keep their value): CTYP and CVAL
   while COND is 0, RATE and RCUR while RTRG is 0, and TIME, GVEL and SHFT while no groove is chosen (GRV OFF).

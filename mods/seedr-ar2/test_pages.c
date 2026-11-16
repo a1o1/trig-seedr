@@ -180,7 +180,19 @@ static void test_ranges(void)
     CHECK(!strcmp(text(&c, w, 1), "100+"), "VEL short: %s", text(&c, w, 1));
     pg_turn(&c, w, 1, 1);
     pg_turn(&c, w, 1, 1);
-    CHECK(r.vel.lo == 102 && r.vel.hi == 102, "FUNC: the low end pushes the high end: %d %d", r.vel.lo, r.vel.hi);
+    CHECK(r.vel.lo == 101 && r.vel.hi == 101, "FUNC: the low end stops at the high end: %d %d", r.vel.lo, r.vel.hi);
+    /* each end only with its own control, never pushing the other (M2.5) */
+    r.vel.lo = 40; r.vel.hi = 90;
+    pg_turn(&c, w, -1, 0);
+    CHECK(r.vel.lo == 40 && r.vel.hi == 89, "the knob moves only the high end: %d %d", r.vel.lo, r.vel.hi);
+    pg_turn(&c, w, -1, 1);
+    CHECK(r.vel.lo == 39 && r.vel.hi == 89, "FUNC moves only the low end: %d %d", r.vel.lo, r.vel.hi);
+    r.vel.lo = r.vel.hi = 60;
+    pg_turn(&c, w, -1, 0);
+    CHECK(r.vel.lo == 60 && r.vel.hi == 60, "the high end stops at the low end: %d %d", r.vel.lo, r.vel.hi);
+    r.vel.lo = 90; r.vel.hi = 40;                       /* stored the other way round */
+    pg_turn(&c, w, 1, 0);
+    CHECK(r.vel.lo == 40 && r.vel.hi == 91, "either way round: %d %d", r.vel.lo, r.vel.hi);
     r.vel.lo = r.vel.hi = 1;
     pg_turn(&c, w, -1, 1);
     CHECK(r.vel.lo == SEED_DEF && r.vel.hi == SEED_DEF, "below 1: DEF");

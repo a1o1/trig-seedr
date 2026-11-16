@@ -55,7 +55,7 @@ Change from 0.3: ROT is a plain rotation after the source (it moves a weighted r
 
 ## 5. Pages and knobs (provisional)
 
-LEFT / RIGHT order. Knob letters may move; the page tables make that cheap. FUNC + knob sets the low end of a range.
+LEFT / RIGHT order. Knob letters may move; the page tables make that cheap. FUNC + knob sets the low end of a range, the knob alone the high end; an end stops at the other instead of pushing it (M2.5).
 
 | Page | A | B | C | D | E | F | G | H |
 |---|---|---|---|---|---|---|---|---|

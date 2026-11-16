@@ -21,7 +21,7 @@ A page, knob or value whose feature is not built yet is not shown, and neither i
 | LEFT / RIGHT | the previous / next page |
 | UP / DOWN | LOCK: lane 1 or 2 (each lane's PARM skips the parameter the other lane is on) |
 | knobs A–H | the page's settings |
-| FUNC + knob | the low end of a range (VEL, LEN, NOTE, RNGE, CVAL, RATE); SEED in steps of 100; other wide knobs in steps of 10 |
+| FUNC + knob | the low end of a range (VEL, LEN, NOTE, RNGE, CVAL, RATE; the knob alone sets the high end, and neither end pushes the other); SEED in steps of 100; other wide knobs in steps of 10 |
 | YES | generate: write a take to hear it (needs RECORD on); on TOOLS, run the tool |
 | NO | with a take pending: back to the original; otherwise: close |
 | FUNC + YES | apply: keep the take (the only way a take stays) |

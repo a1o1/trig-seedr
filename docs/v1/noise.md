@@ -36,7 +36,7 @@ last cell is shorter than the others.
 ## The range
 
 The contour's lowest level is the range's low end and its highest the high end; each value of the range is equally
-likely at the random levels. A range whose low end (FUNC + knob) is above its high end turns the contour over.
+likely at the random levels.
 
 ## What decides the values
 

@@ -7,7 +7,7 @@ A take is the track's recipe rendered in this order: **RHYTHM** decides which st
 
 Every share knob (DENS, ACC, COND, RTRG, a lane's %) gives each step a key and takes the steps with the highest keys. Raising the knob adds trigs to the ones already chosen; lowering it removes them in reverse. So turning a share up and down moves through one family of takes.
 
-Ranges: a knob sets the high end, **FUNC** + knob the low end. Turning an end of a DEF range below its minimum goes back to DEF.
+Ranges: a knob sets the high end, **FUNC** + knob the low end. Each end moves only with its own control and stops where it meets the other: the high end never goes below the low end, nor the low end above the high end. Turning an end of a DEF range below its minimum goes back to DEF.
 
 ## RHYTHM
 
