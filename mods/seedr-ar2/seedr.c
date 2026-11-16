@@ -103,6 +103,7 @@ static int auditioning;
 static const char *msg;
 static unsigned msg_until, ticks;
 static char status[40];
+static int scr_dirty = 1;               /* an event may have changed the screen: draw it in full (M2.3) */
 static void say(const char *m);
 #define RT_SHIFT ((void (*)(unsigned, int, int))0x400c1d7a)   /* (track, +-1, length or -1) */
 
@@ -203,6 +204,7 @@ static void say(const char *m)
 {
     msg = m;
     msg_until = ticks + 40;            /* two seconds at the Rytm's 20 Hz tick */
+    scr_dirty = 1;
 }
 
 static void not_applied(void);
@@ -394,6 +396,7 @@ int gr_key(void *brain, void *ev)
 {
     int k = EV_INT(ev, 12), down = EV_INT(ev, 16) & DOWN_BIT;
     (void)brain;
+    scr_dirty = 1;                              /* any key may change what the screen shows */
     if (k == K_FUNC)
         func_held = down;                       /* FUNC always goes on to stock too */
     if (k == K_TRIG) {
@@ -479,6 +482,7 @@ int gr_enc(void *brain, void *ev)
     (void)brain;
     if (!open)
         return 0;
+    scr_dirty = 1;
     if (e < 0 || e > 7 || !d)
         return 1;
     if (!knob_last[e] || ticks - knob_last[e] > KNOB_AWAKE_TICKS) {
@@ -500,6 +504,8 @@ int gr_enc(void *brain, void *ev)
     return 1;
 }
 
+static int scr_changed(void);
+
 void gr_tick(void *ctrl)
 {
     ticks++;
@@ -510,8 +516,8 @@ void gr_tick(void *ctrl)
         if (pat != aud_pat || (auditioning == A_TAKE && n != aud_track) || !rt_grid_recording())
             not_applied();                      /* another track or pattern, or RECORD off */
     }
-    if (open)
-        *((volatile uint8_t *)ctrl + 0x20) = 1;
+    if (open && scr_changed())
+        *((volatile uint8_t *)ctrl + 0x20) = 1;  /* stock draws a frame, and seedr's screen over it */
 }
 
 /* ---- drawing (elekloader examples/screen-check-ar2). Rows count from the top, 0..63:
@@ -577,8 +583,11 @@ static void draw_title(void *bmp, uint8_t *p, const struct pg_ctx *c, int n)
 {
     char line[40], right[16], *o = line, *place;
     int i, at = 0, count = 0;
-    box(p, 0, 0, 127, 9, 1);
-    for (i = 0; i < 7; i++)                     /* cut out of the bar, as the text is */
+    for (i = 0; i < 128; i++) {                 /* the bar, rows 0..9: box(p, 0, 0, 127, 9, 1) a byte at a time */
+        p[8 * i + 7] = 0xff;                    /* rows 0..7 */
+        p[8 * i + 6] |= 0x03;                   /* rows 8, 9 */
+    }
+    for (i = 0; i < 7; i++)                    /* cut out of the bar, as the text is */
         for (at = 0; at < 7; at++)
             if (sprout[i][at] == '#')
                 undot(p, 2 + at, 1 + i);
@@ -696,15 +705,123 @@ static void draw_strip(void *bmp, uint8_t *p, int n, const struct seed_recipe *r
         text_at(bmp, 1, STRIP_TOP + 3, why, 0);
 }
 
+/* ---- redrawing (task M2.3) ----
+ * Stock draws a frame when its view is marked dirty (the controller's +0x20) and for reasons of
+ * its own; seedr draws its whole screen over every frame stock draws. Until M2.3 gr_tick marked
+ * the view on every tick, so stock drew its TRIG page and seedr its screen 20 times a second
+ * while nothing changed (docs/status/M2.3.md). Now a tick marks it only when the screen may
+ * differ from the last frame drawn in full: after a key or knob event or a message (scr_dirty),
+ * while one of stock's overlays is up (as before), or when an input of the screen differs
+ * (struct scr_key: what changes outside seedr's events, such as the current track or pattern,
+ * its steps and lanes as read, the pattern's trigs, Euclidean mode, a message running out; and,
+ * to be safe, the settings seedr's events change). A frame stock draws when nothing differs gets
+ * a copy of the last one. The screen is the same as before; only frames that would repeat the
+ * last are not drawn again. */
+struct scr_key {
+    int n, rc, len, euclid, msg_on, page, lane, cursor, auditioning, aud_track;
+    unsigned pat, rset;
+    const char *msg;
+    struct seed_recipe r;
+    struct seed_shared shared;
+    struct seed_tool tool;
+    struct seed_track shown;
+    struct seed_ctx ctx;
+};
+static struct scr_key scr_now, scr_drawn;   /* static: zeroed once, so their unused bytes stay equal */
+static uint8_t scr_frame[1024];         /* the last frame drawn in full */
+static int scr_have;                    /* scr_frame and scr_drawn hold a frame */
+unsigned scr_draws, scr_full;           /* frames seedr drew, and those drawn in full (tools/tests/42-perf.sh) */
+unsigned scr_always;                    /* tests: 1 marks every tick and draws every frame in full, as before M2.3 */
+
+/* the settings the screen shows that seedr's own events change */
+static void scr_state(struct scr_key *k)
+{
+    int t = clampi(k->n, 0, SEED_TRACKS - 1);
+    k->rset = recipe_set;
+    k->msg = msg;
+    k->msg_on = msg && (int)(msg_until - ticks) > 0;
+    k->page = page;
+    k->lane = lane;
+    k->cursor = cursor;
+    k->auditioning = auditioning;
+    k->aud_track = aud_track;
+    k->r = recipe[t];
+    k->shared = shared;
+    k->tool = tool;
+}
+
+/* everything else the screen shows: the track and pattern, the track as gr_draw reads it, the
+ * pattern's trigs as the preview's context has them */
+static void scr_inputs(struct scr_key *k)
+{
+    unsigned obj;
+    int16_t parm[SEED_LANES];
+    int t;
+    k->n = rt_current(&obj, &k->pat);
+    t = clampi(k->n, 0, SEED_TRACKS - 1);
+    scr_state(k);
+    k->len = RT_TRACK_LENGTH(track_obj(k->n));
+    k->euclid = rt_euclid(obj);
+    lane_parms(recipe_set & (1u << t) ? &recipe[t] : 0, parm);
+    k->rc = dev->read(k->n, parm, &k->shown);
+    dev->context(&k->ctx, k->n);
+}
+
+static int scr_same(const struct scr_key *a, const struct scr_key *b)
+{
+    const uint16_t *x = (const uint16_t *)a, *y = (const uint16_t *)b;
+    unsigned i;
+    for (i = 0; i < sizeof *a / 2; i++)
+        if (x[i] != y[i])
+            return 0;
+    return 1;
+}
+
+/* gr_tick: whether the screen needs a frame */
+static int scr_changed(void)
+{
+    if (scr_always || scr_dirty || !scr_have || core_stock_overlay())
+        return 1;
+    scr_inputs(&scr_now);
+    return !scr_same(&scr_now, &scr_drawn);
+}
+
+static void draw_all(void *bmp);
+
 void gr_draw(void *bmp, void *ctrl)
+{
+    uint8_t *p;
+    int i;
+    (void)ctrl;
+    if (!open || core_stock_overlay())
+        return;
+    scr_draws++;
+    p = px(bmp);
+    if (!scr_always) {
+        scr_inputs(&scr_now);
+        if (!scr_dirty && scr_have && scr_same(&scr_now, &scr_drawn)) {
+            for (i = 0; i < 1024; i++)
+                p[i] = scr_frame[i];
+            return;
+        }
+    }
+    scr_dirty = 0;
+    scr_full++;
+    draw_all(bmp);
+    for (i = 0; i < 1024; i++)
+        scr_frame[i] = p[i];
+    scr_state(&scr_now);                /* as the draw left them (it may change the page, lane, recipe) */
+    scr_drawn = scr_now;
+    scr_have = !scr_always;
+}
+
+/* the whole screen */
+static void draw_all(void *bmp)
 {
     struct pg_ctx c;
     uint8_t *p;
     int16_t parm[SEED_LANES];
     int n, i, ok;
-    (void)ctrl;
-    if (!open || core_stock_overlay())
-        return;
     n = dev->current();
     page_ctx(&c, n);
     if (!pg_page_shown(&c, page))
