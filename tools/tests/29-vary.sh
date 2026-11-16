@@ -65,11 +65,12 @@ set_len 24
 save_orig len24
 O="orig=$D/len24.txt"
 emu_open
+emu_page TAKE
+emu_knob TAKE D:cvar:one 0              # before SRC TRACK, which hides CVAR (M2.1: it would change nothing)
 emu_page RHYTHM
 emu_knob RHYTHM A:src:one 0
 emu_page TAKE
 emu_knob TAKE C:phrs:one 3
-emu_knob TAKE D:cvar:one 0
 emu_page TRIG
 emu_knob TRIG A:cond 50
 emu_yes

@@ -42,7 +42,7 @@ bar 1 comes first, then 3, 4 and 2.
 BIAS mixes the rank with chance: at 0 every step is equally likely, at +100 DENS fills the steps in rank order,
 at −100 in reverse rank order. DENS still gives its exact count.
 
-ROLE picks the rank order:
+ROLE picks the rank order. It is read only through BIAS, so the RHYTHM page shows it while BIAS is not 0:
 
 | ROLE | Order (4/4, BEAT 4: the first steps it fills) |
 |---|---|
@@ -62,5 +62,6 @@ between them.
 - **SHAPE = RANK** sets velocity by rank: the bar's strongest step at the top of VEL, its weakest at the bottom,
   and every other step in between in rank order (16 levels in a 4/4 bar). It always uses the METER order, whatever
   ROLE says.
-- **AMOD = TOP** gives the accent flag to the ACC % of trigs with the highest rank (METER order). The seed does
+- **AMOD = TOP** gives the accent flag to the ACC % of trigs with the highest rank (METER order). AMOD is shown
+  while ACC is above 0. The seed does
   not change which trigs these are. With SRC = MAP, TOP ranks by the map's level instead (the MAP page).

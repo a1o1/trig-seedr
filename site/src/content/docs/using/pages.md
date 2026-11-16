@@ -72,11 +72,11 @@ Good to know:
 |---|---|---|---|
 | A | SEED | 0–9999 | the take number |
 | B | VARY | 0–100 % | how much of take n the next take keeps: 0 every seed is unrelated, 100 every seed gives the same take |
-| C | PHRS | OFF, AAAA, AAAB, ABAB, ABAC, ABCD | a phrase of takes over the 16-step pages ([Phrases and CVAR](../../features/vary/)) |
-| D | CVAR | OFF, 1:2, AAAB | takes n and n + 1 written as alternating trig conditions ([Phrases and CVAR](../../features/vary/)) |
+| C | PHRS | OFF, AAAA, AAAB, ABAB, ABAC, ABCD | a phrase of takes over the 16-step pages; shown on a track longer than 16 steps ([Phrases and CVAR](../../features/vary/)) |
+| D | CVAR | OFF, 1:2, AAAB | takes n and n + 1 written as alternating trig conditions; shown while the trig positions come from the seed: SRC = RAND, MAP with CHAOS 4 or more, or SYNC above 0 ([Phrases and CVAR](../../features/vary/)) |
 | E | METR | 4/4, 3/4, 6/8, 12/16, 5/8, 7/8 | the meter, for BIAS, ROLE and the velocity shapes ([Meters and roles](../../features/meter/)) |
 | F | BEAT | 1–16 | steps per note value of the meter (4/4: a quarter; 6/8: an eighth) |
-| G | QUAL | 1–8 | the best spread of this many candidate takes ([QUAL](../../features/score/)) |
+| G | QUAL | 1–8 | the best spread of this many candidate takes; shown as CVAR is ([QUAL](../../features/score/)) |
 
 ## VIEW
 

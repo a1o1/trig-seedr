@@ -57,6 +57,8 @@ enum pg_fmt {
 #define PR_PARM  0x04                 /* PK_RANGE: lo..hi from the lane's parameter (struct seed_param) */
 #define PR_LANES 0x08                 /* shown only when the device has the lane in view (caps->lanes) */
 #define PR_KEEP  0x10                 /* not part of the take: a turn does not count for YES's next seed */
+#define PR_SENSE 0x20                 /* shown only while it can change the take: a rule in pages.c that
+                                         reads other settings or the track's length (task M2.1) */
 
 #define PG_ANY 0                      /* `when_mask` 0: always */
 #define PG_V(v) (1u << (v))           /* `when_mask` bit for value v */

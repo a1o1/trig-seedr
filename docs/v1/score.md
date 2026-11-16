@@ -31,7 +31,9 @@ steps. It picks a better-spread take with the same feel. With a BIAS, item 4 set
 in BIAS's direction.
 
 Two candidates with the same score: the earlier one wins. So QUAL has no effect when every candidate has the same
-trigs: SOURCE = TRACK, EUCLID and COPY without SYNC, and RANDOM with BIAS at +100 or −100. Raising QUAL keeps the
+trigs: SOURCE = TRACK, EUCLID, COPY and MAP with CHAOS below 4, without SYNC, and RANDOM with BIAS at +100 or −100.
+The TAKE page shows QUAL only while the trig positions come from the seed (SRC = RAND, MAP with CHAOS 4 or more,
+or SYNC above 0); its value is kept while it is hidden. Raising QUAL keeps the
 take unless one of the added candidates scores higher.
 
 Over 1,000 takes of RANDOM on 16 steps (`lib/test_score.c`):
