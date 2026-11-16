@@ -140,6 +140,10 @@ map-hat-xy src=map map_part=2 map_dens=200 map_x=100 map_y=200
 map-snare-64 src=map map_part=1 map_dens=150 map_x=128 map_y=64 length=64
 map-chaos-64 src=map map_dens=140 map_x=40 map_y=230 map_chaos=255 seed=3 length=64
 map-shape-a orig=orig-a.txt vel=20:127 shape=map amt=100 map_x=60 map_y=190
+# MAP accents (F12): AMOD = TOP ranks by the map key when SRC = MAP
+map-acc-top src=map map_dens=200 map_x=60 map_y=190 acc=40 amod=top
+map-acc-top-hat-64 src=map map_part=2 map_dens=180 map_x=200 map_y=40 map_chaos=255 seed=4 acc=50 amod=top length=64
+map-acc-top-rot src=map map_part=1 map_dens=170 map_x=128 map_y=64 rot=3 acc=30 amod=top
 # TAKE: PHRS and CVAR (F9)
 phrs-abab-64 src=random dens=50 length=64 phrs=abab
 phrs-aaab-a-64 orig=orig-a.txt length=64 phrs=aaab vel=60:120 cond=50
