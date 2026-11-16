@@ -52,6 +52,8 @@ static int rerolls(uint32_t base, uint32_t n, int vary)
     return (int)(r % 100u) >= vary;
 }
 
+/* Reads only seed, salt, vary and cand of the take: values_list.c keeps its last list on exactly those
+ * (M2.3), so a change here that reads another field must add it to that cache's key. */
 uint32_t seed_rand(const struct seed_take *k, uint32_t slot)
 {
     uint32_t base = slot_base(k, slot), n = k->seed;

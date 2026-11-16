@@ -1,7 +1,7 @@
 # trig-seedr
 
 [![License: GPL v2+](https://img.shields.io/badge/License-GPL%20v2%2B-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-v0.5.1-blue.svg)](https://github.com/a1o1/trig-seedr/releases)
+[![Version](https://img.shields.io/badge/Version-v0.6.0-blue.svg)](https://github.com/a1o1/trig-seedr/releases)
 [![Status](https://img.shields.io/badge/Status-first%20hardware%20test-yellow.svg)](#status)
 [![Device](https://img.shields.io/badge/Analog%20Rytm%20MKII-OS%201.74-black.svg)](docs/firmware-notes-os174.md)
 [![elekloader](https://img.shields.io/badge/elekloader-core--ar2%200.13-purple.svg)](https://github.com/elekloader/elekloader)
@@ -15,7 +15,7 @@
 
 Pattern seeds for Elektron machines. trig-seedr is a set of offline pattern algorithms, as firmware mods. The first is for the Analog Rytm MKII (OS 1.74), as an [elekloader](https://github.com/elekloader/elekloader) mod; the Analog Four MKII and the Syntakt are planned next. On the Rytm each track has a recipe: a source of trigs (the track's own, or generated), then pages that place them and set velocity, notes, two lanes of parameter locks, trig conditions, retrigs and a groove from Ableton Live, with an audition undo; and rotation of the whole pattern.
 
-<a id="status"></a>**Status: version 0.5 has passed a first test on an Analog Rytm MKII running stock OS 1.74 (2026-11-16): every feature worked as expected; the generate-and-apply rules below came from that test. Every scripted check passes in the emulator (analog-emu).** Flashing modified firmware is at your own risk; keep the stock OS and a way to reflash it (DIN MIDI) at hand.
+<a id="status"></a>**Status: version 0.6 is version 1's integration milestone: every source and layer tested together, fuzzed and measured. Version 0.5 passed a first test on an Analog Rytm MKII running stock OS 1.74 (2026-11-16): every feature worked as expected; the generate-and-apply rules below came from that test. Every scripted check passes in the emulator (analog-emu).** Flashing modified firmware is at your own risk; keep the stock OS and a way to reflash it (DIN MIDI) at hand.
 
 trig-seedr is an independent project. It is not affiliated with or endorsed by Elektron or Ableton; their product names are used only to say what it works with. No firmware, and nothing derived from Ableton's content, is included: you build against your own copy of the stock OS, and generate groove tables from your own Live installation.
 
@@ -23,7 +23,7 @@ trig-seedr is an independent project. It is not affiliated with or endorsed by E
 
 It is a third page behind the **TRIG** key: **TRIG** (stock's TRIG page), **TRIG** (EUCLIDEAN), **TRIG** (trig-seedr), **TRIG** again back to stock. **TRIG held + PAGE** opens it from anywhere. **LEFT / RIGHT** step through its pages; **PAGE** and the TRIG keys stay stock's.
 
-| Page | What (0.5) |
+| Page | What (0.6) |
 |---|---|
 | TAKE | SEED, VARY (how much of a take the next seed keeps), PHRS (a phrase of takes over the pages: AAAB, ABAC, …), CVAR (two takes written as alternating trig conditions), METR and BEAT, QUAL (the best of several candidates) |
 | RHYTHM | SRC: TRACK (the trigs on the track), RAND (GRID, DENS, BIAS, ROLE: KICK, BACK, HAT, PERC), EUCLID (as stock's Euclidean mode), MAP (a map of drum patterns, credited in the acknowledgements: PART, DENS, X, Y, CHAOS), COPY (another track's trigs) |
@@ -55,7 +55,7 @@ Screens, from the emulator:
 - Ranges (VEL, LEN, NOTE, RNGE, CVAL, RATE): a knob sets the high end, **FUNC** + knob the low end.
 - Everything written is ordinary Rytm data: it plays, saves and reloads on a stock OS.
 
-What changed: [`docs/release-0.5.md`](docs/release-0.5.md), [`docs/release-0.4.md`](docs/release-0.4.md). Website: [a1o1.github.io/trig-seedr](https://a1o1.github.io/trig-seedr/). Version 1's design and plan: [`docs/design-v1.md`](docs/design-v1.md), [`docs/plan-v1.md`](docs/plan-v1.md). Firmware notes: [`docs/firmware-notes-os174.md`](docs/firmware-notes-os174.md).
+What changed: [`docs/release-0.6.md`](docs/release-0.6.md), [`docs/release-0.5.md`](docs/release-0.5.md), [`docs/release-0.4.md`](docs/release-0.4.md). Website: [a1o1.github.io/trig-seedr](https://a1o1.github.io/trig-seedr/). Version 1's design and plan: [`docs/design-v1.md`](docs/design-v1.md), [`docs/plan-v1.md`](docs/plan-v1.md). Firmware notes: [`docs/firmware-notes-os174.md`](docs/firmware-notes-os174.md).
 
 ## Layout
 
@@ -80,7 +80,7 @@ Expected next to this repository (or set `WORKSPACE`), as [`docs/dev-environment
 sh tools/doctor.sh                        # the environment
 make -C lib test coldfire                 # the engine: host tests (sanitizers) and a ColdFire build check
 sh tools/run_tests.sh                     # every check: host, then the emulator (00..11; NAME... for some)
-sh tools/build_release.sh                 # the firmware to flash: build/trig-seedr-0.5-os1.74.syx (docs/flashing.md)
+sh tools/build_release.sh                 # the firmware to flash: build/trig-seedr-0.6-os1.74.syx (docs/flashing.md)
 python3 tools/test_groove2h.py PATH/TO/Live/Core\ Library/Grooves   # the .agr / MIDI reader
 ```
 

@@ -21,13 +21,32 @@ About, How it is tested).
   CVAR and QUAL while the trig positions do not come from the seed (they do with SRC = RAND, MAP with CHAOS 4 or
   more, or SYNC above 0); ROLE at BIAS 0; AMOD at ACC 0.
 
+## Faster
+
+Measured on the emulator's instruction counter (`docs/status/M2.3.md`):
+
+| What | 0.5 | 0.6 |
+|---|---|---|
+| Trig Seedr's screen, idle (share of the CPU) | 1.9 % | 0.25 % |
+| A NOTE LIST of 16 items, per take | 94,900 instructions | 10,700 |
+| Three 16-item lists at VARY 90, per take | 626,000 instructions | 152,000 |
+
+- The screen is drawn only when something on it may have changed: a key, a knob, a message, the track or pattern,
+  a recorded trig, another track under COPY. Before, stock redrew its TRIG page under it on every frame.
+- A value list is made once per take instead of once per trig.
+- A take on 64 steps costs from about 2,000 instructions (TRACK) to 34,000 (RANDOM), well under a millisecond;
+  QUAL 8, the most costly setting, adds 0.86 ms.
+- The mod is 62 KB of code and 107 KB of RAM; the loader has 4.9 MB spare.
+
 ## Tests
 
 - **Fuzzing** (`lib/test_fuzz.c`, `tools/fuzz.sh`): random recipes over every source, layer and value source on
   three device profiles; 4,000 cases in every `make test`, and a long run of 18.6 million cases with no failures.
 - **Interplay** (`mods/seedr-ar2/test_interplay.c`): every hidden knob, turned, leaves the take byte-identical;
   about 533,000 checks in every `make test`.
-- **Emulator**: `40-interplay` and `41-fuzz-sample` added.
+- **Emulator**: `40-interplay`, `41-fuzz-sample` and `42-perf` (the costs above, and that the screen still follows
+  every change) added.
+- **Hardware**: `docs/flashing.md` check 12 (the screen follows every change; PARM skips the other lane's parameter).
 
 ## Known
 

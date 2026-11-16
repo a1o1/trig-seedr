@@ -217,7 +217,8 @@ _i_o=$(executed)
 emu_keys NO
 emu_run -s 1000M
 _i_c=$(executed)
-echo "idle on RHYTHM, 1 s: $_i_o instructions executed; with seedr closed (stock's TRIG page): $_i_c;" \
-    "seedr's screen costs $((_i_o - _i_c)) a second, $(((_i_o - _i_c) / 2000000)) % of 200 M" >> "$D/cost.txt"
+# 1000M at the default --ips 200M is 5 emulated seconds (M2.3)
+echo "idle on RHYTHM, 5 s: $_i_o instructions executed; with seedr closed (stock's TRIG page): $_i_c;" \
+    "seedr's screen costs $(((_i_o - _i_c) / 5)) a second, $(((_i_o - _i_c) / 10000000)) % of 200 M" >> "$D/cost.txt"
 sed 's/^/  /' "$D/cost.txt"
 emu_done

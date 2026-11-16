@@ -1,7 +1,7 @@
 # How trig-seedr is tested
 
 trig-seedr is installed by flashing a modified operating system onto an Analog Rytm MKII. This page lists what is
-tested before a release, how, and what is not tested. Numbers are from version 0.5.1 plus tasks M2.1 and M2.2 (2026-11-16).
+tested before a release, how, and what is not tested. Numbers are from version 0.6.0 (2026-11-16).
 How to run each check is in [`tools/README.md`](../tools/README.md) and [`dev-environment.md`](dev-environment.md).
 
 ## What a take must never do
