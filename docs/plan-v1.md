@@ -135,6 +135,7 @@ Started 2026-11-16, after 0.5.1 passed a first test on a Rytm MKII with stock OS
 | M2.5 | Hardware and UX | Alan's UX / CX list from the first hardware test; the choices kept until hardware testing (F1 role orders, F5 runs, F6 list order, F8 drift scale, F9 CVAR AAAB with PRE); the track-change revert with the pads; findings filed as issues | Alan, then the lead or an agent | as each item needs |
 | M2.6 | Manual and site | `docs/v1/*.md` and the Using pages into one coherent manual; README, screenshots (`tools/screens.sh`); requirements renumbered to the version-1 design | agent, after M2.5 | `docs/`, `site/` |
 | 0.6.0 | Release | M2.1–M2.4 merged: notes in `docs/release-0.6.md`; version 0.6.0, OS version field TS06 (Alan, 2026-11-16) | lead | `docs/release-0.6.md`, version fields |
+| 0.7.0 | Release | M2.5's changes, and the lead's small items: TRIG and TIME knobs hidden while COND or RTRG is 0 (M2.1's `sense()`), the device layer fuzzed on the host, the test counts in the README and `docs/testing.md` (Alan, 2026-11-16) | lead | `docs/release-0.7.md`, version fields |
 | 1.0 | Release | golden vectors frozen again; a final hardware pass with `flashing.md`'s checks; tag | lead and Alan | |
 
 M2.1, M2.2 and M2.3 start together from `main`; their test file numbers are 40, 41 and 42. M2.6 waits for M2.5's changes.
