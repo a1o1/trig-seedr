@@ -29,6 +29,7 @@ site/src/content/docs/developers/
 site/src/content/docs/features/
 site/src/assets/screens/
 site/src/content/docs/getting-started/flashing.md
+site/src/content/docs/about/testing.md
 
 # Claude Code worktrees (one per parallel task)
 .claude/worktrees/

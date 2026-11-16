@@ -11,7 +11,7 @@ Trig Seedr is a third page behind the **TRIG** key, after the Euclidean page:
 
 **TAKE → RHYTHM → PLACE → DYNAMICS → NOTE → LOCK → TRIG → TIME → VIEW → TOOLS → TAKE**
 
-A page, knob or value whose feature is not built yet is not shown. The title bar shows the page, the track and the page's place among the pages shown (`3/10`), and at the right the source: `TRK` (the track's own trigs), `EUC` (EUCLID), `CPY` (COPY), `MAP` (MAP while CHAOS is below 4), or `S` and the seed for a source that draws from it, after `AUD` while a take is being auditioned. The place is left out when a long title would not fit.
+A page, knob or value whose feature is not built yet is not shown, and neither is a knob that cannot change the take with the present settings (PHRS on a track of 16 steps or fewer; CVAR and QUAL while the trig positions do not come from the seed; ROLE at BIAS 0; AMOD at ACC 0). A hidden knob keeps its value and comes back with its row. The title bar shows the page, the track and the page's place among the pages shown (`3/10`), and at the right the source: `TRK` (the track's own trigs), `EUC` (EUCLID), `CPY` (COPY), `MAP` (MAP while CHAOS is below 4), or `S` and the seed for a source that draws from it, after `AUD` while a take is being auditioned. The place is left out when a long title would not fit.
 
 | Key | What it does |
 |---|---|

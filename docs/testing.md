@@ -1,7 +1,7 @@
 # How trig-seedr is tested
 
 trig-seedr is installed by flashing a modified operating system onto an Analog Rytm MKII. This page lists what is
-tested before a release, how, and what is not tested. Numbers are from version 0.5.1 plus task M2.2 (2026-11-16).
+tested before a release, how, and what is not tested. Numbers are from version 0.5.1 plus tasks M2.1 and M2.2 (2026-11-16).
 How to run each check is in [`tools/README.md`](../tools/README.md) and [`dev-environment.md`](dev-environment.md).
 
 ## What a take must never do
@@ -31,6 +31,7 @@ them.
 | Fuzzing | `lib/test_fuzz.c`: random originals, patterns and recipes over every source, layer and value source, on three device profiles, 6 % with knobs set outside their ranges | 4,000 cases in every `make test`; long runs with `tools/fuzz.sh` (below) | I1–I6, I10, value ranges |
 | Reference comparison | `tools/seedref`, the same engine built for the computer, renders every take the emulator writes; the two must agree field by field | every emulator check that generates | I2 |
 | Golden vectors | 129 recipes over every layer with their frozen results (`lib/golden/`); a change to any result fails until its reason is written down | every run | I2, design V11 |
+| Interplay | `mods/seedr-ar2/test_interplay.c`: recipes the pages can reach, from every source on 13–64 steps; every hidden knob, turned, must leave the take byte-identical, and each source must keep the trig counts it promises through ROT and SYNC | about 533,000 checks in every `make test`; a 60,000-recipe run made 10 million | I3, I5, I6 |
 | Emulator | `tools/run_tests.sh` boots the patched OS in [analog-emu](https://github.com/trigcondition/analog-emu) and drives it through the Rytm's own keys and knobs: generate, NO, apply, save, reload, power cycle, the lock-row limit, every page | 28 test files, about 340 checks; the full run took 70 minutes on the Mac while the fuzzer ran beside it | I1, I2, I7–I9 |
 | Emulator fuzz sample | `tools/tests/41-fuzz-sample.sh`: recipes from the fuzzer replayed on the emulated Rytm | 6 recipes per run (more with `FUZZ_SAMPLES`) | I2, I7–I9 |
 | Hardware | `docs/flashing.md`'s checks on a Rytm MKII with OS 1.74 | one unit (0.5.1) | I7, I9 |
@@ -58,15 +59,23 @@ on any out-of-bounds memory access or undefined C behaviour.
 Any failure prints a case number; `FUZZ_CASE=<number> lib/test_fuzz` replays it and prints the recipe, the
 original and the take.
 
-### What it found
+### What the fuzzer and the interplay test found
 
-The fuzzer found one fault that the earlier tests did not:
+The fuzzer and the interplay test found faults that the earlier tests did not:
 
 - **Two lock lanes on one parameter.** LOCK has two lanes, and each can be set to any lockable parameter. With
   lane 1 at 100 % on the sample slot and lane 2 left on the sample slot too, the Rytm stored lane 2's value (the
   original's locks) and lane 1's new locks were lost. On the emulated Rytm the take had no sample locks where the
   reference showed one on every trig. Such a recipe is now refused with SETTING OUT OF RANGE and nothing is written.
-  A host test keeps it fixed (`test_found_lanes` in `lib/test_fuzz.c`). Details: [`status/M2.2.md`](status/M2.2.md).
+  A host test keeps it fixed (`test_found_lanes` in `lib/test_fuzz.c`). LOCK's PARM knob now also skips the
+  parameter the other lane is on, so the refusal is only a backstop. Details: [`status/M2.2.md`](status/M2.2.md).
+- **PHRS cut EUCLID into pages.** On 64 steps, EUCLID 13/5 under PHRS played four copies of its first 16 steps.
+  EUCLID now runs along the whole track and the phrase letters only dress its trigs.
+- **PHRS lost trigs on a short last page.** On a 24- or 40-step track, ROT and SYNC pushed real trigs past the
+  track's end. A short last page is now a phrase of its own length for TRACK, COPY and EUCLID.
+- **A:B's CVAL showed `/10`** where the engine uses 8.
+
+Details of these three: [`status/M2.1.md`](status/M2.1.md).
 
 ## What is not tested
 

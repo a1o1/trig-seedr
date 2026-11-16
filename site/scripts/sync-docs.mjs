@@ -14,6 +14,7 @@ const pages = [
   ['tools/README.md', 'developers/tools-and-tests.md', 'Tools and tests', 4],
   ['CONTRIBUTING.md', 'developers/contributing.md', 'Contributing', 5],
   ['docs/flashing.md', 'getting-started/flashing.md', 'Flashing a unit', 4],
+  ['docs/testing.md', 'about/testing.md', 'How it is tested', 3],
   // the version 1 features' user text, one page each (written by the workstream that built it)
   ['docs/v1/meter.md', 'features/meter.md', 'Meters and roles', 1],
   ['docs/v1/euclid.md', 'features/euclid.md', 'EUCLID', 2],

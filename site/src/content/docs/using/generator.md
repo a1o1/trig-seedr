@@ -16,7 +16,7 @@ Ranges: a knob sets the high end, **FUNC** + knob the low end. Turning an end of
 | Knob | Name | Range | What |
 |---|---|---|---|
 | A | SRC | TRACK, RAND, EUCLID, MAP, COPY | where the trigs come from |
-| B–E | GRID, DENS, BIAS, ROLE | RAND | GRID 1/16…1/2; DENS 0–100 % of grid steps, exactly; BIAS −100…+100 % towards strong or weak steps; ROLE METER, KICK, BACK, HAT, PERC: which steps count as strong ([Meters and roles](../../features/meter/)) |
+| B–E | GRID, DENS, BIAS, ROLE | RAND | GRID 1/16…1/2; DENS 0–100 % of grid steps, exactly; BIAS −100…+100 % towards strong or weak steps; ROLE METER, KICK, BACK, HAT, PERC: which steps count as strong, shown while BIAS is not 0 ([Meters and roles](../../features/meter/)) |
 | B, C | STEPS, PULS | EUCLID | PULS pulses spread over STEPS steps, as stock's Euclidean mode ([EUCLID](../../features/euclid/)) |
 | B–F | PART, DENS, X, Y, CHAOS | MAP | a map of drum patterns: PART 1–3, DENS 0–255, X and Y 0–255 (shared by the pattern's tracks), CHAOS 0–255 ([MAP](../../features/map/)) |
 | B | TRK | COPY | the track whose trigs are taken ([COPY and MASK](../../features/copy-mask/)) |
@@ -48,7 +48,7 @@ SKIP and the velocity shapes refer to where steps end up after ROT.
 | C | AMT | 0–100 % | how far velocities follow the shape (with VEL = DEF the shape runs from half the trig's velocity up to it) |
 | D | N | 1–64 | EVRY: every N-th trig; NOISE: steps per contour cell |
 | E | ACC | 0–100 % | the share of trigs with the accent flag; at 0 the flags are left as they are |
-| F | AMOD | RAND, TOP | RAND: random trigs; TOP: the strongest steps (the meter's rank; with MAP the map's own accents) |
+| F | AMOD | RAND, TOP | RAND: random trigs; TOP: the strongest steps (the meter's rank; with MAP the map's own accents); shown while ACC is not 0 |
 | G | HUM | 0–100 | a random velocity spread per step, up to ±32 at 100 |
 
 ## NOTE
