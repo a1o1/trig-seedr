@@ -188,6 +188,19 @@ static inline int rt_current(unsigned *obj, unsigned *pattern)
     return n;
 }
 
+#ifndef RT_HOST
+/* Grid recording (RECORD lit, not live recording): 1 while on. A byte OS 1.74 keeps at a fixed
+ * address, set from the recording state each time its routine at 0x40036270 runs (measured in
+ * analog-emu: boot 0, RECORD 1, playing with RECORD 1, RECORD off 0, RECORD + PLAY 0). */
+#define RT_GRID_REC_FLAG ((volatile const uint8_t *)0x417e320c)
+static inline int rt_grid_recording(void)
+{
+    return *RT_GRID_REC_FLAG != 0;
+}
+#else
+int rt_grid_recording(void);
+#endif
+
 static inline int rt_euclid(unsigned obj)
 {
     const uint8_t *r = rt_record(obj);

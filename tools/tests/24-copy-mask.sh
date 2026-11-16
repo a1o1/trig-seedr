@@ -1,7 +1,7 @@
 #!/bin/sh
 # Task F4: RHYTHM SRC = COPY and PLACE MASK (AVOID, ONLY) on A01 BD against SD, each take compared
 # with tools/seedref (SD's dump as seedref's other=1:FILE). The preview (F10) reads the other
-# tracks from the context: after SD is changed with stock's keys (TRK + T2, RECORD, the TRIG keys,
+# tracks from the context: after SD is changed with stock's keys (TRK + T2, grid recording, the TRIG keys,
 # TRK + T1) it renders again and follows, for COPY and for MASK, and the next YES writes it.
 R=$(cd "$(dirname "$0")/../.." && pwd); . "$R/tools/emu.sh"; . "$T/tests/fixtures.sh"
 emu_init 24-copy-mask
@@ -28,7 +28,9 @@ check_preview() {
 }
 # sd_record KEY...: on SD, TRIG keys in grid recording, then back to BD (stock's keys)
 sd_record() {
-    emu_keys TRK+T2 RECORD "$@" RECORD TRK+T1
+    emu_keys TRK+T2
+    emu_rec 1                                   # grid recording (it may be on already)
+    emu_keys "$@" TRK+T1
     emu_dump 1 > "$D/sd.txt"
 }
 

@@ -22,9 +22,9 @@ A page, knob or value whose feature is not built yet is not shown. The title bar
 | UP / DOWN | LOCK: lane 1 or 2 |
 | knobs A–H | the page's settings |
 | FUNC + knob | the low end of a range (VEL, LEN, NOTE, RNGE, CVAL, RATE); SEED in steps of 100; other wide knobs in steps of 10 |
-| YES | render the track's recipe (an audition); on TOOLS, run the tool |
-| NO | while auditioning: back to the original; otherwise: close |
-| FUNC + YES | keep the take |
+| YES | generate: write a take to hear it (needs RECORD on); on TOOLS, run the tool |
+| NO | with a take pending: back to the original; otherwise: close |
+| FUNC + YES | apply: keep the take (the only way a take stays) |
 | PAGE, the TRIG keys, transport | stock's: PAGE still picks which 16 steps the TRIG keys show |
 
 ## One recipe per track
@@ -35,13 +35,34 @@ Every track has a recipe: the settings of all the pages. **YES renders the whole
 - A page at 0 (or DEF) leaves its fields as they are. With SRC = TRACK and every page at 0, YES changes nothing.
 - Recipes are kept in memory for the pattern in play: changing pattern starts new ones. Power off forgets them; what was written is ordinary pattern data.
 
-## The audition
+## Generate and apply
 
-- The **first YES** copies the track (TOOLS: every track) and writes the take.
-- **Every YES after it** starts again from that copy: you hear takes, not changes on top of changes.
-- **YES with no knob turned** since the track's last YES moves to the **next seed**: a new take. After a knob turn, YES keeps the seed, so you hear just that change.
-- **NO** restores the original. **FUNC + YES** keeps the take; so does leaving the track or the pattern.
-- A take that cannot be written (a lock with no room in the pattern, a feature not built) writes nothing and says why for two seconds.
+Trig Seedr **generates** a take and you **apply** it. Generating writes real trigs into the track so you can hear
+them; the track's original is kept until you apply the take, and comes back if you don't.
+
+This is not how the Rytm's Euclidean mode works. Euclidean mode is built into the OS: the Rytm plays a separate
+Euclidean pattern, so your stored trigs never change, and turning EUC off brings them back at any time. Trig Seedr
+has no such separate pattern: the sequencer plays the stored trigs, so a take has to be written into them. That is
+why generating needs RECORD (as any editing of trigs does) and why a take stays only when you apply it.
+
+| You do | RECORD off | RECORD on (grid recording) |
+|---|---|---|
+| Open Trig Seedr, change page, turn knobs | Everything works. The strip at the bottom previews the take you would get. Nothing is written | The same |
+| **YES** (generate) | Nothing is written. The screen says **RECORD TO GENERATE** | The take is written so you can hear it; your original is kept. The title shows **AUD** |
+| **YES** again | | A new take, always from your original: the next seed if you turned no knob, otherwise your change |
+| **NO** | Closes Trig Seedr | Your original comes back. With no take pending, NO closes Trig Seedr |
+| **FUNC + YES** (apply) | Nothing to apply | **The take stays and your original is dropped.** This is the only way to keep a take. The screen says **APPLIED** |
+| Change track or pattern, close Trig Seedr, or turn RECORD off, with a take not applied | | Your original comes back. The screen says **NOT APPLIED** |
+| TOOLS: ROTATE ALL | Nothing happens (**RECORD TO GENERATE**) | YES rotates every track, FUNC + YES applies, NO or leaving puts every track back |
+| Save the pattern with a take not applied | | The save stores the take as it is at that moment |
+
+Good to know:
+
+- **Nothing is lost by not applying.** The track's recipe and seed stay, so YES generates the same take again.
+- RECORD means grid recording: RECORD lit, the sequencer stopped or playing. Live recording (RECORD + PLAY) does
+  not count.
+- A take that cannot be written (a lock with no room left in the pattern) writes nothing and says why for two
+  seconds.
 
 ## TAKE
 

@@ -5,24 +5,27 @@
  *   TRIG              stock: TRIG page, TRIG again: EUCLIDEAN; TRIG on the EUCLIDEAN page opens
  *                     seedr, as a third TRIG page; TRIG on seedr closes it and stock goes back to
  *                     its TRIG page. A parameter page key (SRC, SMPL, FLTR, AMP, LFO, FX) or a
- *                     menu key closes it too. Closing keeps an audition's result.
+ *                     menu key closes it too.
  *   TRIG held + PAGE  opens it from anywhere (a shortcut; stock does nothing with it)
  *   LEFT / RIGHT      the previous / next page: TAKE RHYTHM PLACE DYNAMICS NOTE LOCK TRIG TIME VIEW
  *                     TOOLS. A page whose features are not built, or that the device lacks, is skipped
  *   UP / DOWN         LOCK: lane 1 / lane 2
  *   knobs A..H        the page's settings (pages.c); FUNC + knob: a range's low end, or 10 (SEED:
  *                     100) a step. VIEW: knob A moves the step cursor
- *   YES               renders the track's recipe from the original (V2): the first YES snapshots the
- *                     track (the audition), every YES after it starts again from that original. A
+ *   YES               generate (needs grid recording; otherwise RECORD TO GENERATE): renders the
+ *                     track's recipe from the original (V2) and writes it to be heard. The first YES
+ *                     snapshots the track, every YES after it starts again from that original. A
  *                     YES with no knob turned since the track's last YES takes the next seed.
- *                     TOOLS: runs the tool (ROTATE ALL), its own audition over every track
- *   NO                while auditioning: back to the original; otherwise: close
- *   FUNC + YES        keep the result (ends the audition)
+ *                     TOOLS: runs the tool (ROTATE ALL) over every track, the same way
+ *   NO                with a take pending: back to the original; otherwise: close
+ *   FUNC + YES        apply: the take stays, the original is dropped. The only way a take stays
  *   PAGE, TRIG keys   stock's: PAGE picks which 16 steps the TRIG keys show
  *
  * One recipe per track (V5), in RAM, for the pattern in play; a new one starts on SOURCE = TRACK
- * when the track has trigs (V6). The audition also ends, keeping the result, when the pattern or
- * the track changes. Writes go through the stock step routines (device/rytm_ar2.h).
+ * when the track has trigs (V6). A pending take is not applied (the original comes back) when the
+ * track or pattern changes, seedr closes, or grid recording ends (Alan, 2026-11-16: generate and
+ * apply, unlike stock's Euclidean mode, which plays from its own table and never writes trigs).
+ * Writes go through the stock step routines (device/rytm_ar2.h).
  */
 #include <stdint.h>
 #include "analog-rytm-mk2/screen.h"
@@ -202,15 +205,15 @@ static void say(const char *m)
     msg_until = ticks + 40;            /* two seconds at the Rytm's 20 Hz tick */
 }
 
-static void keep(void);
+static void not_applied(void);
 
 /* Start or continue an audition of kind `kind` over the tracks in `mask`: the first call
- * snapshots them, later ones put the originals back first. An audition of another kind, or over
- * other tracks, is kept first (its result becomes the new original). */
+ * snapshots them, later ones put the originals back first. A take of another kind, or over other
+ * tracks, still pending is not applied: its originals come back first. */
 static int audition(int kind, unsigned mask)
 {
     if (auditioning && (auditioning != kind || aud_mask != mask))
-        keep();
+        not_applied();
     if (auditioning) {
         dev->restore();
         return 1;
@@ -238,7 +241,8 @@ static const char *error_text(int rc)
     }
 }
 
-/* YES: the track's recipe rendered from the original (V2) */
+/* YES (generate): the track's recipe rendered from the original (V2) and written so it can be
+ * heard; the original is kept until FUNC + YES applies the take. Needs grid recording. */
 static void take(void)
 {
     unsigned obj;
@@ -249,6 +253,10 @@ static void take(void)
     struct seed_recipe *r;
     if (n == FX_TRACK) {
         say("NOT ON THE FX TRACK");
+        return;
+    }
+    if (!rt_grid_recording()) {
+        say("RECORD TO GENERATE");      /* generate and apply need grid recording, as editing does */
         return;
     }
     if (rt_euclid(obj)) {
@@ -293,6 +301,10 @@ static void tool_run(void)
     int t, done = 0;
     char *o;
     rt_current(&cur, &pat);
+    if (!rt_grid_recording()) {
+        say("RECORD TO GENERATE");
+        return;
+    }
     if (!audition(A_TOOL, (1u << NTRACKS) - 1))
         return;
     for (t = 0; t < NTRACKS; t++) {
@@ -318,21 +330,36 @@ static void tool_run(void)
     core_project_edited();
 }
 
-static void revert(void)
+/* the originals back, the take dropped; `m` says why */
+static void back(const char *m)
 {
     if (auditioning) {
         dev->restore();
         core_project_edited();
-        say("BACK TO THE ORIGINAL");
+        say(m);
     }
     auditioning = A_NONE;
     dev->drop();
 }
 
-static void keep(void)
+/* NO */
+static void revert(void)
+{
+    back("BACK TO THE ORIGINAL");
+}
+
+/* leaving the track or pattern, closing seedr, turning RECORD off: a take only stays when it is
+ * applied (FUNC + YES), so a pending one is not */
+static void not_applied(void)
+{
+    back("NOT APPLIED");
+}
+
+/* FUNC + YES: the take stays, the original is dropped */
+static void apply(void)
 {
     if (auditioning)
-        say("KEPT");
+        say("APPLIED");
     auditioning = A_NONE;
     dev->drop();
 }
@@ -382,7 +409,7 @@ int gr_key(void *brain, void *ev)
         }
         if (down && open) {
             open = 0;                           /* and stock goes on from EUCLIDEAN to TRIG */
-            keep();
+            not_applied();
         }
         return 0;
     }
@@ -396,7 +423,7 @@ int gr_key(void *brain, void *ev)
         for (i = 0; i < sizeof leave_keys; i++)
             if (k == leave_keys[i]) {
                 open = 0;                       /* another page or a menu: seedr closes */
-                keep();
+                not_applied();
                 return 0;
             }
     }
@@ -417,7 +444,7 @@ int gr_key(void *brain, void *ev)
     case K_YES:
         if (down) {
             if (func_held)
-                keep();
+                apply();
             else if (page == PG_TOOLS)
                 tool_run();
             else
@@ -429,7 +456,7 @@ int gr_key(void *brain, void *ev)
             if (auditioning)
                 revert();
             else
-                open = 0;
+                open = 0;                       /* nothing pending: NO closes */
         }
         return 1;
     default:
@@ -480,8 +507,8 @@ void gr_tick(void *ctrl)
     if (auditioning) {
         unsigned obj, pat;
         int n = rt_current(&obj, &pat);
-        if (pat != aud_pat || (auditioning == A_TAKE && n != aud_track))
-            keep();                             /* another track or pattern: the result stays */
+        if (pat != aud_pat || (auditioning == A_TAKE && n != aud_track) || !rt_grid_recording())
+            not_applied();                      /* another track or pattern, or RECORD off */
     }
     if (open)
         *((volatile uint8_t *)ctrl + 0x20) = 1;

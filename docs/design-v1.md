@@ -117,16 +117,18 @@ Other knobs:
 | LEFT / RIGHT | previous / next page |
 | UP / DOWN | lane on LOCK; otherwise unused |
 | knobs A–H | the page's settings; FUNC + knob: the low end of a range |
-| YES | render the recipe (audition) |
-| NO | back to the original; with nothing auditioned, close |
-| FUNC + YES | keep (assumption A4) |
+| YES | generate: render the recipe and write it to be heard (needs grid recording) |
+| NO | back to the original; with no take pending, close |
+| FUNC + YES | apply: the only way a take stays (assumption A4) |
 | PAGE, TRIG keys | stock |
 
 Opening and closing are the device's business (Rytm: the TRIG cycle after EUCLIDEAN, TRIG held + PAGE as a shortcut).
 
-## 9. Audition
+## 9. Generate and apply
 
-As 0.3 (D11, D18): the first YES snapshots the tracks in scope; each YES renders from the snapshot; NO restores it; keep drops it; leaving keeps. New: with SOURCE = TRACK the snapshot is also the source.
+**Generate and apply** (Alan, 2026-11-16, after the first hardware test). YES generates only with grid recording on (RECORD lit; live recording does not count); otherwise it writes nothing and says RECORD TO GENERATE, so browsing and the preview are always safe. The first YES snapshots the tracks in scope; each YES renders from the snapshot; NO restores it; FUNC + YES applies the take and drops the snapshot, the only way a take stays. Changing track or pattern, closing trig-seedr, or turning grid recording off with a take pending restores the snapshot (NOT APPLIED). With SOURCE = TRACK the snapshot is also the source. A pattern save during a take stores the take as it stands.
+
+Unlike stock's Euclidean mode, which plays from its own table and never changes the stored trigs, trig-seedr must write trigs to be heard; hence the apply step. (Until 0.5, leaving kept a take, as 0.3's D11 and D18.)
 
 ## 10. Device layer contract
 

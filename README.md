@@ -1,8 +1,8 @@
 # trig-seedr
 
 [![License: GPL v2+](https://img.shields.io/badge/License-GPL%20v2%2B-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-v0.5.0-blue.svg)](https://github.com/a1o1/trig-seedr/releases)
-[![Status](https://img.shields.io/badge/Status-emulator%20only-orange.svg)](#status)
+[![Version](https://img.shields.io/badge/Version-v0.5.1-blue.svg)](https://github.com/a1o1/trig-seedr/releases)
+[![Status](https://img.shields.io/badge/Status-first%20hardware%20test-yellow.svg)](#status)
 [![Device](https://img.shields.io/badge/Analog%20Rytm%20MKII-OS%201.74-black.svg)](docs/firmware-notes-os174.md)
 [![elekloader](https://img.shields.io/badge/elekloader-core--ar2%200.13-purple.svg)](https://github.com/elekloader/elekloader)
 [![Language](https://img.shields.io/badge/C99-freestanding%20ColdFire-informational.svg)](lib/)
@@ -15,7 +15,7 @@
 
 Pattern seeds for Elektron machines. trig-seedr is a set of offline pattern algorithms, as firmware mods. The first is for the Analog Rytm MKII (OS 1.74), as an [elekloader](https://github.com/elekloader/elekloader) mod; the Analog Four MKII and the Syntakt are planned next. On the Rytm each track has a recipe: a source of trigs (the track's own, or generated), then pages that place them and set velocity, notes, two lanes of parameter locks, trig conditions, retrigs and a groove from Ableton Live, with an audition undo; and rotation of the whole pattern.
 
-<a id="status"></a>**Status: version 0.4 works in the emulator (analog-emu, every scripted check passes); 0.3 and 0.4 have not yet been run on a unit.** Flashing modified firmware is at your own risk; keep the stock OS and a way to reflash it (DIN MIDI) at hand.
+<a id="status"></a>**Status: version 0.5 has passed a first test on an Analog Rytm MKII running stock OS 1.74 (2026-11-16): every feature worked as expected; the generate-and-apply rules below came from that test. Every scripted check passes in the emulator (analog-emu).** Flashing modified firmware is at your own risk; keep the stock OS and a way to reflash it (DIN MIDI) at hand.
 
 trig-seedr is an independent project. It is not affiliated with or endorsed by Elektron or Ableton; their product names are used only to say what it works with. No firmware, and nothing derived from Ableton's content, is included: you build against your own copy of the stock OS, and generate groove tables from your own Live installation.
 
@@ -50,8 +50,8 @@ Screens, from the emulator:
 | ![VIEW](docs/screens/view.png) VIEW | ![TOOLS](docs/screens/tools.png) TOOLS |
 
 - **One recipe per track.** A track with trigs starts on SRC = TRACK, an empty one on RAND. A page at 0 (or DEF) leaves its fields alone: SRC = TRACK with every page at 0 changes nothing.
-- **YES** renders the whole recipe from the original track. The first YES snapshots the track; each YES after it starts again from that original, so you audition takes. YES with no knob turned since the last YES moves to the next seed.
-- **NO** goes back to the original; **FUNC + YES** keeps the take. Leaving the track or the pattern keeps it too.
+- **Generate and apply.** With RECORD on (grid recording), **YES** generates: the take is written so you can hear it and your original is kept. Each YES starts again from that original; YES with no knob turned moves to the next seed. **FUNC + YES** applies the take, the only way a take stays. **NO**, or changing track or pattern, closing Trig Seedr or turning RECORD off, brings your original back. With RECORD off, YES writes nothing (RECORD TO GENERATE): browsing and the preview are always safe.
+- This differs from the Rytm's Euclidean mode, which plays a separate pattern and never changes your stored trigs; Trig Seedr writes real trigs, so it asks you to apply. The full table: the site's [Keys and pages](https://a1o1.github.io/trig-seedr/using/pages/#generate-and-apply).
 - Ranges (VEL, LEN, NOTE, RNGE, CVAL, RATE): a knob sets the high end, **FUNC** + knob the low end.
 - Everything written is ordinary Rytm data: it plays, saves and reloads on a stock OS.
 

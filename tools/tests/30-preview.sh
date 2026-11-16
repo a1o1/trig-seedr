@@ -138,7 +138,8 @@ check_preview "NO: the preview" src=random seed=2 dens=40 "$K"
 emu_knob RHYTHM A:src:one 0
 check_preview "SRC TRACK: the track itself" "$K"
 r0=$(renders)
-emu_keys RECORD T3 RECORD
+emu_rec 1
+emu_keys T3
 save_orig rec3
 emu_check "RECORD, T3: step 3 changed" 1 "$([ "$(cat "$D/rec3.txt")" != "$(cat "$D/kept2.txt")" ] && echo 1)"
 check_preview "RECORD, T3: the preview follows the track" "orig=$D/rec3.txt"

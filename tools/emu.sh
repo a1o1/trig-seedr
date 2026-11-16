@@ -390,9 +390,23 @@ emu_sknob() {
     done
 }
 
-emu_yes() { emu_keys YES; }
+# emu_rec 0|1: grid recording off / on (RECORD pressed only when it is not so already). Generating
+# needs it (seedr.c: RECORD TO GENERATE); turning it off with a take pending does not apply the take.
+emu_rec() {
+    [ "$(emu_py peek "$EMU_SNAP" 0x417e320c 1)" = "$1" ] || emu_keys RECORD
+    [ "$(emu_py peek "$EMU_SNAP" 0x417e320c 1)" = "$1" ] || emu_die "grid recording did not turn $1"
+}
+# emu_yes: YES with grid recording on (generate); emu_keep: FUNC + YES (apply)
+emu_yes() { emu_rec 1; emu_keys YES; }
 emu_no() { emu_keys NO; }
 emu_keep() { emu_keys F+YES; }
+# emu_msg: the mod's message on the strip (2 s), or nothing
+emu_msg() {
+    _msg_p=$(emu_get msg)
+    [ "$_msg_p" = 0 ] && return 0
+    emu_py peek "$EMU_SNAP" "$(printf '0x%x' $((_msg_p & 0xffffffff)))" 1 24 | python3 -c \
+        "import sys; b=bytes(int(x) for x in sys.stdin.read().split()); print(b.split(b'\\0')[0].decode())"
+}
 
 # ---- results ----
 

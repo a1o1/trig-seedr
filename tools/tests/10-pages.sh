@@ -97,7 +97,8 @@ key $W/ya.snap $W/yb.snap RIGHT                      # RHYTHM
 # BD's recipe was made when seedr opened on the empty BD (section 1), so it is RANDOM (V6), and it
 # stays so after the trigs were recorded: SOURCE = TRACK by hand
 hknob $W/yb.snap $W/yc.snap RHYTHM A:src:one 0
-key $W/yc.snap $W/y1.snap LEFT                       # TAKE
+key $W/yc.snap $W/ycr.snap RECORD                    # grid recording on: generating needs it
+key $W/ycr.snap $W/y1.snap LEFT                      # TAKE
 key $W/y1.snap $W/y2.snap YES; png $W/y2.snap seedr-take-audition
 same "$(bytes $W/y1.snap)" "$(bytes $W/y2.snap)" "YES, SOURCE = TRACK, layers at 0: record and locks byte-identical"
 differ "$(screen $W/y1.snap)" "$(screen $W/y2.snap)" "YES: the title shows the audition"

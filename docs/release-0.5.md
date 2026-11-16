@@ -1,5 +1,21 @@
 # trig-seedr 0.5
 
+## 0.5.1
+
+One change, from the first hardware test (Alan, 2026-11-16): **generate and apply.**
+
+- **YES needs RECORD** (grid recording). With RECORD off, YES writes nothing and the screen says RECORD TO GENERATE;
+  pages, knobs and the preview strip work as before, so browsing is always safe. The same for TOOLS' ROTATE ALL.
+- **FUNC + YES applies** a take (APPLIED), and is now the only way a take stays.
+- **Changing track or pattern, closing Trig Seedr, or turning RECORD off** with a take not applied brings the
+  original back (NOT APPLIED). Until 0.5.0 these kept the take.
+- Why: in 0.5.0, YES on a track with RECORD off changed the track at once, unlike every other edit on the Rytm. The
+  Rytm's Euclidean mode never touches stored trigs (it plays its own pattern); Trig Seedr has to write trigs to be
+  heard, so it lets you try a take and asks you to apply it. The table: the site's Keys and pages, "Generate and
+  apply".
+
+## 0.5.0
+
 0.5 is version 1's milestone M1: every researched idea of the design (`design-v1.md`) is built. It is the release to
 flash: it has 0.4.1's fixes and the device-layer fixes below.
 
