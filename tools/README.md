@@ -5,6 +5,7 @@
     sh tools/doctor.sh [--host]      the environment (docs/dev-environment.md section 7); no emulator
     sh tools/run_tests.sh [NAME...]  every tools/tests/NN-*.sh, or those whose name contains NAME (about 9 minutes)
     sh tools/golden.sh [--write]     the golden vectors in lib/golden/
+    sh tools/fuzz.sh [SECS [JOBS]]   the long fuzz run of lib/test_fuzz.c with ASan and UBSan (docs/testing.md)
     sh tools/build_release.sh        the firmware to flash (docs/flashing.md)
     sh tools/screens.sh [--install]  the ten page screenshots for the README and the site (docs/screens/)
 
@@ -35,6 +36,7 @@ found from a worktree's path; set it for a checkout elsewhere.
 | `12-lock-rows` | stock's lock-row type for every lockable parameter on BD, MT and FX (test mod `12-lock-rows.c`); near the 72-row limit a lock that fits survives SAVE + RELOAD, one that does not is refused (I8) (task D1) |
 | `13-apply` | generate and apply: RECORD off writes nothing (RECORD TO GENERATE); YES, NO, FUNC + YES (APPLIED); RECORD off, closing or another pattern with a take pending restore the original (NOT APPLIED) |
 | `21`..`32` | one file per version 1 workstream (F1 `21-rank` … F12 `32-map-accents`): each feature against `seedref`, and against the original code where there is one |
+| `41-fuzz-sample` | recipes from the host fuzzer (`lib/test_fuzz.c --sample`) on BD at 16, 24, 37 and 64 steps: each take against `seedref`, lane 2 included (I2); NO byte for byte (I7); applied, played, saved, reloaded, power-cycled (I9); refused with no lock rows (I8); two lanes on one parameter refused (task M2.2) |
 
 `01` leaves the fixture `kept2` (seed 2 kept) that `02`, `03`, `05`, `07` and `08` start from; `04` leaves `smp3` for `05`.
 

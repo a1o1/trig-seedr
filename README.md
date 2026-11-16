@@ -84,6 +84,11 @@ sh tools/build_release.sh                 # the firmware to flash: build/trig-se
 python3 tools/test_groove2h.py PATH/TO/Live/Core\ Library/Grooves   # the .agr / MIDI reader
 ```
 
+**How it is tested:** host unit and property tests of every module with sanitizers, a fuzzer that checks millions of
+random recipes against the design's invariants, comparison of every emulator take with a host reference, frozen
+golden vectors, and the patched OS driven through the Rytm's keys in an emulator. What each level checks, what the
+fuzzer found and what is not tested: [`docs/testing.md`](docs/testing.md).
+
 The harness writes `build/emu/seedr.syx` (the patched OS). It contains Elektron's firmware: keep it to yourself.
 
 To try it by hand, in the emulator's window:

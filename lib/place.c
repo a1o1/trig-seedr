@@ -141,8 +141,13 @@ int seed_place_skip(struct seed_track *t, const struct seed_recipe *r, const str
 
 int seed_place_fields(struct seed_track *t, const struct seed_recipe *r, const struct seed_take *k, const struct seed_ctx *c)
 {
-    (void)k; (void)c;
+    (void)k;
     if (r->fld <= SEED_FLD_OFF || r->fld > SEED_FLD_LANE2)
+        return SEED_E_ARG;
+    /* a lane on the other lane's parameter: one lock on the device, which keeps one lane's values,
+     * so rotating one of them is refused (as LOCK with both, values.c; M2.2) */
+    if ((r->fld == SEED_FLD_LANE1 || r->fld == SEED_FLD_LANE2) && r->lane[0].parm == r->lane[1].parm
+        && (!c || !c->caps || c->caps->lanes >= 2))
         return SEED_E_ARG;
     return seed_rotate(t, 0, t->length, r->frot, r->fld, r->fmod);
 }
