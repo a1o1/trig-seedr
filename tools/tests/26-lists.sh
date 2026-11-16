@@ -73,7 +73,9 @@ emu_no
 check_take "NO: the original" src=random seed=2 "$K"
 check_lane2 "NO: no FRQ locks" src=random seed=2 "$K"
 emu_yes
-check_take "YES, no knob turned: the next seed (V2), lists and all" src=random seed=3 $N $L "$K"
+check_take "YES after NO: the same take (seed 2) back, lists and all" src=random seed=2 $N $L "$K"
+emu_keys YES
+check_take "YES again, no knob turned: the next seed (V2), lists and all" src=random seed=3 $N $L "$K"
 emu_keep
 emu_no
 emu_check "NO: closed" 0 "$(emu_get open)"
