@@ -38,20 +38,42 @@ static int place(int o, int n, int index, const struct seed_take *k, uint32_t sl
     }
 }
 
+/* The last list made (task M2.3). A stage asks for one item per trig, so the same list was made
+ * again for every trig: up to 16 draws each, and each draw a walk of up to 64 takes at a high
+ * VARY. The items depend only on the range, the length, the slot and the take's numbers (the
+ * fields of struct seed_take that seed_rand reads), so a list made from the same ones is the same
+ * list: it is kept and used again. */
+static struct {
+    int valid, lo, hi, n, vary, cand;
+    uint32_t slot, seed, salt;
+    int item[SEED_LIST_MAX];
+} last;
+
 int seed_value_list(const struct seed_values *v, const struct seed_take *k, uint32_t slot, int index)
 {
-    int item[SEED_LIST_MAX];
     int n = v->len < 1 ? 1 : v->len > SEED_LIST_MAX ? SEED_LIST_MAX : v->len;
     int i, j, p = place(v->order, n, index < 0 ? 0 : index, k, slot);
 
-    /* the items, sorted as they are drawn (insertion) */
-    for (i = 0; i < n; i++) {
-        int x = seed_rand_range(k, slot + LIST_ITEM + (uint32_t)i, v->lo, v->hi);
-        for (j = i; j > 0 && item[j - 1] > x; j--)
-            item[j] = item[j - 1];
-        item[j] = x;
+    if (!last.valid || last.lo != v->lo || last.hi != v->hi || last.n != n || last.slot != slot ||
+        last.seed != k->seed || last.salt != k->salt || last.vary != k->vary || last.cand != k->cand) {
+        /* the items, sorted as they are drawn (insertion) */
+        for (i = 0; i < n; i++) {
+            int x = seed_rand_range(k, slot + LIST_ITEM + (uint32_t)i, v->lo, v->hi);
+            for (j = i; j > 0 && last.item[j - 1] > x; j--)
+                last.item[j] = last.item[j - 1];
+            last.item[j] = x;
+        }
+        last.valid = 1;
+        last.lo = v->lo;
+        last.hi = v->hi;
+        last.n = n;
+        last.slot = slot;
+        last.seed = k->seed;
+        last.salt = k->salt;
+        last.vary = k->vary;
+        last.cand = k->cand;
     }
-    return item[p];
+    return last.item[p];
 }
 
 /* a length code's duration in 1/16 of a step (docs/firmware-notes-os174.md: LENGTH), codes 0..126 */

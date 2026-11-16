@@ -438,6 +438,40 @@ static void test_random(void)
     CHECK(own);
 }
 
+/* M2.3: seed_value_list keeps the last list it made. Calls whose inputs change one at a time and
+ * in mixes (the range, the length, the slot, each field of the take seed_rand reads) each give the
+ * list made afresh, as UP walks it. */
+static int fresh(const struct seed_values *v, const struct seed_take *k, uint32_t slot, int index)
+{
+    int item[SEED_LIST_MAX], n = v->len, i, j;
+    for (i = 0; i < n; i++) {
+        int x = seed_rand_range(k, slot + 0x100 + (uint32_t)i, v->lo, v->hi);
+        for (j = i; j > 0 && item[j - 1] > x; j--)
+            item[j] = item[j - 1];
+        item[j] = x;
+    }
+    return item[index % n];
+}
+
+static void test_kept(void)
+{
+    static const int16_t los[] = { 0, -12, 0 }, his[] = { 127, 12, 126 };
+    struct seed_values v;
+    struct seed_take k;
+    uint32_t x = 12345, slot;
+    int i, ok = 1;
+    for (i = 0; i < 20000; i++) {
+        int f;
+        x = seed_hash(x + (uint32_t)i);
+        f = (int)(x % 3u);
+        list(&v, los[f], his[f], SEED_ORDR_UP, 1 + (int)(x >> 4) % 3 * 7);
+        seed_take_init(&k, 1 + (x >> 8) % 3u, (x >> 10) % 2u, (int)((x >> 12) % 3u) * 45, (int)((x >> 14) % 2u));
+        slot = (x >> 16) % 2u ? SLOT : SEED_SLOT(SEED_L_LOCK, SEED_P_LOCK_VAL + 1, 0);
+        ok &= seed_value_list(&v, &k, slot, (int)(x >> 20) % 64) == fresh(&v, &k, slot, (int)(x >> 20) % 64);
+    }
+    CHECK(ok);
+}
+
 int main(void)
 {
     test_setup();
@@ -452,6 +486,7 @@ int main(void)
     test_lock();
     test_others();
     test_random();
+    test_kept();
     printf("test_values_list: %d checks, %d failed\n", checks, fails);
     return fails != 0;
 }
