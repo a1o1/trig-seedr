@@ -374,7 +374,13 @@ int pg_turn(const struct pg_ctx *c, const struct pg_row *w, int d, int lo_end)
     default:
         a = at(c, w);
         was = *a;
-        *a = (int16_t)clampi(*a + d * (lo_end && hi - lo > 20 ? 10 : 1), lo, hi);
+        v = clampi(*a + d * (lo_end && hi - lo > 20 ? 10 : 1), lo, hi);
+        /* PARM never lands on the other lane's parameter: the device keeps one lock per parameter
+         * and step, so two lanes on one parameter cannot both be stored (M2.2; Alan, 2026-11-16).
+         * The engine also refuses such a recipe (values.c). */
+        if (w->fmt == PF_PARM && c->caps && c->caps->lanes > 1 && v == c->r->lane[1 - c->lane].parm)
+            v = v + d >= lo && v + d <= hi ? v + d : was;
+        *a = (int16_t)v;
         return *a != was;
     }
 }

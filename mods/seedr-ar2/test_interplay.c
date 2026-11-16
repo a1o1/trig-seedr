@@ -112,6 +112,11 @@ static void set_random(const struct pg_ctx *c, const struct pg_row *w, int diffe
         }
         default: *(int16_t *)p = (int16_t)prop_int(&g, lo, hi); break;
         }
+        /* PARM never reaches the other lane's parameter on the page (pages.c pg_turn) */
+        if (w->fmt == PF_PARM && caps.lanes > 1 && *(int16_t *)p == r.lane[1 - c->lane].parm) {
+            memcpy(p, was, n);              /* not that one; with no other value it stays as it was */
+            continue;
+        }
         if (!differ || memcmp(was, p, n))
             break;
     }
@@ -462,11 +467,35 @@ static void test_cycle_text(void)
 }
 
 /* test_interplay [RECIPES [SEED]]: 3000 recipes by default (the Makefile's run) */
+/* LOCK PARM never lands on the other lane's parameter (Alan, 2026-11-16): from the defaults, turning
+ * either lane's PARM either way leaves the lanes on different parameters */
+static void test_parm_skip(void)
+{
+    struct pg_ctx c;
+    const struct pg_row *w;
+    int lane, d, i;
+    for (lane = 0; lane < 2; lane++)
+        for (d = -1; d <= 1; d += 2) {
+            seed_recipe_defaults(&r, &caps);
+            page_ctx(&c, lane);
+            w = pg_row_at(&c, PG_LOCK, 0);
+            CHECK(w && w->fmt == PF_PARM, "LOCK's knob A is PARM");
+            if (!w || w->fmt != PF_PARM)
+                continue;
+            for (i = 0; i < 3; i++) {
+                pg_turn(&c, w, d, 0);
+                CHECK(r.lane[0].parm != r.lane[1].parm, "PARM lane %d turned %d: both lanes on %d", lane + 1, d,
+                      r.lane[0].parm);
+            }
+        }
+}
+
 int main(int argc, char **argv)
 {
     int n = argc > 1 ? atoi(argv[1]) : 3000;
     if (argc > 2)
         g.s = (uint32_t)strtoul(argv[2], 0, 0);
+    test_parm_skip();
     test_cases(n > 0 ? n : 3000);
     test_phrs_euclid();
     test_sense();

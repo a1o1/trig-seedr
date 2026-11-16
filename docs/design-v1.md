@@ -86,7 +86,7 @@ Other knobs:
 - **PLACE.** SYNC: share of eligible trigs moved one grid step earlier, onto a weaker step (after Sioros and Guedes); the step's data moves with it. MASK: OFF, AVOID, ONLY against track MTRK. SKIP: the first N steps are cleared. FLD, FROT, FMOD: rotate one field against the trigs (0.3's ROTATE fields).
 - **DYNAMICS.** VEL: DEF or a range. SHAPE: FLAT, STRONG, WEAK, OFF, NOT 1, NOTBAR, RANK, NOISE, EVRY, MAP. AMT: share of the shape. N: every N for EVRY, zoom for NOISE. ACC: share of trigs with the accent flag. AMOD: RAND, or TOP (the highest-ranked trigs). HUM: random spread.
 - **NOTE.** LMOD: RANGE or LEGATO (to the next trig). NSRC: RANGE, LIST, NOISE. ORDR: UP, DOWN, PING, PNG2, ODD, RAND. NLEN: list length.
-- **LOCK.** PARM: the parameter (the Rytm's default: sample slot). Two lanes in version 1.
+- **LOCK.** PARM: the parameter (the Rytm's default: sample slot). Two lanes in version 1. A lane's PARM skips the other lane's parameter, since the Rytm keeps one lock per parameter and step; a recipe with both lanes on one parameter is refused (SETTING OUT OF RANGE).
 - **TIME.** 0.3's GROOVE knobs plus DRFT (correlated drift).
 
 ## 6. MAP (after Grids)
