@@ -14,6 +14,8 @@
 [![Website](https://img.shields.io/badge/Website-a1o1.github.io%2Ftrig--seedr-4d9bff.svg)](https://a1o1.github.io/trig-seedr/)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
 
+**The manual and website: [a1o1.github.io/trig-seedr](https://a1o1.github.io/trig-seedr/)**: how to use every page, the features, flashing, and how it is tested.
+
 Pattern seeds for Elektron machines. trig-seedr is a set of offline pattern algorithms, as firmware mods. The first is for the Analog Rytm MKII (OS 1.74), as an [elekloader](https://github.com/elekloader/elekloader) mod; the Analog Four MKII and the Syntakt are planned next. On the Rytm each track has a recipe: a source of trigs (the track's own, or generated), then pages that place them and set velocity, notes, two lanes of parameter locks, trig conditions, retrigs and a groove from Ableton Live, with an audition undo; and rotation of the whole pattern.
 
 <a id="status"></a>**Status: version 0.7 brings the changes from playing 0.6.0 on a Rytm MKII (range knobs, the pending dot, YES after a revert) and the TOOLS page's YOLO. Version 0.6 was version 1's integration milestone: every source and layer tested together, fuzzed and measured. Version 0.5 passed a first test on an Analog Rytm MKII running stock OS 1.74 (2026-11-16): every feature worked as expected; the generate-and-apply rules below came from that test. Every scripted check passes in the emulator (analog-emu).** Flashing modified firmware is at your own risk; keep the stock OS and a way to reflash it (DIN MIDI) at hand.
