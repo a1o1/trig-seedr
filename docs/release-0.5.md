@@ -3,7 +3,7 @@
 0.5 is version 1's milestone M1: every researched idea of the design (`design-v1.md`) is built. It is the release to
 flash: it has 0.4.1's fixes and the device-layer fixes below.
 
-Status: every check of `tools/run_tests.sh` passes in analog-emu on the Mac (24 test files, 126 golden vectors). Not
+Status: every check of `tools/run_tests.sh` passes in analog-emu on the Mac (25 test files, 129 golden vectors). Not
 yet run on a unit. A build with MAP's data is GPL-3.0-or-later (README, License).
 
 ## New
@@ -19,6 +19,7 @@ yet run on a unit. A build with MAP's data is GPL-3.0-or-later (README, License)
 | RHYTHM / PLACE | COPY another track's trigs; MASK: AVOID or ONLY another track's trigs (a track in Euclidean mode counts as it plays) | `docs/v1/copy-mask.md` |
 | PLACE | SYNC: anticipation onto the weaker step before; the moved step keeps all its locks | `docs/v1/sync.md` |
 | DYNAMICS | SHAPE RANK, NOISE and MAP; AMOD TOP (the strongest steps get the accents) | `docs/v1/meter.md`, `noise.md`, `map.md` |
+| DYNAMICS | with SRC = MAP, AMOD TOP accents the steps with the highest map key: at the ACC share `docs/v1/map.md` gives, exactly the map's own accents (checked against the original code over 829,440 takes) | `docs/v1/map.md` |
 | NOTE / LOCK | value sources LIST (UP, DOWN, PING, PNG2, ODD, RAND, its own length) and NOISE (a contour that loops without a jump); LMOD = LEGATO | `docs/v1/lists.md`, `noise.md` |
 | TIME | DRFT: correlated drift of micro timing | `docs/v1/drift.md` |
 | every page but VIEW | the bottom strip previews the take YES would write, before YES | `docs/v1/preview.md` |
