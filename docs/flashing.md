@@ -34,7 +34,8 @@ As for any OS update:
 
 ## First checks on the unit
 
-1. GLOBAL > SYSTEM > OS INFO shows the version **TS05**.
+1. The boot screen shows the version **TS05** while the Rytm starts (OS 1.74 has no menu that shows it; GLOBAL >
+   SYSTEM > OS UPGRADE shows only WAITING FOR SYSEX).
 2. The Rytm plays as before: load a project, play a pattern, turn some knobs.
 3. **TRIG**, **TRIG** (EUCLIDEAN), **TRIG**: trig-seedr's page. **TRIG** again: back to stock's TRIG page.
 4. On a scratch pattern with an empty track: **YES** (a take: an empty track starts on RAND), **YES** (the next
