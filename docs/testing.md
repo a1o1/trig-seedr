@@ -26,7 +26,7 @@ them.
 
 | Level | What | Size | Invariants |
 |---|---|---|---|
-| Host unit tests | `make -C lib test`, `make -C device test`, the page tables: every module of the engine and the device layer, with AddressSanitizer and UndefinedBehaviorSanitizer | about 636,000 checks in all (the interplay and fuzz tests below included), a few minutes | each module's own |
+| Host unit tests | `make -C lib test`, `make -C device test`, the page tables: every module of the engine and the device layer, with AddressSanitizer and UndefinedBehaviorSanitizer | about 717,000 checks in all (the interplay, fuzz and YOLO tests below included), a few minutes | each module's own |
 | Property tests | `lib/props.h`: random tracks and recipes checked against the invariants inside each module's tests | thousands of random cases per module | I1–I6 |
 | Fuzzing | `lib/test_fuzz.c`: random originals, patterns and recipes over every source, layer and value source, on three device profiles, 6 % with knobs set outside their ranges | 4,000 cases in every `make test`; long runs with `tools/fuzz.sh` (below) | I1–I6, I10, value ranges |
 | Device-layer fuzzing | `device/test_rytm_ar2.c`: random patterns, lengths, lane parameters, row limits and takes written through the device layer into a model of stock's memory; checks that a refused write changes nothing, other tracks and steps past the length are untouched, each trig carries its fields, lanes and origin's locks, the 72-row limit holds, and the restore is byte-identical | 3,000 cases in every `make -C device test` (`DEV_FUZZ` for more; 200,000 found nothing) | I6–I8 |
@@ -34,7 +34,7 @@ them.
 | Reference comparison | `tools/seedref`, the same engine built for the computer, renders every take the emulator writes; the two must agree field by field | every emulator check that generates | I2 |
 | Golden vectors | 129 recipes over every layer with their frozen results (`lib/golden/`); a change to any result fails until its reason is written down | every run | I2, design V11 |
 | Interplay | `mods/seedr-ar2/test_interplay.c`: recipes the pages can reach, from every source on 13–64 steps; every hidden knob, turned, must leave the take byte-identical, and each source must keep the trig counts it promises through ROT and SYNC | about 533,000 checks in every `make test`; a 60,000-recipe run made 10 million | I3, I5, I6 |
-| Emulator | `tools/run_tests.sh` boots the patched OS in [analog-emu](https://github.com/trigcondition/analog-emu) and drives it through the Rytm's own keys and knobs: generate, NO, apply, save, reload, power cycle, the lock-row limit, every page | 29 test files, 449 checks; the full run takes about 75 minutes on the Mac (42-perf alone 25) | I1, I2, I7–I9 |
+| Emulator | `tools/run_tests.sh` boots the patched OS in [analog-emu](https://github.com/trigcondition/analog-emu) and drives it through the Rytm's own keys and knobs: generate, NO, apply, save, reload, power cycle, the lock-row limit, every page | 30 test files, 471 checks; the full run takes about 80 minutes on the Mac (42-perf alone 25) | I1, I2, I7–I9 |
 | Emulator fuzz sample | `tools/tests/41-fuzz-sample.sh`: recipes from the fuzzer replayed on the emulated Rytm | 6 recipes per run (more with `FUZZ_SAMPLES`) | I2, I7–I9 |
 | Hardware | `docs/flashing.md`'s checks on a Rytm MKII with OS 1.74; every pass is listed there (Tested on hardware) | one unit (0.5.1, 0.6.0) | I7, I9 |
 

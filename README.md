@@ -6,7 +6,7 @@
 [![Device](https://img.shields.io/badge/Analog%20Rytm%20MKII-OS%201.74-black.svg)](docs/firmware-notes-os174.md)
 [![elekloader](https://img.shields.io/badge/elekloader-core--ar2%200.13-purple.svg)](https://github.com/elekloader/elekloader)
 [![Language](https://img.shields.io/badge/C99-freestanding%20ColdFire-informational.svg)](lib/)
-[![Tests](https://img.shields.io/badge/tests-636k%20host%20%7C%20449%20emulator-brightgreen.svg)](tools/README.md)
+[![Tests](https://img.shields.io/badge/tests-717k%20host%20%7C%20471%20emulator-brightgreen.svg)](tools/README.md)
 [![Emulator](https://img.shields.io/badge/tested%20in-analog--emu-lightgrey.svg)](https://github.com/trigcondition/analog-emu)
 [![Hardware](https://img.shields.io/badge/hardware%20tested-v0.6.0%20on%20Rytm%20MKII%20OS%201.74-orange.svg)](docs/flashing.md#tested-on-hardware)
 [![Grooves](https://img.shields.io/badge/Grooves-Ableton%20.agr%20%7C%20MIDI-yellowgreen.svg)](#grooves)
