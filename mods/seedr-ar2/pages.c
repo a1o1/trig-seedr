@@ -64,19 +64,21 @@ const struct pg_row pg_rows[] = {
     /* TAKE (lead; PHRS, CVAR: F9; METR: F1; BEAT: 0.2; QUAL: F11) */
     { PG_TAKE, 0, "SEED", REC(seed), PK_SEED, PF_NUM, 0, 9999, 0, 0, 0, 0, ALWAYS, 0 },
     { PG_TAKE, 1, "VARY", REC(vary), PK_INT, PF_PCT, 0, 100, 0, 0, 0, 0, ALWAYS, 0 },
-    { PG_TAKE, 2, "PHRS", REC(phrs), PK_CHOICE, PF_NUM, 0, SEED_PHRS_N - 1, 0, 0, &seed_have_vary, 0, ALWAYS, c_phrs },
-    { PG_TAKE, 3, "CVAR", REC(cvar), PK_CHOICE, PF_NUM, 0, SEED_CVAR_N - 1, 0, 0, &seed_have_vary, 0, ALWAYS, c_cvar },
+    /* PR_SENSE (M2.1): PHRS on a track longer than a page; CVAR and QUAL while the trig positions
+     * draw random numbers (sense() below) */
+    { PG_TAKE, 2, "PHRS", REC(phrs), PK_CHOICE, PF_NUM, 0, SEED_PHRS_N - 1, 0, PR_SENSE, &seed_have_vary, 0, ALWAYS, c_phrs },
+    { PG_TAKE, 3, "CVAR", REC(cvar), PK_CHOICE, PF_NUM, 0, SEED_CVAR_N - 1, 0, PR_SENSE, &seed_have_vary, 0, ALWAYS, c_cvar },
     { PG_TAKE, 4, "METR", REC(metr), PK_CHOICE, PF_NUM, 0, SEED_METR_N - 1, 0, 0, &seed_have_rank, 0, ALWAYS, c_metr },
     { PG_TAKE, 5, "BEAT", REC(beat), PK_INT, PF_NUM, 1, 16, 0, 0, &seed_have_random, 0, ALWAYS, 0 },
-    { PG_TAKE, 6, "QUAL", REC(qual), PK_INT, PF_NUM, 1, 8, 0, 0, &seed_have_score, 0, ALWAYS, 0 },
+    { PG_TAKE, 6, "QUAL", REC(qual), PK_INT, PF_NUM, 1, 8, 0, PR_SENSE, &seed_have_score, 0, ALWAYS, 0 },
 
     /* RHYTHM: SRC, then the source's own knobs */
     { PG_RHYTHM, 0, "SRC", REC(src), PK_CHOICE, PF_NUM, 0, SEED_SRC_N - 1, 0, PR_MULTI, 0, 0, ALWAYS, c_src },
-    /* RANDOM (0.2; ROLE: F1) */
+    /* RANDOM (0.2; ROLE: F1). ROLE picks the rank table BIAS mixes in: shown while BIAS is not 0 (M2.1) */
     { PG_RHYTHM, 1, "GRID", REC(grid), PK_GRID, PF_GRID, 1, 8, 0, 0, &seed_have_random, 0, WHEN(src, PG_V(SEED_SRC_RANDOM)), 0 },
     { PG_RHYTHM, 2, "DENS", REC(dens), PK_INT, PF_PCT, 0, 100, 0, 0, &seed_have_random, 0, WHEN(src, PG_V(SEED_SRC_RANDOM)), 0 },
     { PG_RHYTHM, 3, "BIAS", REC(bias), PK_INT, PF_SPCT, -100, 100, 0, 0, &seed_have_random, 0, WHEN(src, PG_V(SEED_SRC_RANDOM)), 0 },
-    { PG_RHYTHM, 4, "ROLE", REC(role), PK_CHOICE, PF_NUM, 0, SEED_ROLE_N - 1, 0, 0, &seed_have_rank, 0, WHEN(src, PG_V(SEED_SRC_RANDOM)), c_role },
+    { PG_RHYTHM, 4, "ROLE", REC(role), PK_CHOICE, PF_NUM, 0, SEED_ROLE_N - 1, 0, PR_SENSE, &seed_have_rank, 0, WHEN(src, PG_V(SEED_SRC_RANDOM)), c_role },
     /* EUCLID (F2) */
     { PG_RHYTHM, 1, "STEPS", REC(eu_steps), PK_INT, PF_NUM, 1, 64, 0, 0, &seed_have_euclid, 0, WHEN(src, PG_V(SEED_SRC_EUCLID)), 0 },
     { PG_RHYTHM, 2, "PULS", REC(eu_puls), PK_INT, PF_NUM, 0, 64, 0, 0, &seed_have_euclid, 0, WHEN(src, PG_V(SEED_SRC_EUCLID)), 0 },
@@ -106,7 +108,8 @@ const struct pg_row pg_rows[] = {
     { PG_DYN, 3, "N", REC(n), PK_INT, PF_NUM, 1, 64, 0, 0, &seed_have_dyn, SEED_F_VEL,
       WHEN(shape, PG_V(SEED_SHAPE_EVRY) | PG_V(SEED_SHAPE_NOISE)), 0 },
     { PG_DYN, 4, "ACC", REC(acc), PK_INT, PF_PCT, 0, 100, 0, 0, &seed_have_dyn, SEED_F_ACCENT, ALWAYS, 0 },
-    { PG_DYN, 5, "AMOD", REC(amod), PK_CHOICE, PF_NUM, 0, SEED_AMOD_N - 1, 0, PR_MULTI, &seed_have_dyn, SEED_F_ACCENT, ALWAYS, c_amod },
+    /* AMOD: shown while ACC is above 0 (M2.1) */
+    { PG_DYN, 5, "AMOD", REC(amod), PK_CHOICE, PF_NUM, 0, SEED_AMOD_N - 1, 0, PR_MULTI | PR_SENSE, &seed_have_dyn, SEED_F_ACCENT, ALWAYS, c_amod },
     { PG_DYN, 6, "HUM", REC(hum), PK_INT, PF_NUM, 0, 100, 0, 0, &seed_have_dyn, SEED_F_VEL, ALWAYS, 0 },
 
     /* NOTE (0.2; LMOD = LEGATO, LIST: F6; NOISE: F7) */
@@ -200,9 +203,41 @@ static int choices_built(const struct pg_row *w)
     return n;
 }
 
+/* PR_SENSE (task M2.1, docs/status/M2.1.md): a row that could not change the take is not shown.
+ * Each rule holds exactly when the engine ignores the value, so a hidden value is harmless (the
+ * host test mods/seedr-ar2/test_interplay.c renders it both ways):
+ *   PHRS        the track is longer than a page (seed_render: a page or less is one phrase)
+ *   CVAR, QUAL  the trig positions draw random numbers: SRC = RAND, MAP with CHAOS 4 or more
+ *               (seed_map_lift), or SYNC above 0. Otherwise takes n and n + 1, and every
+ *               candidate, have the same trigs, and CVAR and QUAL work only on where trigs are.
+ *   ROLE        BIAS is not 0 (the rank table is only read through BIAS)
+ *   AMOD        ACC is above 0 */
+static int sense(const struct pg_ctx *c, const struct pg_row *w)
+{
+    const struct seed_recipe *r = c->r;
+    if (w->base != PB_RECIPE)
+        return 1;
+    switch (w->off) {
+    case offsetof(struct seed_recipe, phrs):
+        return c->length > SEED_PAGE;
+    case offsetof(struct seed_recipe, cvar):
+    case offsetof(struct seed_recipe, qual):
+        return r->src == SEED_SRC_RANDOM || (r->src == SEED_SRC_MAP && c->shared && c->shared->map_chaos >= 4)
+            || r->sync > 0;
+    case offsetof(struct seed_recipe, role):
+        return r->bias != 0;
+    case offsetof(struct seed_recipe, amod):
+        return r->acc > 0;
+    default:
+        return 1;
+    }
+}
+
 int pg_row_shown(const struct pg_ctx *c, const struct pg_row *w)
 {
     if (!pg_built(w->have) || (c->fields & w->field) != w->field)
+        return 0;
+    if ((w->flags & PR_SENSE) && !sense(c, w))
         return 0;
     if ((w->flags & PR_LANES) && (!c->caps || c->lane >= c->caps->lanes || !c->caps->nparams))
         return 0;
@@ -454,7 +489,7 @@ static char *one(const struct pg_ctx *c, const struct pg_row *w, char *o, int v)
     case PF_PLUS1:  return pg_num(o, v + 1);
     case PF_LEN:    return pg_len(o, v);
     case PF_PROB:   return pg_num(o, prob[clampi(v, 0, 21)]);
-    case PF_CYCLE:  *o++ = '/'; return pg_num(o, v);
+    case PF_CYCLE:  *o++ = '/'; return pg_num(o, clampi(v, 2, 8));   /* as trig.c reads it (M2.1) */
     case PF_RATE:   return pg_rate(o, v);
     case PF_GRID:   return pg_put(o, v >= 8 ? "1/2" : v >= 4 ? "1/4" : v >= 2 ? "1/8" : "1/16");
     case PF_TRACK:  return c->track_name ? pg_put(o, c->track_name(v)) : pg_num(o, v + 1);

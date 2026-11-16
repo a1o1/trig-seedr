@@ -277,29 +277,58 @@ int seed_render(struct seed_track *out, const struct seed_track *orig, const str
 {
     struct seed_recipe pr;
     struct seed_ctx pc;
-    int p, i, j, rc, len = clamp(orig->length, 1, SEED_STEPS);
+    struct seed_take k;
+    uint8_t eu[SEED_STEPS / 8];
+    int p, i, j, rc, len = clamp(orig->length, 1, SEED_STEPS), euclid = r->src == SEED_SRC_EUCLID;
 
     /* a track of one page or less is one phrase */
     if (r->phrs == SEED_PHRS_OFF || len <= SEED_PAGE)
         return r->phrs < 0 || r->phrs >= SEED_PHRS_N ? SEED_E_ARG : take(out, orig, r, c, r->seed, w);
     /* PHRS (F9): page p is take n + offset(p) rendered as a 16-step phrase from the original's
      * page p, so pages with the same letter repeat; a last, shorter page plays the phrase's start.
-     * What belongs to the track's positions stays there: SKIP, the groove, the other tracks. */
+     * What belongs to the track's positions stays there: SKIP, the groove, the other tracks, and
+     * EUCLID's cycle (M2.1): it draws no random numbers, so a letter could never change it, and a
+     * cycle restarted on each page broke every STEPS that does not divide 16. EUCLID's pulses are
+     * placed over the whole length first; each page then starts from them as generated steps. */
+    if (euclid) {
+        seed_track_copy(&w->page, orig);
+        w->page.length = (int16_t)len;
+        for (i = 0; i < len; i++)
+            seed_step_clear(&w->page.s[i]);
+        seed_take_init(&k, r->seed, (uint32_t)c->track, r->vary, 0);
+        rc = seed_src_euclid(&w->page, r, &k, c);
+        if (rc < 0)
+            return rc;
+        for (i = 0; i < SEED_STEPS / 8; i++)
+            eu[i] = 0;
+        for (i = 0; i < len; i++)
+            if (w->page.s[i].flags & SEED_TRIG)
+                eu[i >> 3] |= (uint8_t)(1u << (i & 7));
+    }
     seed_track_copy(out, orig);
     for (p = 0; p * SEED_PAGE < len; p++) {
         int base = p * SEED_PAGE, off = seed_phrase_take(r->phrs, p);
         if (off < 0)
             return off;
         seed_track_copy(&w->page, orig);
-        w->page.length = SEED_PAGE;
+        /* A last, shorter page of trigs that are already placed (TRACK, COPY, EUCLID) is a phrase
+         * of its own length, so ROT and SYNC turn its trigs round inside the track and none is
+         * lost past the end (M2.1). A source that makes the phrase (RAND, MAP) makes all 16 steps
+         * and the track plays their start (F9). */
+        w->page.length = (int16_t)(base + SEED_PAGE > len && (r->src == SEED_SRC_TRACK || r->src == SEED_SRC_COPY || euclid)
+                                   ? len - base : SEED_PAGE);
         for (i = 0; i < SEED_PAGE; i++) {
             w->page.s[i] = orig->s[base + i];
             w->page.s[i].origin = (int8_t)i;
-            if (base + i >= len)
+            if (base + i >= len || euclid)
                 seed_step_clear(&w->page.s[i]);     /* past the track's end: no trig */
+            if (euclid && base + i < len && (eu[(base + i) >> 3] >> ((base + i) & 7) & 1))
+                w->page.s[i].flags |= SEED_TRIG;
         }
         copy16(&pr, r, sizeof pr);
-        pr.skip = (int16_t)clamp(r->skip - base, 0, SEED_PAGE);
+        if (euclid)
+            pr.src = SEED_SRC_TRACK;                /* the page's pulses, placed above */
+        pr.skip = (int16_t)clamp(r->skip - base, 0, w->page.length);
         pr.shft = (int16_t)(r->shft - base);
         copy16(&pc, c, sizeof pc);
         for (j = 0; j < c->tracks && j < SEED_TRACKS; j++) {
@@ -318,8 +347,9 @@ int seed_render(struct seed_track *out, const struct seed_track *orig, const str
         for (i = 0; i < SEED_PAGE && base + i < len; i++) {
             int o = w->a.s[i].origin;
             out->s[base + i] = w->a.s[i];
-            /* an origin past the track's end (a rotated empty step) is none */
-            out->s[base + i].origin = (int8_t)(o != SEED_NO_ORIGIN && base + o < len ? base + o : SEED_NO_ORIGIN);
+            /* an origin past the track's end (a rotated empty step) is none; EUCLID's are
+             * generated steps */
+            out->s[base + i].origin = (int8_t)(o != SEED_NO_ORIGIN && base + o < len && !euclid ? base + o : SEED_NO_ORIGIN);
         }
     }
     return SEED_OK;

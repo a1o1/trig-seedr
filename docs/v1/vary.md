@@ -21,19 +21,26 @@ same letter are the same: with ABAB, page 3 repeats page 1 and page 4 repeats pa
 every page.
 
 Everything that is random in the take (which steps get trigs, velocities, conditions, locks, random micro timing),
-DENS's count, ROT, SYNC and the meter's ranks belong to the phrase, so they repeat with the letter. Three things
+DENS's count, ROT, SYNC and the meter's ranks belong to the phrase, so they repeat with the letter. Four things
 belong to the track's positions and stay there:
 
 - **SKIP** clears the track's first steps, not each page's.
 - **The groove** (TIME) runs along the whole track, so a 32-step groove keeps its second half on pages 2 and 4.
 - **MASK and COPY** read the other track at the same steps as without PHRS.
+- **EUCLID** runs its cycle along the whole track, as without PHRS: STEPS 13 on 64 steps is not cut into pages.
+  EUCLID draws no random numbers, so the letters change only how its trigs are dressed.
+
+MAP is a phrase like RAND: each page plays the map's first 16 steps (with the page's own CHAOS lift), so on a
+track longer than a page the map's steps 17 to 32 are not heard with PHRS on.
 
 On SOURCE = TRACK each page keeps its own trigs and their parameter locks; the letter decides how they are dressed
 (velocity, conditions, locks, timing), and ROT and SYNC move steps within the page.
 
 **Shorter tracks.** PHRS applies page by page as far as the track goes. A track of 24 steps has page 1 and the
-first 8 steps of page 2: with ABAB those are the first 8 steps of phrase B. A track of 16 steps or fewer is a single
-phrase, so PHRS changes nothing there.
+first 8 steps of page 2: with ABAB those are the first 8 steps of phrase B. With SOURCE = TRACK, COPY or EUCLID the
+trigs of that last page are already in place, so it is a phrase of its own 8 steps: ROT and SYNC turn them round
+inside the track and none is lost past its end. A track of 16 steps or fewer is a single phrase, so PHRS changes
+nothing there, and the TAKE page does not show it.
 
 ## CVAR
 
@@ -55,3 +62,8 @@ With VARY high the two takes share most trigs and CVAR changes a few; with VARY 
 with PHRS: each page's letter is then a pair of takes. The preview shows every trig the track holds, both takes'.
 
 CVAR writes conditions, so it needs a track that has them; on a track without conditions YES refuses it.
+
+CVAR works only on where the trigs are, so the TAKE page shows it only while the trig positions come from the
+seed: SRC = RAND, MAP with CHAOS 4 or more, or SYNC above 0. With SOURCE = TRACK, EUCLID or COPY and SYNC at 0,
+takes SEED and SEED + 1 have the same trigs and CVAR would write nothing; its value is kept and applies again when
+it is shown.

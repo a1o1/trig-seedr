@@ -55,7 +55,8 @@ static int phrase_ref(struct seed_track *t, const struct seed_track *o, const st
     struct seed_recipe q = *r;
     int i;
     seed_track_copy(&ref16, o);
-    ref16.length = SEED_PAGE;
+    /* a short last page of placed trigs (TRACK, COPY, EUCLID) is a phrase of its own length (M2.1) */
+    ref16.length = (int16_t)(m < SEED_PAGE && r->src != SEED_SRC_RANDOM && r->src != SEED_SRC_MAP ? m : SEED_PAGE);
     for (i = 0; i < SEED_PAGE; i++) {
         ref16.s[i] = o->s[base + i];
         ref16.s[i].origin = (int8_t)i;
