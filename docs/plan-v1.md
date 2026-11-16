@@ -140,6 +140,16 @@ Started 2026-11-16, after 0.5.1 passed a first test on a Rytm MKII with stock OS
 
 M2.1, M2.2 and M2.3 start together from `main`; their test file numbers are 40, 41 and 42. M2.6 waits for M2.5's changes.
 
+### After 1.0
+
+- **TURING, a page of its own** (Alan, 2026-11-16): a Turing Machine for trigs, after the Music Thing Turing
+  Machine and Moog's Labyrinth. While the pattern plays, the track is rewritten at the end of each loop, each step
+  with a chance to change set by a CORRUPT knob: fully left freezes what plays (FUNC + YES keeps it, NO puts the
+  original back); towards the middle step values (velocity, notes) drift; further right trigs flip on and off too.
+  A loop length (2–16 steps) repeated across the track. First a spike: find the playhead in OS 1.74's RAM and prove a
+  loop-end rewrite in the emulator. If live rewriting is not safe, the fallback is a TURING source on RHYTHM where
+  each YES clocks one pass. A new feature, so a minor release (1.1.0) under semantic versioning.
+
 ## 9. Regression policy
 
 - **Kept:** every behaviour 0.3's emulator checks cover (generation, audition, keep, NO, save paths, lock rows, groove, rotate, sample locks, the key cycle), re-expressed in 0.5 and required at G0.
