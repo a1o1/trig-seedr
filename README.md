@@ -42,18 +42,18 @@ the site and in [`docs/v1/`](docs/v1/).
 
 Screens, from the emulator:
 
-| | |
-|---|---|
-| ![TAKE](docs/screens/take.png) TAKE | ![RHYTHM](docs/screens/rhythm.png) RHYTHM |
-| ![PLACE](docs/screens/place.png) PLACE | ![DYNAMICS](docs/screens/dynamics.png) DYNAMICS |
-| ![NOTE](docs/screens/note.png) NOTE | ![LOCK](docs/screens/lock.png) LOCK |
-| ![TRIG](docs/screens/trig.png) TRIG | ![TIME](docs/screens/time.png) TIME |
-| ![VIEW](docs/screens/view.png) VIEW | ![TOOLS](docs/screens/tools.png) TOOLS |
+<table>
+<tr><td align="center"><img src="docs/screens/take.png" width="384" alt="TAKE"><br>TAKE</td><td align="center"><img src="docs/screens/rhythm.png" width="384" alt="RHYTHM"><br>RHYTHM</td></tr>
+<tr><td align="center"><img src="docs/screens/place.png" width="384" alt="PLACE"><br>PLACE</td><td align="center"><img src="docs/screens/dynamics.png" width="384" alt="DYNAMICS"><br>DYNAMICS</td></tr>
+<tr><td align="center"><img src="docs/screens/note.png" width="384" alt="NOTE"><br>NOTE</td><td align="center"><img src="docs/screens/lock.png" width="384" alt="LOCK"><br>LOCK</td></tr>
+<tr><td align="center"><img src="docs/screens/trig.png" width="384" alt="TRIG"><br>TRIG</td><td align="center"><img src="docs/screens/time.png" width="384" alt="TIME"><br>TIME</td></tr>
+<tr><td align="center"><img src="docs/screens/view.png" width="384" alt="VIEW"><br>VIEW</td><td align="center"><img src="docs/screens/tools.png" width="384" alt="TOOLS"><br>TOOLS</td></tr>
+</table>
 
 - **One recipe per track.** A track with trigs starts on SRC = TRACK, an empty one on RAND. A page at 0 (or DEF) leaves its fields alone: SRC = TRACK with every page at 0 changes nothing.
 - **Generate and apply.** With RECORD on (grid recording), **YES** generates: the take is written so you can hear it and your original is kept. Each YES starts again from that original; YES with no knob turned moves to the next seed, and after your original came back (NO, NOT APPLIED) YES brings the same take back. **FUNC + YES** applies the take, the only way a take stays. **NO**, or changing track or pattern, closing Trig Seedr or turning RECORD off, brings your original back. With RECORD off, YES writes nothing (RECORD TO GENERATE): browsing and the preview are always safe.
 - This differs from the Rytm's Euclidean mode, which plays a separate pattern and never changes your stored trigs; Trig Seedr writes real trigs, so it asks you to apply. The full table: the site's [Keys and pages](https://a1o1.github.io/trig-seedr/using/pages/#generate-and-apply).
-- Ranges (VEL, LEN, NOTE, RNGE, CVAL, RATE): a knob sets the high end, **FUNC** + knob the low end.
+- Ranges (VEL, LEN, NOTE, RNGE, CVAL, RATE): a knob sets the high end, **FUNC** + knob the low end; each end stops at the other.
 - Everything written is ordinary Rytm data: it plays, saves and reloads on a stock OS.
 
 What changed: [`docs/release-0.7.md`](docs/release-0.7.md), [`docs/release-0.6.md`](docs/release-0.6.md), [`docs/release-0.5.md`](docs/release-0.5.md), [`docs/release-0.4.md`](docs/release-0.4.md). Website: [a1o1.github.io/trig-seedr](https://a1o1.github.io/trig-seedr/). Version 1's design and plan: [`docs/design-v1.md`](docs/design-v1.md), [`docs/plan-v1.md`](docs/plan-v1.md). Firmware notes: [`docs/firmware-notes-os174.md`](docs/firmware-notes-os174.md).
