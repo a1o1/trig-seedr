@@ -90,6 +90,12 @@ int seed_lock(struct seed_track *t, const struct seed_recipe *r, const struct se
     /* refuse before anything is written */
     for (l = 0; l < SEED_LANES; l++) {
         const struct seed_lane *ln = &r->lane[l];
+        int m;
+        /* Two lanes on one parameter are one lock on the device, which stores one of them: the
+         * take could not keep the other's values (M2.2). Refused when either lane is set. */
+        for (m = 0; m < l && (!caps || l < caps->lanes); m++)
+            if (r->lane[m].parm == ln->parm && (ln->pct > 0 || r->lane[m].pct > 0))
+                return SEED_E_ARG;
         if (ln->pct <= 0)
             continue;
         if (caps && (l >= caps->lanes || ln->parm < 0 || ln->parm >= caps->nparams))

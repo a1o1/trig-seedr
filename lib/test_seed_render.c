@@ -92,7 +92,7 @@ static void test_not_available(void)
         case 7: r.skip = 2; have = seed_have_place; break;
         case 8: r.vel.lo = r.vel.hi = 90; have = seed_have_dyn; break;
         case 9: r.note.lo = r.note.hi = 2; have = seed_have_values; break;
-        case 10: r.lane[1].pct = 50; have = seed_have_values; break;
+        case 10: r.lane[1].pct = 50; r.lane[1].parm = 1; have = seed_have_values; break;  /* not lane 1's (M2.2) */
         case 11: r.cond = 20; have = seed_have_trig; break;
         case 12: r.rand = 30; have = seed_have_timing; break;
         case 13: r.fld = SEED_FLD_VEL; r.frot = 1; have = seed_have_place; break;
