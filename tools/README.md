@@ -6,6 +6,7 @@
     sh tools/run_tests.sh [NAME...]  every tools/tests/NN-*.sh, or those whose name contains NAME (about 9 minutes)
     sh tools/golden.sh [--write]     the golden vectors in lib/golden/
     sh tools/build_release.sh        the firmware to flash (docs/flashing.md)
+    sh tools/screens.sh [--install]  the ten page screenshots for the README and the site (docs/screens/)
 
 `run_tests.sh` builds core-ar2 and the seedr mod, patches the stock OS 1.74 (`build/emu/seedr.syx`, version GR01) and
 drives analog-emu's `dtboot` through the Rytm's own keys and knobs. Each check reads A01 BD from the emulator
