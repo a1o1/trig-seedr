@@ -44,6 +44,8 @@ Each task runs in its own worktree, `.claude/worktrees/<name>/`, on the branch `
 | F9 Variation | `f9-vary` | `worktree-f9-vary` | G0, A2 |
 | F10 Preview and VIEW | `f10-preview` | `worktree-f10-preview` | G0 |
 | F11 Candidate scoring | `f11-score` | `worktree-f11-score` | F1, design note |
+| F12 MAP accents | `f12-map-accents` | `worktree-f12-map-accents` | F1, F3 |
+| D1 Lock rows | `d1-lock-rows` | `worktree-d1-lock-rows` | 0.4 (delegated by the lead) |
 
 ## Files a task fills
 
