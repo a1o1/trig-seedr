@@ -124,14 +124,19 @@ The lead merges in the order workstreams pass; after each merge the others rebas
 
 ## 8. M2 Integration and 1.0
 
-| Task | Content |
-|---|---|
-| Interplay matrix | every source × PLACE × DYNAMICS shape × VARY / PHRS on 16- and 64-step tracks in the emulator; the "not applicable" combinations hidden or refused with a message |
-| Fuzzing | random recipes on the host against I1–I6 and I10 (hours, ASan / UBSan); a sample of them in the emulator against I7–I9 |
-| Performance and size | render and preview time on the emulator's instruction counter; mod size and `.bss`; lock-row use |
-| Docs and site | `docs/v1/*.md` assembled into the site's pages; README, screenshots, requirements renumbered to the version-1 design |
-| Hardware | `build_release.sh`; a checklist for Alan per release (flash, the first-checks list in `flashing.md`, the new features); findings filed as issues |
-| 1.0 | golden vectors frozen again; tag |
+Started 2026-11-16, after 0.5.1 passed a first test on a Rytm MKII with stock OS 1.74.
+
+| Id | Task | Content | Owner | Files |
+|---|---|---|---|---|
+| M2.1 | Interplay | every source (TRACK, RAND, EUCLID, MAP, COPY) × PLACE (ROT, SYNC, MASK, SKIP, FLD) × DYNAMICS shape × VARY / PHRS / CVAR / QUAL on 16- and 64-step tracks, in the emulator and on the host. Combinations that make no sense or misbehave are hidden on the page or refused with a message; each decision written down | agent `m2-interplay` | `tools/tests/40-interplay.sh`, host tests, `pages.c` rows' conditions, fixes where a module misbehaves (noted per file) |
+| M2.2 | Fuzzing | random recipes on the host against I1–I6 and I10 for hours (ASan / UBSan), drawing from every source and layer (`props.h`); a sample replayed in the emulator against I7–I9; every failure reduced to a host test | agent `m2-fuzz` | `lib/props.h`, `lib/test_fuzz.c` (long runs behind a flag), `tools/fuzz.sh`, `tools/tests/41-fuzz-sample.sh` |
+| M2.3 | Performance and size | render and preview cost per source and layer on the emulator's instruction counter; the idle cost of seedr's screen (9 % of the CPU at 0.5, mostly `dev->read` every frame); mod size, `.bss`, lock-row use; fixes that keep every golden vector | agent `m2-perf` | `tools/tests/42-perf.sh`, `seedr.c` (the screen's reads), `preview.c`, F6's list speed-up if measured worth it |
+| M2.4 | Cleanups | the site workflow's actions on Node.js 20; `golden.sh` labels a refused recipe "pending"; small items from M2.1–M2.3 | lead | `.github/`, `tools/golden.sh` |
+| M2.5 | Hardware and UX | Alan's UX / CX list from the first hardware test; the choices kept until hardware testing (F1 role orders, F5 runs, F6 list order, F8 drift scale, F9 CVAR AAAB with PRE); the track-change revert with the pads; findings filed as issues | Alan, then the lead or an agent | as each item needs |
+| M2.6 | Manual and site | `docs/v1/*.md` and the Using pages into one coherent manual; README, screenshots (`tools/screens.sh`); requirements renumbered to the version-1 design | agent, after M2.5 | `docs/`, `site/` |
+| 1.0 | Release | golden vectors frozen again; a final hardware pass with `flashing.md`'s checks; tag | lead and Alan | |
+
+M2.1, M2.2 and M2.3 start together from `main`; their test file numbers are 40, 41 and 42. M2.6 waits for M2.5's changes.
 
 ## 9. Regression policy
 
