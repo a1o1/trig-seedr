@@ -2,7 +2,7 @@
 
 ## 0.7.0
 
-0.7 is the next step of version 1's milestone M2 towards 1.0: the changes from the first hardware test (M2.5), the
+0.7 is the next step of version 1's milestone M2 towards 1.0: the changes from playing 0.6.0 on a Rytm MKII (M2.5), the
 TOOLS page's YOLO, and the lead's small items. Generate and apply work as in 0.5.1, with YES after a revert below.
 
 ## New

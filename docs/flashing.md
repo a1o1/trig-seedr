@@ -43,9 +43,10 @@ what has run on a real unit.
 
 | Version | Date | Unit | OS | Result |
 |---|---|---|---|---|
-| 0.5.1 | 2026-11-16 | Analog Rytm MKII | 1.74 | first pass: every feature worked as expected; UX notes became 0.5.1's generate and apply and 0.7's changes |
+| 0.6.0 | 2026-11-16 | Analog Rytm MKII | 1.74 | played in use: works; UX notes became 0.7's range knobs, YES after a revert and the pending dot |
+| 0.5.1 | 2026-11-16 | Analog Rytm MKII | 1.74 | first pass: every feature worked as expected; its notes became 0.5.1's generate and apply |
 
-0.6.0 and 0.7.0 have not had a hardware pass yet; checks 12 to 15 below are new in them.
+0.7.0 has not had a hardware pass yet; checks 13 to 15 below are new in it.
 
 1. The boot screen shows the version (**TS07** for 0.7) while the Rytm starts (OS 1.74 has no menu that shows it;
    GLOBAL > SYSTEM > OS UPGRADE shows only WAITING FOR SYSEX).
