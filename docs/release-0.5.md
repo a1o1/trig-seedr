@@ -11,7 +11,7 @@ One change, from the first hardware test (Alan, 2026-11-16): **generate and appl
   original back (NOT APPLIED). Until 0.5.0 these kept the take.
 - Why: in 0.5.0, YES on a track with RECORD off changed the track at once, unlike every other edit on the Rytm. The
   Rytm's Euclidean mode never touches stored trigs (it plays its own pattern); Trig Seedr has to write trigs to be
-  heard, so it lets you try a take and asks you to apply it. The table: the site's Keys and pages, "Generate and
+  heard, so it lets you try a take and asks you to apply it. The table: the manual's Concepts, "Generate and
   apply".
 
 ## 0.5.0
@@ -24,22 +24,22 @@ yet run on a unit. A build with MAP's data is GPL-3.0-or-later (README, License)
 
 ## New
 
-| Page | What | Text |
+| Page | What | Text (the manual, since 0.7.1) |
 |---|---|---|
-| TAKE | METR (4/4, 3/4, 6/8, 12/16, 5/8, 7/8) and BEAT, with Clarence Barlow's indispensability as the steps' ranks | `docs/v1/meter.md` |
-| TAKE | PHRS: a phrase of takes over the pages (AAAA, AAAB, ABAB, ABAC, ABCD); CVAR: takes n and n + 1 written as alternating trig conditions (1:2, AAAB) | `docs/v1/vary.md` |
-| TAKE | QUAL: the best spread of 1..8 candidate takes (fewer long holes and clumps; at BIAS 0 no pull towards the beats) | `docs/v1/score.md` |
-| RHYTHM | ROLE for RAND: KICK, BACK, HAT, PERC | `docs/v1/meter.md` |
-| RHYTHM | EUCLID: the same patterns as stock's Euclidean mode | `docs/v1/euclid.md` |
-| RHYTHM | MAP: a 5 × 5 map of drum patterns, X and Y shared by the pattern's tracks, PART and DENS per track, CHAOS | `docs/v1/map.md` |
-| RHYTHM / PLACE | COPY another track's trigs; MASK: AVOID or ONLY another track's trigs (a track in Euclidean mode counts as it plays) | `docs/v1/copy-mask.md` |
-| PLACE | SYNC: anticipation onto the weaker step before; the moved step keeps all its locks | `docs/v1/sync.md` |
-| DYNAMICS | SHAPE RANK, NOISE and MAP; AMOD TOP (the strongest steps get the accents) | `docs/v1/meter.md`, `noise.md`, `map.md` |
-| DYNAMICS | with SRC = MAP, AMOD TOP accents the steps with the highest map key: at the ACC share `docs/v1/map.md` gives, exactly the map's own accents (checked against the original code over 829,440 takes) | `docs/v1/map.md` |
-| NOTE / LOCK | value sources LIST (UP, DOWN, PING, PNG2, ODD, RAND, its own length) and NOISE (a contour that loops without a jump); LMOD = LEGATO | `docs/v1/lists.md`, `noise.md` |
-| TIME | DRFT: correlated drift of micro timing | `docs/v1/drift.md` |
-| every page but VIEW | the bottom strip previews the take YES would write, before YES | `docs/v1/preview.md` |
-| VIEW | both lanes' locks, muted trigs | `docs/v1/preview.md` |
+| TAKE | METR (4/4, 3/4, 6/8, 12/16, 5/8, 7/8) and BEAT, with Clarence Barlow's indispensability as the steps' ranks | [TAKE](https://a1o1.github.io/trig-seedr/manual/take/#metr-and-beat-the-meter) |
+| TAKE | PHRS: a phrase of takes over the pages (AAAA, AAAB, ABAB, ABAC, ABCD); CVAR: takes n and n + 1 written as alternating trig conditions (1:2, AAAB) | [TAKE](https://a1o1.github.io/trig-seedr/manual/take/#phrs-a-phrase-over-the-pages) |
+| TAKE | QUAL: the best spread of 1..8 candidate takes (fewer long holes and clumps; at BIAS 0 no pull towards the beats) | [TAKE](https://a1o1.github.io/trig-seedr/manual/take/#qual-the-best-of-several-candidates) |
+| RHYTHM | ROLE for RAND: KICK, BACK, HAT, PERC | [RHYTHM](https://a1o1.github.io/trig-seedr/manual/rhythm/#rand) |
+| RHYTHM | EUCLID: the same patterns as stock's Euclidean mode | [RHYTHM](https://a1o1.github.io/trig-seedr/manual/rhythm/#euclid) |
+| RHYTHM | MAP: a 5 × 5 map of drum patterns, X and Y shared by the pattern's tracks, PART and DENS per track, CHAOS | [RHYTHM](https://a1o1.github.io/trig-seedr/manual/rhythm/#map) |
+| RHYTHM / PLACE | COPY another track's trigs; MASK: AVOID or ONLY another track's trigs (a track in Euclidean mode counts as it plays) | [RHYTHM](https://a1o1.github.io/trig-seedr/manual/rhythm/#copy), [PLACE](https://a1o1.github.io/trig-seedr/manual/place/#mask-and-mtrk) |
+| PLACE | SYNC: anticipation onto the weaker step before; the moved step keeps all its locks | [PLACE](https://a1o1.github.io/trig-seedr/manual/place/#sync-syncopation-by-anticipation) |
+| DYNAMICS | SHAPE RANK, NOISE and MAP; AMOD TOP (the strongest steps get the accents) | [DYNAMICS](https://a1o1.github.io/trig-seedr/manual/dynamics/) |
+| DYNAMICS | with SRC = MAP, AMOD TOP accents the steps with the highest map key: at the ACC share the manual's DYNAMICS page gives, exactly the map's own accents (checked against the original code over 829,440 takes) | [DYNAMICS](https://a1o1.github.io/trig-seedr/manual/dynamics/#map-velocity-and-accents-from-the-map) |
+| NOTE / LOCK | value sources LIST (UP, DOWN, PING, PNG2, ODD, RAND, its own length) and NOISE (a contour that loops without a jump); LMOD = LEGATO | [NOTE](https://a1o1.github.io/trig-seedr/manual/note/), [LOCK](https://a1o1.github.io/trig-seedr/manual/lock/) |
+| TIME | DRFT: correlated drift of micro timing | [TIME](https://a1o1.github.io/trig-seedr/manual/time/#drft-drifting-micro-timing) |
+| every page but VIEW | the bottom strip previews the take YES would write, before YES | [Concepts](https://a1o1.github.io/trig-seedr/manual/concepts/#the-preview-strip) |
+| VIEW | both lanes' locks, muted trigs | [VIEW](https://a1o1.github.io/trig-seedr/manual/view/) |
 | title bar | the sprout and the page's place (`VIEW BD 9/10`); the source: TRK, EUC, CPY, MAP (MAP while CHAOS is below 4), or S and the seed | |
 
 ## Fixed

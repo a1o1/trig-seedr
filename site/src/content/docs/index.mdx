@@ -1,6 +1,6 @@
 ---
 title: Trig Seedr
-description: "Pattern seeds for Elektron machines: offline pattern algorithms (a recipe per track: generate or shape, lock, groove and rotate, with an audition undo). Now on the Analog Rytm MKII (OS 1.74); the Analog Four MKII and Syntakt are planned."
+description: "Pattern seeds for Elektron machines: a recipe per track that makes and shapes trigs on the machine, generated and applied with an undo. Now on the Analog Rytm MKII (OS 1.74) as a beta; the Analog Four MKII and Syntakt are planned."
 template: splash
 tableOfContents: false
 editUrl: false
@@ -21,11 +21,12 @@ import tools from '../../assets/screens/tools.png';
 <div class="ts-hero">
   <PixelLogo scale={10} />
   <div class="ts-rule">PATTERN SEEDS FOR ELEKTRON MACHINES</div>
-  <p class="ts-tag">A recipe per track: generate trigs or start from the ones there, place them, then set velocity, notes, parameter locks, trig conditions, retrigs and a groove from Ableton Live. Press YES for a take, YES again for the next one, NO to go back.</p>
-  <p class="ts-version">v0.7 · Analog Rytm MKII OS 1.74 (Analog Four MKII and Syntakt planned) · an elekloader mod · emulator-tested every release; hardware-tested: v0.6.0 on a Rytm MKII with OS 1.74</p>
+  <p class="ts-tag">A recipe per track: generate trigs or start from the ones there, place them, then set velocity, notes, parameter locks, trig conditions, retrigs and a groove from Ableton Live. Press YES for a take, YES again for the next one, FUNC + YES to keep it, NO to go back.</p>
+  <p class="ts-version">v0.7 beta · Analog Rytm MKII OS 1.74 (Analog Four MKII and Syntakt planned) · an elekloader mod · emulator-tested every release; hardware-tested: v0.5.1 and v0.6.0 on a Rytm MKII with OS 1.74, v0.7.0 not yet</p>
   <div class="ts-cta">
-    <a class="ts-btn primary" href="getting-started/introduction/">Get started</a>
-    <a class="ts-btn" href="using/pages/">The pages</a>
+    <a class="ts-btn primary" href="getting-started/quick-start/">Quick start</a>
+    <a class="ts-btn" href="manual/concepts/">The manual</a>
+    <a class="ts-btn" href="beta/beta/">Beta</a>
     <a class="ts-btn" href="https://github.com/a1o1/trig-seedr">GitHub</a>
   </div>
 </div>
@@ -40,7 +41,7 @@ import tools from '../../assets/screens/tools.png';
   <figure><Image src={trig} alt="TRIG page" /><figcaption><b>TRIG</b> · trig conditions and retrigs</figcaption></figure>
   <figure><Image src={time} alt="TIME page" /><figcaption><b>TIME</b> · micro timing and velocity from a groove, random timing, drift</figcaption></figure>
   <figure><Image src={view} alt="VIEW page" /><figcaption><b>VIEW</b> · the track's steps and the fields of one step</figcaption></figure>
-  <figure><Image src={tools} alt="TOOLS page" /><figcaption><b>TOOLS</b> · ROTATE ALL: every track of the pattern at once</figcaption></figure>
+  <figure><Image src={tools} alt="TOOLS page" /><figcaption><b>TOOLS</b> · ROT ALL: every track of the pattern at once; YOLO: a recipe rolled for the track</figcaption></figure>
 </div>
 
 <p class="ts-note">Trig Seedr is an independent project, not affiliated with or endorsed by Elektron or Ableton; their product names say what it works with. It contains no firmware: you build it against your own copy of the stock OS. Flashing modified firmware is at your own risk.</p>

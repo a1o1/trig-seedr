@@ -1,6 +1,6 @@
 # trig-seedr: plan for version 1
 
-For agents working in parallel. Read `design-v1.md` first: it is the specification; this file is how the work is cut up. `requirements.md` and `firmware-notes-os174.md` describe what exists (0.3).
+For agents working in parallel. Read `design-v1.md` first: it is the specification; this file is how the work is cut up. `requirements.md` states version 1's requirements, each traced to the design and its tests; `firmware-notes-os174.md` describes the stock OS.
 
 ## 1. Shape of the work
 
@@ -71,7 +71,7 @@ Workspace `~/dev/github/elektron` on the Mac, where development, tests and relea
 | `tools/tests/NN-<name>.sh` | one test file per task: `00`..`11` are M0's; F1..F11 use `21`..`31` (F1 `21-rank.sh`, F5 `25-sync.sh`, …) | each owner adds its file |
 | `docs/screens/` | screenshots: the top level is what the README and the site show; `docs/screens/<id>/` a task's own | each owner |
 | `docs/firmware-notes-os174.md`, `docs/dev-environment.md`, `docs/release-<version>.md` | firmware findings, the environment, release notes | lead (findings by request in a status file) |
-| `docs/v1/<layer>.md` | user-facing text per layer | each owner |
+| `site/src/content/docs/manual/<page>.md` | the manual: user-facing text, one file per page in on-screen order, plus Concepts and Keys and messages (until 0.7.1: `docs/v1/<layer>.md`, one per feature) | each owner edits its page's sections; M2.6, then the lead |
 | `docs/status/<id>.md` | state, decisions taken, how to test, open points | each owner |
 
 `lib/gen.c`, `lib/gen.h`, `lib/groove.c`, `tools/genref.c` and `tools/test_seedr.sh` were retired at gate G0 (task 0.6).
@@ -93,7 +93,7 @@ Workspace `~/dev/github/elektron` on the Mac, where development, tests and relea
 
 ## 6. M1 Feature workstreams
 
-Each workstream delivers: the module with host tests, its rows in `pages.c`, its `tools/tests/` file, `docs/v1/<layer>.md`, `docs/status/<id>.md`, and a screenshot.
+Each workstream delivers: the module with host tests, its rows in `pages.c`, its `tools/tests/` file, its section of the manual (`site/src/content/docs/manual/<page>.md`; until 0.7.1 `docs/v1/<layer>.md`), `docs/status/<id>.md`, and a screenshot.
 
 | Id | Workstream | Content | Needs | Waits for |
 |---|---|---|---|---|
@@ -108,7 +108,7 @@ Each workstream delivers: the module with host tests, its rows in `pages.c`, its
 | F9 | Variation | PHRS over pages; CVAR as conditions; interaction with a track shorter than four pages | G0 | A2 |
 | F10 | Preview and VIEW | the preview strip from the work buffer on every knob change; VIEW on the new step type; drawing cost measured | G0 | |
 | F11 | Candidate scoring | QUAL; must keep P3 (a take stays a function of n) | F1 | design note agreed with the lead first |
-| F12 | MAP accents | AMOD = TOP ranks by the map level when SRC = MAP, so ACC reproduces Grids' accents (level above 192 at ACC as Grids sets it), as design section 6 first said; F3's open point. A contract change (TOP needs the level) and `dyn_rank.c`; a host test against Grids' accent rule; `docs/v1/map.md` and design section 6 updated back | F1, F3 | scheduled by Alan 2026-11-15, after M1's merges |
+| F12 | MAP accents | AMOD = TOP ranks by the map level when SRC = MAP, so ACC reproduces Grids' accents (level above 192 at ACC as Grids sets it), as design section 6 first said; F3's open point. A contract change (TOP needs the level) and `dyn_rank.c`; a host test against Grids' accent rule; MAP's user text (then `docs/v1/map.md`, now the manual's RHYTHM and DYNAMICS pages) and design section 6 updated back | F1, F3 | scheduled by Alan 2026-11-15, after M1's merges |
 
 Suggested release grouping: 0.5 = F1, F2, F10; 0.6 = F4, F5; 0.7 = F6, F7, F8; 0.8 = F3; 0.9 = F9, F11.
 
@@ -118,7 +118,7 @@ Suggested release grouping: 0.5 = F1, F2, F10; 0.6 = F4, F5; 0.7 = F6, F7, F8; 0
 2. `tools/run_tests.sh` passes in full, not only the new file.
 3. Golden vectors unchanged, unless the workstream's status file says why and the lead agrees.
 4. With the feature's knobs at their defaults, every other test's output is unchanged.
-5. Screenshot and `docs/v1/` text present; no file outside the workstream's rows in section 4 changed without a note in the status file.
+5. Screenshot and the manual's text present (`site/src/content/docs/manual/`); no file outside the workstream's rows in section 4 changed without a note in the status file.
 
 The lead merges in the order workstreams pass; after each merge the others rebase and re-run.
 
@@ -133,7 +133,7 @@ Started 2026-11-16, after 0.5.1 passed a first test on a Rytm MKII with stock OS
 | M2.3 | Performance and size | render and preview cost per source and layer on the emulator's instruction counter; the idle cost of seedr's screen (measured by M2.3: 1.9 % of the CPU at 0.5, mostly stock redrawing under it; 0.25 % after); mod size, `.bss`, lock-row use; fixes that keep every golden vector | agent `m2-perf` | `tools/tests/42-perf.sh`, `seedr.c` (the screen's reads), `preview.c`, F6's list speed-up if measured worth it (`lib/values_list.c`, `lib/test_values_list.c`) |
 | M2.4 | Cleanups | the site workflow's actions on Node.js 20; `golden.sh` labels a refused recipe "pending"; small items from M2.1–M2.3 | lead | `.github/`, `tools/golden.sh` |
 | M2.5 | Hardware and UX | Alan's UX / CX list from the first hardware test; the choices kept until hardware testing (F1 role orders, F5 runs, F6 list order, F8 drift scale, F9 CVAR AAAB with PRE); the track-change revert with the pads; findings filed as issues. **Closed 2026-11-17** (Alan): the notes became 0.7.0 (range knobs, YES after a revert, the pending dot, YOLO); the parked choices and M2.1's MAP points (MAP under PHRS, SHAPE = MAP's PART, X, Y) stay as built until beta feedback | Alan, then the lead or an agent | as each item needs |
-| M2.6 | Manual and site | `docs/v1/*.md` and the Using pages into one coherent manual (a quick start, a section per page, a knob reference); README as a short front door; screenshots (`tools/screens.sh`); requirements renumbered to the version-1 design; written for beta users (Alan, 2026-11-17: 0.7 goes to customers as a beta, its feedback leads to 1.0): what beta means, how to report, how to go back to stock | agent | `docs/`, `site/`, `README.md`, `tools/screens.sh` |
+| M2.6 | Manual and site | `docs/v1/*.md` (retired) and the Using pages into one coherent manual (a quick start, a section per page, a knob reference); README as a short front door; screenshots (`tools/screens.sh`); requirements renumbered to the version-1 design; written for beta users (Alan, 2026-11-17: 0.7 goes to customers as a beta, its feedback leads to 1.0): what beta means, how to report, how to go back to stock | agent | `docs/`, `site/`, `README.md`, `tools/screens.sh` |
 | 0.7.1 | Release | M2.6's manual: the beta release for customers; docs only, the firmware as 0.7.0 | lead | `docs/release-0.7.md`, version fields |
 | 0.6.0 | Release | M2.1–M2.4 merged: notes in `docs/release-0.6.md`; version 0.6.0, OS version field TS06 (Alan, 2026-11-16) | lead | `docs/release-0.6.md`, version fields |
 | 0.7.0 | Release | M2.5's changes, and the lead's small items: TRIG and TIME knobs hidden while COND or RTRG is 0 (M2.1's `sense()`), the device layer fuzzed on the host, the test counts in the README and `docs/testing.md` (Alan, 2026-11-16) | lead | `docs/release-0.7.md`, version fields |

@@ -1,7 +1,9 @@
 # Flashing trig-seedr to an Analog Rytm MKII
 
-trig-seedr has been tested in analog-emu only. The first run on a unit is a test: do it when a failed flash would not
-cost you anything, with the recovery route below ready.
+trig-seedr 0.7 is a beta ([what that means](https://a1o1.github.io/trig-seedr/beta/beta/)). Every release is tested
+in full in analog-emu; the releases that have also run on a unit are listed under [Tested on hardware](#tested-on-hardware).
+Flash it when a failed flash would not cost you anything, with the recovery route below ready, and work on projects
+you have backed up.
 
 ## Before you start
 
@@ -75,7 +77,10 @@ what has run on a real unit.
     the track and every page's settings back; a roll, then FUNC + YES, keeps it. Try BD, SD and CH: each should
     sound like its part (kick, backbeat, hats).
 
-Please note what you saw, good or bad, in an issue: the unit, the OS version, the steps and what happened.
+Please note what you saw, good or bad, in a
+[hardware report](https://github.com/a1o1/trig-seedr/issues/new?template=hardware-report.yml): the version from the
+boot screen, the unit, the OS version, the checks by number, and for anything that went wrong the steps and what
+happened ([Feedback](https://a1o1.github.io/trig-seedr/beta/feedback/)).
 
 ## Back to stock
 
