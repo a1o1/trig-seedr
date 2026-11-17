@@ -1,0 +1,67 @@
+name: Bug
+description: Something does not do what the manual says, or the unit misbehaves.
+title: "Bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        If the unit no longer starts, see "Back to stock" in the manual's Flashing page first.
+        Please do not attach `.syx` files: they contain Elektron's firmware.
+  - type: input
+    id: version
+    attributes:
+      label: trig-seedr version
+      description: As the boot screen shows it while the Rytm starts (TS07 for 0.7).
+      placeholder: TS07
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where
+      options:
+        - On a unit
+        - In analog-emu
+        - Building or testing from source
+    validations:
+      required: true
+  - type: input
+    id: unit
+    attributes:
+      label: Unit and OS version
+      placeholder: Analog Rytm MKII, OS 1.74
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps
+      description: From a known state - the track and its length, the page and knob values, RECORD on or off, playing or stopped, the keys you pressed.
+      placeholder: |
+        1. Empty pattern, BD 16 steps, RECORD on, stopped
+        2. RHYTHM SRC RAND, DENS 50 %
+        3. YES, then NO, then YES
+    validations:
+      required: true
+  - type: textarea
+    id: happened
+    attributes:
+      label: What happened
+      description: Messages on the screen, what played, what the grid showed. A photo of the screen helps.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      description: Link the manual page if it says otherwise.
+    validations:
+      required: true
+  - type: dropdown
+    id: again
+    attributes:
+      label: Does it happen again with the same steps?
+      options:
+        - "Yes, every time"
+        - "Sometimes"
+        - "Only once so far"
+        - "Not tried"

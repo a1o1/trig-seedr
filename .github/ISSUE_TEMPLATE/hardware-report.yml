@@ -1,0 +1,66 @@
+name: Hardware report
+description: You ran a trig-seedr version on a unit. Tell us what worked and what did not.
+title: "Hardware: <version> on <unit>"
+labels: ["hardware"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for testing on a unit. Good results are as useful as problems.
+        Please do not attach `.syx` files: they contain Elektron's firmware.
+  - type: input
+    id: version
+    attributes:
+      label: trig-seedr version
+      description: As the boot screen shows it while the Rytm starts (TS07 for 0.7), and the file you flashed.
+      placeholder: "TS07, trig-seedr-0.7-os1.74.syx"
+    validations:
+      required: true
+  - type: input
+    id: unit
+    attributes:
+      label: Unit
+      placeholder: Analog Rytm MKII
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS version
+      placeholder: "1.74"
+    validations:
+      required: true
+  - type: dropdown
+    id: result
+    attributes:
+      label: Overall
+      options:
+        - Everything I tried worked as the manual says
+        - Some things did not work as the manual says
+        - The unit misbehaved (froze, restarted, lost data, did not start)
+    validations:
+      required: true
+  - type: textarea
+    id: checks
+    attributes:
+      label: What you tried
+      description: The first checks from "Flashing a unit" by number, or what you did in your own use. Note each as OK or not.
+      placeholder: |
+        1-9 OK
+        10 (CVAR AAAB): take n+1 played on loop 3, not 4
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps for anything that went wrong
+      description: From a known state - the track and its length, the page and knob values, RECORD on or off, playing or stopped, the keys you pressed. A photo of the screen helps.
+  - type: textarea
+    id: happened
+    attributes:
+      label: What happened, and what you expected
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else
+      description: How it felt to use, what was unclear, what you would change.
