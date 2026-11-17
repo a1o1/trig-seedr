@@ -22,7 +22,7 @@
   {"event": "ev_key", "fn": "gr_key", "order": 40},
   {"event": "ev_enc", "fn": "gr_enc", "order": 40}
  ],
- "cflags": ["-fno-store-merging"],
+ "cflags": ["-fno-store-merging", "-Werror=return-type"],
  "resources": {"core": "0.13"},
  "requires": ["core"]
 }

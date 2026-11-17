@@ -2,7 +2,8 @@
 # TOOLS YOLO (0.7, Alan): YES rolls a recipe for this track (lib/yolo.c) and generates it; the rolled
 # recipe and the take are what seedref yolo=ROLL:WILD makes; YES again takes the next roll; NO puts the
 # track and the recipe back as they were before the first roll; FUNC + YES keeps both; leaving with a
-# roll pending (RECORD off) puts both back. On A01 BD from the kept2 fixture.
+# roll pending (RECORD off) puts both back; after NO, or with ROLL turned, YES plays the roll ROLL shows.
+# On A01 BD from the kept2 fixture.
 R=$(cd "$(dirname "$0")/../.." && pwd); . "$R/tools/emu.sh"; . "$T/tests/fixtures.sh"
 emu_init 43-yolo
 emu_build
@@ -19,6 +20,8 @@ recipe_dev() {
 }
 # the user's meter and lanes, which a roll keeps
 FROM="metr=$(emu_get 'recipe[0].metr') beat=$(emu_get 'recipe[0].beat') lane1.parm=$(emu_get 'recipe[0].lane[0].parm') lane2.parm=$(emu_get 'recipe[0].lane[1].parm')"
+# the pattern's shared MAP settings, for a roll whose rhythm is MAP (the mod starts them at 128, 128, 0)
+FROM="$FROM map_x=$(emu_get shared.map_x) map_y=$(emu_get shared.map_y) map_chaos=$(emu_get shared.map_chaos)"
 REC0=$(recipe_dev)
 
 emu_open
@@ -44,6 +47,19 @@ emu_no
 check_take "NO: BD's original" "$K"
 emu_check "NO: the recipe as before the first roll" "$REC0" "$(recipe_dev)"
 emu_check "NO: nothing pending" 0 "$(pending)"
+
+# 3b. YES after NO brings the roll that was heard back (as the pages bring the take back; M2.5)
+emu_yes
+check_take "YES after NO: roll 1 again" $FROM yolo=1:50 "$K"
+emu_check "YES after NO: ROLL still 1" 1 "$(emu_get tool.roll)"
+emu_keys YES
+check_take "YES again: roll 2" $FROM yolo=2:50 "$K"
+emu_knob TOOLS ROLL 1
+emu_keys YES
+check_take "ROLL turned back to 1: roll 1 plays" $FROM yolo=1:50 "$K"
+emu_no
+check_take "NO: BD's original again" "$K"
+emu_check "NO: the recipe as before the first roll again" "$REC0" "$(recipe_dev)"
 
 # 4. WILD 90, a chosen ROLL, FUNC + YES keeps the roll and its take
 emu_knob TOOLS WILD 90

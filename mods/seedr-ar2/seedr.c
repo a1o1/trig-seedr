@@ -31,6 +31,7 @@
  * apply, unlike stock's Euclidean mode, which plays from its own table and never writes trigs).
  * Writes go through the stock step routines (device/rytm_ar2.h).
  */
+#include <stddef.h>
 #include <stdint.h>
 #include "analog-rytm-mk2/screen.h"
 #include "analog-rytm-mk2/store.h"
@@ -305,6 +306,7 @@ static int take(void)
     last = *r;
     have_last = 1;
     core_project_edited();
+    return 1;
 }
 
 /* what a Rytm track plays, for YOLO's ranges (device/rytm_params.h) */
@@ -315,7 +317,8 @@ static int track_role(int n)
 }
 
 /* TOOLS, YOLO (0.7): roll a recipe for this track and generate it, as YES on a page would. YES with
- * ROLL as it was after the last roll takes the next roll (as SEED). The first roll keeps the recipe it
+ * ROLL as it was after the last roll takes the next roll (as SEED); after NO or NOT APPLIED, or with ROLL
+ * turned, YES plays the roll ROLL shows. The first roll keeps the recipe it
  * replaces: NO, or the take not applied, puts it back with the track; FUNC + YES keeps the roll. */
 static void yolo_run(void)
 {
@@ -411,6 +414,7 @@ static void back(const char *m)
         recipe[yolo_track] = yolo_undo;
         turned |= (uint16_t)(1u << yolo_track);
         yolo_track = -1;
+        yolo_used = -1;                         /* YES on YOLO brings the roll that was heard back (M2.5) */
     }
     if (auditioning) {
         dev->restore();
@@ -458,6 +462,8 @@ static void turn(int k, int d)
         return;
     if (!(w->flags & PR_KEEP))
         turned |= (uint16_t)(1u << clampi(n, 0, SEED_TRACKS - 1));
+    if (w->base == PB_TOOL && w->off == offsetof(struct seed_tool, roll))
+        yolo_used = -1;                         /* ROLL turned: YES plays the roll it shows */
     if (w->fmt == PF_GROOVE) {
         say(c.r->grv > 0 && c.r->grv <= N_GROOVES ? grooves[c.r->grv - 1].name : "NO GROOVE");
     } else if (w->kind == PK_RANGE) {
