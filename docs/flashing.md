@@ -45,7 +45,7 @@ what has run on a real unit.
 
 | Version | Date | Unit | OS | Result |
 |---|---|---|---|---|
-| 0.7.1 | 2026-11-17 | Analog Rytm MKII | 1.74 | passed: hardware testing completed on a unit |
+| 0.7.1 | 2026-11-17 | Analog Rytm MKII | 1.74 | passed: checks 1 to 15, including 0.7's range knobs, YES after a revert, the pending dot and YOLO |
 | 0.6.0 | 2026-11-16 | Analog Rytm MKII | 1.74 | played in use: works; UX notes became 0.7's range knobs, YES after a revert and the pending dot |
 | 0.5.1 | 2026-11-16 | Analog Rytm MKII | 1.74 | first pass: every feature worked as expected; its notes became 0.5.1's generate and apply |
 
