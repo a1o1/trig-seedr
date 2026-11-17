@@ -1,170 +1,169 @@
-# trig-seedr: requirements (v1.0, 2026-11-14)
+# trig-seedr: requirements (version 1)
 
-Scope: pattern seeds for Elektron machines. Offline, destructive pattern algorithms (applied to a track on a key press, with an audition undo) for the Analog Rytm MKII OS 1.74, mono only, as an elekloader mod first. Later devices: Analog Four MKII, Syntakt (D10); the library (`lib/`) is device-neutral, the device layer is per machine.
+What version 1 must do, as statements a test can check, for the Analog Rytm MKII with OS 1.74. Each requirement
+names where it comes from in [`design-v1.md`](design-v1.md) (decisions **V**, engine principles **P**, invariants
+**I**, assumptions **A**, sections **§**) or the plan's task that settled it ([`plan-v1.md`](plan-v1.md)), and the tests
+that check it. The user's description of each behaviour is the manual
+([a1o1.github.io/trig-seedr](https://a1o1.github.io/trig-seedr/manual/concepts/)). State: release 0.7.0.
 
-## Decisions
+This page replaces 0.3's requirements (D1–D21: the GENERATOR, ROTATE and GROOVE pages), which are in the history
+(`git show v0.3.0:docs/requirements.md`); [how they map](#from-03s-requirements) is at the end.
 
-| # | Decision |
+## How to read the tests column
+
+| Written | Is |
 |---|---|
-| D1 | v1 algos: **GENERATOR** and **ROTATE**. CURVES is out of v1. |
-| D2 | **Generate into the track's existing length** (the pages already configured). Changing the length or page count is a later step. |
-| D3 | **Trig conditions and retrigs are part of GENERATOR's output**, not a separate algo. |
-| D4 | **No chords.** Mono only. On the A4 the target is 4 mono voices, so a mono generator carries over; chords to be revisited. |
-| D5 | **SYMMETRY dropped.** |
-| D6 | **SHUFFLE deferred.** Micro timing matters more. |
-| D7 | **ROTATE added**, mainly to move a groove against the rhythm (rotate some fields while the trigs stay put), plus whole-pattern rotation, which stock lacks. |
-| D8 | **Groove-driven micro timing** (an Ableton groove driving µtime and velocity): see D12–D14. |
-| D9 | **EVERY N dropped**, to keep v1 simple. GENERATOR's ACC and VEL cover accents. |
-| D10 | **Device order: Rytm MKII (OS 1.74, elekloader core-ar2) first.** A4 MKII second. Syntakt (SyntHack / MAX, OS 1.41) after, in coordination with those authors. |
-| D11 | **Undo is an audition.** The first APPLY snapshots the original; each further APPLY regenerates from that original; NO reverts to it; KEEP (FUNC + YES) accepts the result and drops the snapshot. |
-| D12 | **Grooves come from Ableton .agr files (and MIDI files exported from Live) via a host tool** (`tools/groove2h.py`), built into the firmware as tables. Adding grooves means a rebuild. |
-| D13 | **GROOVE is its own page**, on any track (hand-programmed or generated), with the D11 audition. YES on GROOVE while a GEN take is auditioned keeps the take first, so NO undoes only the groove. |
-| D14 | **Timing and velocity, separate amounts**, after Live's Groove Pool (plus QUANT and RANDOM). |
-| D15 | **YES regenerates.** A YES with no knob turned since that page's last YES moves to the next seed (a new take, also right after FUNC + YES); after a knob turn it keeps the seed, so the change is heard on the same take. |
-| D16 | **Sample-slot locks per trig** (GEN 3): a share of the generated trigs get a p-lock of the sample slot, from a slot-number range (low–high). |
-| D17 | **Open as a third TRIG page.** Stock cycles TRIG → EUCLIDEAN with the TRIG key; TRIG on the EUCLIDEAN page opens trig-seedr, TRIG again goes back to stock's TRIG page; a parameter page or menu key closes it. TRIG held + PAGE opens it from anywhere. (Every FUNC + key is used in stock 1.74; FUNC + PLAY MODE is its KIT menu.) |
-| D18 | **Leaving mid-audition keeps the take.** Changing track or pattern, or closing the page, while a take is auditioned keeps it, as FUNC + YES would. |
-| D19 | **Metric weights** (METER page). Each step has a weight from its place in a 4-beat bar (bar 4, half bar 3, beat 2, "&" 1, the rest 0), BEAT steps per beat. Placement and velocity follow them; the Rytm's accent flag stays on GEN 2's ACC. Prior art: Grids (weighted steps, accents on the strongest), kin.rhythmicator (Barlow's indispensability, syncopation by weakening strong pulses), Torso T-1 (accent as velocity with a groove character). |
-| D20 | **SKIP**: the pattern's first N steps are cleared and get no trig (room for a kick on another track). Once at the start of the pattern, not per beat. |
-| D21 | **Velocity shapes**: "accent" here is velocity. VSHP picks which steps are loudest within VEL (STRONG, WEAK, OFF, NOT 1 for every beat, NOTBAR for the bar's first step); VAMT mixes the shape with the random velocity. BIAS weights trig placement (each weight level doubles the chance; reversed below 0) and keeps DENS's exact count. At the defaults the takes are unchanged. |
+| `test_xxx` | a host test, `lib/test_xxx.c` (`make -C lib test`); `test_rytm_ar2` is `device/`'s, `test_pages` and `test_interplay` are `mods/seedr-ar2/`'s |
+| `NN` | an emulator test file, `tools/tests/NN-*.sh` (`sh tools/run_tests.sh NN`), listed in [`tools/README.md`](../tools/README.md) |
+| golden | the frozen vectors, `lib/golden/` (`sh tools/golden.sh`) |
+| fuzz | `lib/test_fuzz.c`, and its long runs (`tools/fuzz.sh`) |
+| hw *n* | check *n* of [`flashing.md`](flashing.md)'s first checks, by hand on a unit |
+| — | no automated test; the reason is given |
 
-## 1. Algorithms
+What each level covers and what is not tested: [`testing.md`](testing.md).
 
-| Algo | What | Here |
-|---|---|---|
-| GENERATOR | random trigs on a grid at a density, with velocity, length, note, micro timing, accents, conditions, retrigs and sample locks from ranges | v1 |
-| ROTATE | moves whole steps or one field, on a track or the whole pattern | v1 |
-| GROOVE | a groove's micro timing and velocity on the existing trigs | v1 |
-| CURVES | waveforms onto a field or a parameter | later |
-| SHUFFLE | random reordering of steps or fields | deferred |
-| SYMMETRY, EVERY N | mirrored patterns; accent / ghost every N steps | dropped |
+## G. General
 
-## 2. What a Rytm step can hold
-
-Field offsets, the stock routines that write them, parameter locks and the lock budget: `firmware-notes-os174.md`.
-
-## 3. GENERATOR
-
-Region: the track's current length as the sequencer plays it. All of it is replaced (each step cleared, then written); other tracks are untouched. `lib/gen.c`.
-
-**GEN 1: rhythm and notes**
-| Knob | Name | Range | Meaning |
+| # | Requirement | From | Tests |
 |---|---|---|---|
-| A | GRID | 1/16, 1/8, 1/4, 1/2 | trigs land only on multiples of the grid |
-| B | DENS | 0..100% | share of grid positions that get a note trig (exact count) |
-| C | VEL | 1..127, FUNC: min | velocity range |
-| D | LEN | stock's stepped lengths, FUNC: min | note length range, shown as note values (1/16, 1/8 …) or in steps; DEF leaves the track default |
-| E | NOTE | -24..+24, FUNC: min | offset from the track's default note (0..0: leave the default) |
-| F | UTIM | 0..100% | random micro timing amount; 0 = on the grid |
-| G | SEED | FREE, 0..9999 (FUNC: ±100) | the random source |
-| H | ROT | -N..+N steps | rotate the result before writing |
+| G1 | Runs on the Analog Rytm MKII with OS 1.74, as an elekloader mod in a patched stock OS; the boot screen shows the version (TS07 for 0.7) | V8, plan §1 | every emulator test; hw 1 |
+| G2 | The engine (`lib/`) is device-neutral C99, freestanding, integer only, with no C library; it builds for ColdFire with no undefined symbols | P6 | 00 (`make -C lib coldfire`) |
+| G3 | Everything written is ordinary pattern data: it plays, saves, reloads and survives a power cycle on the stock OS | I9 | 03, 11, 41; hw 7 |
+| G4 | Only the tracks in scope change, and only below the track's length | I6 | `test_props`, fuzz, `test_rytm_ar2`, 13 |
+| G5 | The same recipe, original and context give the same take | I2 | every emulator take against `seedref`; golden |
+| G6 | The repository holds no Elektron firmware or anything built from it, and nothing derived from Ableton's content | plan §2 | — (`.gitignore`; review at merge) |
+| G7 | The mod fits the loader's limits; a render on a 64-step track stays in milliseconds | plan M2.3 | 42 |
 
-**GEN 2: Elektron extras (D3)**
-| Knob | Name | Range | Meaning |
+## K. Keys and screen
+
+| # | Requirement | From | Tests |
 |---|---|---|---|
-| A | ACC | 0..100% | share of generated trigs that get an accent |
-| B | COND | 0..100% | share of generated trigs that get a condition |
-| C | CTYP | X%, A:B, 1ST, FILL, MIX | which conditions COND may use |
-| D | CVAL | depends on CTYP | X%: probability range; A:B: the cycle (2..8) |
-| E | RTRG | 0..100% | share of trigs that get a retrig |
-| F | RATE | 0..16, FUNC: min | retrig rate range |
-| G | RCUR | -128..127 | retrig velocity curve (stock's retrig VEL: negative fades the repeats out, positive in) |
+| K1 | Opens as a third TRIG page (TRIG on EUCLIDEAN) and with TRIG held + PAGE; closes with TRIG, a parameter page or menu key, or NO with no take pending | §8 | 07, 10; hw 3 |
+| K2 | LEFT / RIGHT step through the pages in the order TAKE, RHYTHM, PLACE, DYNAMICS, NOTE, LOCK, TRIG, TIME, VIEW, TOOLS; PAGE, the TRIG keys and the transport stay stock's | V10, §5 | 10; hw 8 |
+| K3 | UP / DOWN pick the lock lane on LOCK | §5, §8 | `test_pages`, 26 |
+| K4 | The title bar shows the page, the track, the page's place, and the source: TRK, EUC, CPY, MAP (CHAOS below 4) or S and the seed | V6, §8 | 10, 23 |
+| K5 | A dot before the source shows while a take is pending | M2.5 | 13 (pending state); hw 13 |
+| K6 | A range knob sets the high end, FUNC + knob the low end; each end stops at the other; VEL, LEN and NOTE have DEF below their lowest value | §5, M2.5 | `test_pages`; hw 14 |
+| K7 | A knob that cannot change the take is hidden and keeps its value (PHRS on 16 steps or fewer; CVAR, QUAL unless the trig positions come from the seed; ROLE at BIAS 0; AMOD at ACC 0; CTYP, CVAL at COND 0; RATE, RCUR at RTRG 0; TIME, GVEL, SHFT with no groove); a hidden value, turned, leaves the take byte-identical | M2.1, 0.7 | `test_pages`, `test_interplay`, 40 |
+| K8 | FUNC + knob turns SEED in steps of 100 and other knobs with more than 20 values in steps of 10 | §8 | `test_pages` |
+| K9 | A message replaces the strip for 2 seconds and says why when nothing is written | §8 | 06, 13 |
 
-**GEN 3: locks (D16)**
-| Knob | Name | Range | Meaning |
+## A. Generate and apply
+
+| # | Requirement | From | Tests |
 |---|---|---|---|
-| A | SMP% | 0..100% | share of generated trigs that get a sample-slot lock. 0: the track's sample locks are left as they are; above 0: GEN replaces them |
-| B | SMPL | 0..127, FUNC: min | the slot range a locked trig draws from (0 = OFF) |
+| A1 | YES generates only with grid recording on; otherwise it writes nothing and says RECORD TO GENERATE | §9 | 13; hw 4 |
+| A2 | The first YES snapshots the tracks in scope; every YES renders the whole recipe from that original | V2, §9 | 01, 13 |
+| A3 | YES with no knob turned takes the next seed while a take is pending or just after FUNC + YES; after NO or NOT APPLIED it brings the same take back | V2, M2.5 | 13, 26; hw 5, 13 |
+| A4 | NO restores the original byte for byte, lock store included | I7 | 01, 13, 11, `test_rytm_ar2` |
+| A5 | FUNC + YES applies the take and drops the snapshot; it is the only way a take stays | §9, A4 | 01, 13 |
+| A6 | Changing track or pattern, closing trig-seedr or turning grid recording off with a take pending restores the original (NOT APPLIED) | §9 | 13; hw 6 |
+| A7 | A pattern save during a pending take stores the take as it stands | §9 | — (stock's save; not checked separately) |
+| A8 | A take that cannot be written (a lock with no row left, a refused recipe) writes nothing and says why | I8 | 06, 12, 41, `test_rytm_ar2` |
+| A9 | YES writes nothing on the FX track (NOT ON THE FX TRACK) or on a track in stock's Euclidean mode (EUCLID IS ON: TURN IT OFF) | §10 | — (no emulator test yet) |
 
-**GEN 4: METER (D19–D21)**
-| Knob | Name | Range | Meaning |
+## E. Engine
+
+| # | Requirement | From | Tests |
 |---|---|---|---|
-| A | BEAT | 1..16 | steps per beat (4 beats per bar) |
-| B | SKIP | 0..63 | the first SKIP steps are cleared and get no trig |
-| C | BIAS | -100..100% | trig placement: + strong steps, - weak steps |
-| D | VSHP | FLAT, STRONG, WEAK, OFF, NOT 1, NOTBAR | velocity shape |
-| E | VAMT | 0..100% | share of the shape in each velocity |
+| E1 | One recipe per track; a new one starts on SRC = TRACK when the track has trigs and on RAND when it is empty; METR and BEAT come from the last recipe generated | V5, V6, A7 | 01, `test_seed_render` |
+| E2 | The chain runs RHYTHM, PLACE (ROT, SYNC, MASK, SKIP), DYNAMICS, NOTE, LOCK, TRIG, TIME, then FLD; changing one layer changes only the fields it owns | §4, P1, I3 | `test_props`, fuzz |
+| E3 | A layer at 0 does not touch its fields: SRC = TRACK with every layer at 0 leaves the track byte-identical | V3, V4, I1 | `test_props`, 00, 10 |
+| E4 | Share knobs (DENS, SYNC, ACC, COND, RTRG, a lane's %) keep every step they had chosen when raised | P2, I4 | `test_seed_rng`, `test_props` |
+| E5 | DENS gives its exact count; MASK and SKIP only remove | I5 | `test_src_random`, `test_place_mask`, `test_interplay` |
+| E6 | VARY: 0 gives independent takes, 100 identical ones, in between the share kept | P3, I10 | `test_seed_rng`, `test_vary`, fuzz |
+| E7 | SKIP, MASK and the velocity shapes refer to the steps' final positions | P5 | `test_place`, `test_dyn` |
+| E8 | A seed gives the same take from release to release; a change is written down with its reason | V11 | golden |
+| E9 | Recipes live in RAM, per pattern in play; power off forgets them | A3 | — (by design) |
 
-SKIP, BIAS and VSHP use the steps' final positions (after ROT).
+## Pages
 
-GEN refuses ("NO LOCK ROWS LEFT") when SMP% > 0, the track has no sample-lock row yet and the pattern's 72 lock rows are full (a new lock would be lost at the next save).
+### TAKE
 
-## 4. ROTATE
-
-Moves step data by STEPS with wrap-around at each track's length. `lib/gen.c` (fields) and stock's trig shift (whole steps).
-
-| Knob | Name | Range | Meaning |
+| # | Requirement | From | Tests |
 |---|---|---|---|
-| A | STEPS | -63..+63 | how far; negative = earlier |
-| B | SCOPE | TRACK, ALL | the current track, or every track of the pattern (tracks in Euclid mode are skipped) |
-| C | WHAT | ALL, VEL, NOTE, LEN, UTIM, COND, RTRG, ACC | ALL = whole steps through stock's trig shift: fields and parameter locks move, swing bits stay. A single field moves while the trigs stay put |
-| D | MODE | TRIG, GRID | a single field moves between trigs (nothing lost) or by steps (values landing on empty steps are dropped). ALL and ACC always move by step |
+| TK1 | SEED 0–9999 names the take | §5 | every `seedref` comparison |
+| TK2 | PHRS (AAAA, AAAB, ABAB, ABAC, ABCD) plays take SEED + the letter's offset on each 16-step page; SKIP, the groove, MASK, COPY and EUCLID keep track positions; a short last page is a phrase of its own length for TRACK, COPY and EUCLID | §7, A2, F9, M2.1 | `test_vary`, 29 |
+| TK3 | CVAR writes takes SEED and SEED + 1 as complementary conditions (1:2 / 2:2; AAAB as !PRE / 4:4) | §7, F9 | `test_vary`, 29; hw 10 |
+| TK4 | METR (4/4, 3/4, 6/8, 12/16, 5/8, 7/8) and BEAT rank the steps by Barlow's indispensability | F1 | `test_meter`, 21 |
+| TK5 | QUAL scores 1–8 candidates on where the trigs are; a take is still a function of its seed | F11 | `test_score`, 31 |
 
-Not in v1: PAGE scope, moving the locks alone, aligning tracks of different lengths to the master length.
+### RHYTHM
 
-## 5. GROOVE (D12–D14)
-
-Applies a groove's micro timing and velocity to the trigs of the current track. `lib/groove.c`; tables from `tools/groove2h.py`.
-
-**Groove tables.** One entry per Rytm step (a 1/16 at speed 1×), repeating every `len` steps (up to 64): µtime at 100 % in 1/24-step units (1/96 beat), and the groove's velocity at that step (0 = no groove note there).
-
-**From an .agr.** Live 11's plain `.agr` is XML: a MIDI clip (note times in beats, velocities, loop length) and the Groove's Grid (Base: 1 = 1/8, 3 = 1/16, checked against the files' names).
-- Each base-grid line takes the displacement of the groove note nearest to it (within half a grid line); steps between lines move in proportion (a piecewise-linear time warp, as Live describes Base); a step on a grid line with a note takes that note's velocity.
-- Check: Live's "Swing MPC 3000 16ths 54" puts every second 16th 0.0209 beats late = 2 units, the MPC formula's value for 54 %.
-- Some `.agr` files are in a protected format (header `ab 1e 56 78`); the tool skips them. Route for those: Live itself (drag onto a MIDI track, export the clip as MIDI).
-
-**From a MIDI file.** Each note-on is a groove note. Base from `--base` or the file name (`8ths` → 1/8, `16T` → 1/16T, otherwise 1/16); length from `--beats` or the file's end rounded up to whole bars.
-
-| Knob | Name | Range | Meaning |
+| # | Requirement | From | Tests |
 |---|---|---|---|
-| A | GRV | 1..N | the groove; its name is on the bottom line |
-| B | TIME | -100..+100 % | share of the groove's µtime added to each trig |
-| C | VEL | -100..+100 % | at +100 % a trig's velocity is scaled by the groove velocity ÷ the groove's loudest; negative inverts |
-| D | QUANT | 0..100 % | existing µtime pulled toward 0 first |
-| E | RAND | 0..100 % | random µtime, up to ±12 units (half a step) at 100 % |
-| F | SHIFT | -63..+63 | the groove moved later / earlier against the pattern |
-| G | SEED | FREE, 0..9999 | for RAND |
+| RH1 | SRC = TRACK uses the trigs on the track, with all they carry | V3 | 00, 10 |
+| RH2 | RAND: GRID, DENS (exact count), BIAS towards the rank, ROLE (METER, KICK, BACK, HAT, PERC) | §5, F1 | `test_src_random`, `test_meter`, 21 |
+| RH3 | EUCLID gives the pattern stock's Euclidean mode plays for LEN = STEPS, PL1 = PULS | F2 | `test_src_euclid`, 22 |
+| RH4 | MAP: the map's levels blended at X / Y, DENS threshold, CHAOS as a seed-drawn lift; PART and DENS per track, X, Y, CHAOS shared; levels as the original code gives them | §6, A1, A6, F3 | `test_src_map`, 23 |
+| RH5 | COPY takes another track's trig positions as it plays (a Euclidean-mode track as that mode plays) | F4 | `test_src_copy`, 24 |
 
-Only steps with a trig change; µtime is clamped to ±23. Limits: a step is taken as a 1/16 whatever the track's speed; triplet grooves and odd meters are warped onto 16ths as they come; grooves longer than 64 steps are cut to 64.
+### PLACE
 
-## 6. Behaviour requirements
+| # | Requirement | From | Tests |
+|---|---|---|---|
+| PL1 | ROT moves whole steps with all their parameter locks; swing stays with the position | §4 | `test_place`, 05, 11 |
+| PL2 | SYNC anticipates trigs onto a weaker step; the count is kept, runs resolve onto a stronger step, SKIP is respected; on TRACK the step moves with its locks | F5 | `test_place_sync`, 25 |
+| PL3 | MASK AVOID / ONLY against another track, on final positions; it only removes | F4, P5 | `test_place_mask`, 24 |
+| PL4 | SKIP clears the first N steps | §5 | `test_place`, 08 |
+| PL5 | FLD / FROT / FMOD rotate one field against the trigs, by trig or by grid | §5 | `test_place`, 05 |
 
-- **R1 Region.** The track's existing length, all pages (D2). ROTATE also has the ALL scope.
-- **R2 Undo (audition, D11).**
-  - The first APPLY copies the affected tracks: each track's step record (917 bytes) and lock store (5,674 bytes); all 13 tracks for ROTATE ALL (86 KB, in the mod's .bss).
-  - While auditioning, every APPLY starts from that copy, so results never build on each other.
-  - APPLY on another page, or over other tracks, keeps the current audition first; the new one starts from that result.
-  - NO restores the copy; FUNC + YES keeps the result; leaving the page, the track or the pattern keeps it (D18).
-  - Restore: locks that differ go back through stock's lock set / clear (so the stored lock rows follow), then the bytes through stock's memcpy, then the change notice (the grid redraws).
-  - RAM only. Stock RELOAD PATTERN (NO + SCENE) stays as a fallback to the saved state.
-- **R3 Seed.** Same seed + settings + length = same result.
-- **R4 Live.** Works stopped or playing; the result plays from the next step.
-- **R5 Lock budget.** The trig-page fields are per-track arrays, not lock rows. GEN 3's sample locks use one row per track; GEN checks for room first. GROOVE adds no rows; ROTATE moves existing locks with whole steps.
-- **R6 Stock-compatible output.** Everything written is ordinary Rytm data: it plays and saves on a stock OS.
-- **R7 UI.** One page per algo, knobs A..H + YES; opened as a third TRIG page, after EUCLIDEAN (D17).
-- **R8 Safety.** Touch only the tracks in scope; mark the project modified after APPLY.
-- **R9 Euclid mode.** GENERATOR, GROOVE and ROTATE (TRACK) refuse on a track in Euclid mode; ROTATE ALL skips such tracks.
+### DYNAMICS
 
-## 7. Where the pages live
+| # | Requirement | From | Tests |
+|---|---|---|---|
+| DY1 | VEL (DEF or a range), SHAPE with AMT (FLAT, STRONG, WEAK, OFF, NOT 1, NOTBAR, EVRY), HUM | §5 | `test_dyn`, 08 |
+| DY2 | SHAPE = RANK and AMOD = TOP follow the meter's rank | F1 | `test_dyn_rank`, 21 |
+| DY3 | SHAPE = NOISE: a contour with N as its zoom | F7 | `test_noise`, 27 |
+| DY4 | SHAPE = MAP sets velocity from the map's level; with SRC = MAP, AMOD = TOP ranks by the map key, so ACC reproduces the original's accents | §6, F3, F12 | `test_dyn_rank`, 23, 32 |
+| DY5 | ACC above 0 owns the accent flag of every trig; at 0 the flags stay | V4 | `test_dyn` |
 
-| Option | How | Status |
-|---|---|---|
-| A. Behind the TRIG key, after EUCLIDEAN (now) | TRIG → EUCLIDEAN → trig-seedr → TRIG | done in the mod: `ev_key` takes the TRIG press that would leave EUCLIDEAN, read from stock's TRIG view (+0x8c) on the view list |
-| B. A key combination | TRIG held + PAGE | kept as a shortcut |
+### NOTE and LOCK
 
-## 8. Open
+| # | Requirement | From | Tests |
+|---|---|---|---|
+| NT1 | LEN and NOTE: DEF or a range | §5 | `test_values` |
+| NT2 | LIST: NLEN values from the range, sorted, played in an order (UP, DOWN, PING, PNG2, ODD, RAND) | V9, F6 | `test_values_list`, 26 |
+| NT3 | NOISE: a smooth contour every ZOOM steps that loops without a jump; values belong to steps, not trigs | V9, F7 | `test_noise`, 27 |
+| NT4 | LMOD = LEGATO: each trig lasts until the next | F6 | `test_values_list`, 26 |
+| LK1 | Two lanes, each a parameter lock on a chosen parameter with RANGE, LIST or NOISE values; a lane's % above 0 owns that parameter's locks | §5, V8, V9 | `test_values`, 04, 12, 26, 27 |
+| LK2 | A lane's PARM skips the other lane's parameter; a recipe with both lanes on one parameter is refused (SETTING OUT OF RANGE) | M2.2 | `test_pages`, fuzz (`test_found_lanes`), 41; hw 12 |
+| LK3 | A lock the pattern's 72 lock rows cannot hold is refused before anything is written (NO LOCK ROWS LEFT) | I8, task D1 | 06, 12, `test_rytm_ar2` |
 
-1. A first run on a unit (`docs/flashing.md`).
-2. core-ar2 0.13 (its screen calls) on a unit.
-3. A4 MKII: FUNC + YES / NO are pattern save / reload there, so KEEP needs another key.
+### TRIG and TIME
 
-## 9. Later
+| # | Requirement | From | Tests |
+|---|---|---|---|
+| TG1 | COND above 0 owns the conditions: the share chosen get X%, A:B, 1ST, FILL or a mix, the others none | §5 | `test_trig` |
+| TG2 | RTRG above 0 owns the retrig switch: the share chosen get a rate from RATE and the curve RCUR | §5 | `test_trig` |
+| TM1 | A groove's micro timing (TIME) and velocity (GVEL), QUANT, RAND and SHFT, inside the device's micro-timing range | §5 | `test_timing`, 02 |
+| TM2 | DRFT: correlated drift that belongs to the steps and loops without a jump | F8 | `test_timing_drift`, 28 |
 
-- GEN 3: more lock targets (any sound parameter, a range per trig).
-- METER: other bar lengths (3/4, 7/8), the accent flag from the weights, velocity shapes as built-in grooves on GROOVE (for hand-programmed tracks).
-- Range knobs without FUNC (push to switch low / high, or separate MIN / MAX), if FUNC + turn proves awkward.
-- Grooves: track speed taken into account; a groove from a Rytm pattern; grooves loaded at run time instead of built in.
-- ROTATE: PAGE scope, locks alone.
-- SHUFFLE (D6), CURVES including curves onto parameter locks.
-- Generating the length (NORMAL scale shares one length across tracks; per-track length needs ADVANCED scale).
-- A4 MKII, then Syntakt (D10).
+### VIEW, the preview, TOOLS
+
+| # | Requirement | From | Tests |
+|---|---|---|---|
+| VW1 | Every page but VIEW previews the take YES would write, from the recipe and the original, before YES; it follows other tracks COPY and MASK read | §8, F10 | 30 |
+| VW2 | VIEW shows the track's steps and the fields of the step under its cursor, read only | §8, F10 | 30, 10 |
+| TL1 | TOOLS ROT ALL rotates every track (Euclidean-mode tracks skipped) with its own YES, under generate and apply | V7 | 05, 13 |
+| TL2 | TOOLS YOLO rolls a recipe for the track in scope from musical ranges, keeps the meter, the lanes' parameters and the shared MAP settings; NO restores the track and the recipe | V7, 0.7 | `test_yolo`, 43; hw 15 |
+
+## Not in version 1
+
+From design §12: the Analog Four MKII and Syntakt ports; note pools (chords, scales) and chord sequencing; more than
+two lock lanes and LFO-shaped lock curves; recipes saved with the project. After 1.0: a TURING page (plan §8).
+
+## From 0.3's requirements
+
+| 0.3 | Now |
+|---|---|
+| D1, D3, D16 (GENERATOR, its conditions, retrigs and sample locks) | RHYTHM RAND (RH2), TRIG (TG1, TG2), LOCK lanes (LK1) |
+| D7 (ROTATE) | PLACE ROT and FLD (PL1, PL5), TOOLS ROT ALL (TL1) |
+| D8, D12–D14 (grooves) | TIME (TM1); `tools/groove2h.py` unchanged |
+| D11, D15 (audition, YES regenerates) | generate and apply (A2–A5) |
+| D17 (the third TRIG page) | K1 |
+| D18 (leaving keeps the take) | changed at 0.5.1: leaving restores the original (A6) |
+| D19–D21 (metric weights, SKIP, velocity shapes) | METR and BEAT (TK4), SKIP (PL4), DYNAMICS (DY1, DY2) |
+| D2, D4 (the track's length, mono) | unchanged: a take covers the track's length (G4); no chords (not in version 1) |
+| D5, D6, D9 (dropped or deferred) | EVERY N returned as SHAPE = EVRY (DY1); SYMMETRY and SHUFFLE are not in version 1 |
+| D10 (device order) | design V8, §12 |
