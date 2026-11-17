@@ -8,7 +8,7 @@
 [![Language](https://img.shields.io/badge/C99-freestanding%20ColdFire-informational.svg)](lib/)
 [![Tests](https://img.shields.io/badge/tests-717k%20host%20%7C%20477%20emulator-brightgreen.svg)](tools/README.md)
 [![Emulator](https://img.shields.io/badge/tested%20in-analog--emu-lightgrey.svg)](https://github.com/trigcondition/analog-emu)
-[![Hardware](https://img.shields.io/badge/hardware%20tested-v0.5.1%2C%20v0.6.0%20on%20Rytm%20MKII%20OS%201.74-orange.svg)](docs/flashing.md#tested-on-hardware)
+[![Hardware](https://img.shields.io/badge/hardware%20tested-v0.5.1%2C%20v0.6.0%2C%20v0.7.1%20on%20Rytm%20MKII%20OS%201.74-orange.svg)](docs/flashing.md#tested-on-hardware)
 [![Grooves](https://img.shields.io/badge/Grooves-Ableton%20.agr%20%7C%20MIDI-yellowgreen.svg)](https://a1o1.github.io/trig-seedr/getting-started/build/#your-own-grooves)
 [![AI](https://img.shields.io/badge/AI-Claude%20Opus%205.5-purple.svg)](https://www.anthropic.com/claude)
 [![Website](https://img.shields.io/badge/Website-a1o1.github.io%2Ftrig--seedr-4d9bff.svg)](https://a1o1.github.io/trig-seedr/)
@@ -25,8 +25,8 @@ from a groove. YES writes a take so you hear it, FUNC + YES keeps it, NO puts yo
 is ordinary Rytm data: it plays, saves and reloads on a stock OS.
 
 <a id="status"></a>**Status: 0.7 is a beta.** Version 1's design is built, but not final: beta feedback decides what changes before 1.0. Every release passes the full set of
-checks in an emulator (analog-emu); 0.5.1 and 0.6.0 also passed tests on an Analog Rytm MKII with OS 1.74, and 0.7.1
-has not had a hardware pass yet ([Tested on hardware](docs/flashing.md#tested-on-hardware)). Use it on projects you
+checks in an emulator (analog-emu); 0.5.1, 0.6.0 and 0.7.1 also passed tests on an Analog Rytm MKII with OS
+1.74 ([Tested on hardware](docs/flashing.md#tested-on-hardware)). Use it on projects you
 have backed up, keep the stock OS and a DIN MIDI interface at hand to go back, and tell us what you find: [what beta
 means](https://a1o1.github.io/trig-seedr/beta/beta/), [feedback](https://a1o1.github.io/trig-seedr/beta/feedback/).
 Flashing modified firmware is at your own risk.

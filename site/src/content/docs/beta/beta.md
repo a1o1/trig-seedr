@@ -15,7 +15,7 @@ or taken out. More is planned after 1.0 (a TURING page; the Analog Four MKII and
 |---|---|---|
 | On a computer | every part of the engine, with random recipes in the millions, against the design's rules | every release |
 | In analog-emu | the patched OS in an emulator that runs Elektron's own firmware, driven through the Rytm's keys and knobs: generate, NO, apply, save, reload, power cycle, the lock-row limit, every page | every release, in full |
-| On a Rytm MKII with OS 1.74 | the checks in [Flashing a unit](../../getting-started/flashing/#first-checks-on-the-unit), by hand | 0.5.1 and 0.6.0 passed; **0.7.0 has not had a hardware pass yet** |
+| On a Rytm MKII with OS 1.74 | the checks in [Flashing a unit](../../getting-started/flashing/#first-checks-on-the-unit), by hand | 0.5.1, 0.6.0 and 0.7.1 passed |
 
 Every hardware pass is listed in [Tested on hardware](../../getting-started/flashing/#tested-on-hardware). The
 details, and what no test covers (sound, other units, long sessions): [How it is tested](../../about/testing/).
