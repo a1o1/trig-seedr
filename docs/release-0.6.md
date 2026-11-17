@@ -51,4 +51,4 @@ Measured on the emulator's instruction counter (`docs/status/M2.3.md`):
 ## Known
 
 - MAP under PHRS plays the map's first 16 steps on every page, so steps 17–32 of the map are not heard
-  (`docs/v1/vary.md`). Left for hardware testing.
+  ([TAKE, PHRS](https://a1o1.github.io/trig-seedr/manual/take/#phrs-a-phrase-over-the-pages)). Left for hardware testing.

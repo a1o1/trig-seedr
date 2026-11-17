@@ -1,6 +1,6 @@
 # trig-seedr: design for version 1
 
-Status: agreed direction, 2026-11-15. Decisions V1–V11 are settled. Section 13 lists assumptions that still need Alan's answer; the plan (`plan-v1.md`) says which work each one gates. Background: `requirements.md` (what 0.3 does, D1–D21) and the research notes (project doc `research-generation-ideas.md`).
+Status: agreed direction, 2026-11-15. Decisions V1–V11 are settled. Section 13 lists assumptions that still need Alan's answer; the plan (`plan-v1.md`) says which work each one gates. Requirements traced to this design and to the tests: `requirements.md` (0.3's D1–D21 are in its history) and the research notes (project doc `research-generation-ideas.md`).
 
 ## 1. Goal
 

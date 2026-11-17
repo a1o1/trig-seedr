@@ -21,15 +21,15 @@ mods/seedr-norows-test/
 mods/stepview-ar2/
 tools/test_stepview.sh
 .DS_Store
-# the website: dependencies, build output, and the developer pages copied from docs/ at build time
+# the website: dependencies, build output, and the pages site/scripts/sync-docs.mjs writes at build time
 site/node_modules/
 site/dist/
 site/.astro/
 site/src/content/docs/developers/
-site/src/content/docs/features/
 site/src/assets/screens/
 site/src/content/docs/getting-started/flashing.md
 site/src/content/docs/about/testing.md
+site/src/content/docs/manual/knobs.md
 
 # Claude Code worktrees (one per parallel task)
 .claude/worktrees/

@@ -1,6 +1,8 @@
 #!/bin/sh
-# tools/screens.sh: the screenshots of the ten pages the README and the site show (docs/screens/<page>.png),
-# and TOOLS with a YOLO roll pending (yolo.png).
+# tools/screens.sh: the screenshots the README and the site's manual show (docs/screens/*.png): the ten
+# pages (<page>.png), TOOLS with a YOLO roll pending (yolo.png), and four for the manual: RHYTHM with
+# SRC = RAND (random.png), the same take pending, the dot in the title bar (pending.png), SRC = EUCLID
+# (euclid.png), and YES with RECORD off (record.png).
 #     sh tools/screens.sh             writes them to build/emu/screens/ to look at
 #     sh tools/screens.sh --install   also copies them into docs/screens/
 # One rich example, so every page shows real values and the strip's bars (velocity) vary: A01 BD made
@@ -40,8 +42,28 @@ emu_keys YES
 emu_run -s 2400M                                # past the ROLL message, so the strip shows
 emu_shot yolo
 emu_no
+emu_run -s 2400M                                # past BACK TO THE ORIGINAL
+# RHYTHM with SRC = RAND: DENS 40 %, BIAS +60 % towards the HAT role's strong steps, velocity by rank
+emu_recipe 0 src=random grid=1 dens=40 bias=60 role=hat vel=60:127 shape=rank amt=80 seed=42
+emu_page RHYTHM
+emu_run -s 600M
+emu_shot random
+# the same recipe generated (YES, grid recording on) and not applied: the dot before S42
+emu_keys YES
+emu_run -s 600M
+emu_shot pending
+emu_no
+emu_run -s 2400M
+# SRC = EUCLID, 5 pulses over 13 steps, repeated over the 64-step track (EUC at the right)
+emu_recipe 0 src=euclid eu_steps=13 eu_puls=5
+emu_run -s 600M
+emu_shot euclid
+# YES with grid recording off writes nothing and says why
+emu_rec 0
+emu_run -s 100M --press YES@+100M               # shot well inside the 2-second message
+emu_shot record
 echo "screens: $D"
 if [ "$1" = --install ]; then
-    for p in take rhythm place dynamics note lock trig time view tools yolo; do cp "$D/$p.png" "$R/docs/screens/$p.png"; done
+    for p in take rhythm place dynamics note lock trig time view tools yolo random pending euclid record; do cp "$D/$p.png" "$R/docs/screens/$p.png"; done
     echo "copied into docs/screens/"
 fi
