@@ -18,8 +18,8 @@ there.
 
 ## What makes a report useful
 
-- **The version, from the boot screen.** While the Rytm starts it shows `TS07` for 0.7. Say which release file you
-  flashed, too (for example `trig-seedr-0.7-os1.74.syx`).
+- **The version, from the boot screen.** While the Rytm starts it shows `T071` for 0.7.1 (`TS07` for 0.7.0). Say which release file you
+  flashed, too (for example `trig-seedr-0.7.1-os1.74.syx`).
 - **The unit and its OS:** Analog Rytm MKII, OS 1.74.
 - **The steps**, from a known state: the track, its length, the page and the knob values (a photo of the screen
   helps), RECORD on or off, playing or stopped, and the keys you pressed.

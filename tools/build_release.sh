@@ -1,6 +1,6 @@
 #!/bin/sh
 # The firmware to flash: core-ar2 + seedr patched into your stock OS 1.74, verified by elekloader.
-#   sh tools/build_release.sh            -> build/trig-seedr-<version>-os1.74.syx (OS version field TSxy),
+#   sh tools/build_release.sh            -> build/trig-seedr-<version>-os1.74.syx (OS version field TSxy, Txyz),
 #                                           and the GPL version 3 text beside it: the mod includes
 #                                           lib/map_data.c, so the build is GPL-3.0-or-later (README, License)
 # It builds through tools/emu.sh, the same build the emulator checks use (core-ar2 into this
@@ -11,7 +11,9 @@
 R=$(cd "$(dirname "$0")/.." && pwd); . "$R/tools/emu.sh"
 EMU_NAME=build_release
 V=$(python3 -c "import json; print(json.load(open('$R/mods/seedr-ar2/mod.json'))['version'])")
-TAG=$(echo "$V" | awk -F. '{printf "TS%d%d", $1, $2}')
+# the OS version field is 4 characters: TS07 for 0.7(.0), T071 for 0.7.1 (a patch release must be told apart on
+# the boot screen)
+TAG=$(echo "$V" | awk -F. '{ if ($3 + 0 > 0) printf "T%d%d%d", $1, $2, $3; else printf "TS%d%d", $1, $2 }')
 OUT=$R/build/trig-seedr-$V-os1.74.syx
 EMU_VERSION=$TAG emu_build "release-$TAG"
 cp "$FW" "$OUT"

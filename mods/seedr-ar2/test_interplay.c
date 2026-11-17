@@ -205,7 +205,7 @@ static int storage_shown(const struct pg_row *w, int lane)
     return 0;
 }
 
-/* the documented exception: SHAPE = MAP reads PART, X and Y with any source (docs/v1/map.md), and
+/* the documented exception: SHAPE = MAP reads PART, X and Y with any source (the manual, RHYTHM), and
  * they are on RHYTHM, shown with SRC = MAP only */
 static int map_shape_reads(const struct pg_row *w)
 {

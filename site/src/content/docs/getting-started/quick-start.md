@@ -10,7 +10,7 @@ project you have backed up ([what beta means](../../beta/beta/)).
 
 ## 1. Check the version
 
-While the Rytm starts, the boot screen shows the version: **TS07** for 0.7.
+While the Rytm starts, the boot screen shows the version: **T071** for 0.7.1.
 
 ## 2. Open Trig Seedr on an empty track
 

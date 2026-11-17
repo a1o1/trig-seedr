@@ -36,6 +36,6 @@ original back. With RECORD off, YES writes nothing, so looking around is always 
 
 Version 0.7 is a **beta**. Every release passes the full set of checks in
 [analog-emu](https://github.com/trigcondition/analog-emu), a whole-device emulator running the stock OS. Versions
-0.5.1 and 0.6.0 passed tests on a Rytm MKII with OS 1.74; 0.7.0 has not had a hardware pass yet. The list of
+0.5.1 and 0.6.0 passed tests on a Rytm MKII with OS 1.74; 0.7.1 has not had a hardware pass yet. The list of
 hardware passes is in [Flashing a unit](../flashing/#tested-on-hardware). What beta means for you, and how to report
 what you find: [Beta](../../beta/beta/).

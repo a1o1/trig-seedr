@@ -47,10 +47,9 @@ YOLO rolls a whole recipe for the track you are on, so you can hear ideas withou
    Changing track or pattern, closing Trig Seedr or turning RECORD off with a roll not kept does the same (NOT
    APPLIED).
 
-**ROLL** is the roll's number: the same ROLL, WILD and track give the same recipe again. YES plays the roll ROLL
-shows, except when that roll is the one played last: then YES moves on to the next number. So after NO, YES rolls
-the next number, not the same one (unlike YES on the other pages). To hear roll 5 again after it played, set ROLL
-to 4: YES plays roll 4, and YES again roll 5.
+**ROLL** is the roll's number: the same ROLL, WILD and track give the same recipe again. While a roll is playing,
+YES moves on to the next number. After NO or NOT APPLIED, YES brings back the roll you heard, as YES on the other
+pages brings the take back, so **FUNC + YES** then keeps it. Turn ROLL to any number and YES plays that roll.
 
 Only the track you are on changes. YOLO never touches other tracks or the shared MAP settings (X, Y, CHAOS), and it
 keeps your meter (METR, BEAT) and the parameters your lock lanes are on.

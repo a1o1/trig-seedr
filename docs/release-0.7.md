@@ -1,5 +1,27 @@
 # trig-seedr 0.7
 
+## 0.7.1
+
+The beta release for customers: the manual, and a fix to YOLO. Flash 0.7.1 rather than 0.7.0. The boot screen shows
+**T071** (0.7.0 showed TS07; a patch release now shows its third number).
+
+### Fixed
+
+- **YOLO could put the old recipe back after a roll that worked.** `take()` did not return success (since 0.7.0), so
+  whether a roll's recipe stayed depended on a leftover register value; the emulator happened to pass. Found by
+  M2.6. The mod now builds with `-Werror=return-type`, so a function that falls off its end does not build.
+- **YOLO after NO** brings back the roll you heard, as YES on the other pages brings the take back; turning ROLL
+  makes YES play the roll it shows.
+
+### The manual and the beta
+
+- **One manual** on the site (Manual: Concepts, a page per screen page in order, a knob reference, keys and
+  messages) replaces the Using and Features sections; a Quick start under Getting started.
+- **Beta pages**: what beta means here, and how to report: GitHub issue forms for a hardware report, a bug and an
+  idea.
+- **README** as a short front door; **requirements** rewritten for version 1 and traced to the design and tests.
+- Four more screenshots (`tools/screens.sh`); the site's build checks every internal link.
+
 ## 0.7.0
 
 0.7 is the next step of version 1's milestone M2 towards 1.0: the changes from playing 0.6.0 on a Rytm MKII (M2.5), the

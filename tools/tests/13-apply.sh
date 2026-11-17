@@ -1,5 +1,5 @@
 #!/bin/sh
-# Generate and apply (Alan, 2026-11-16; docs/flashing.md, the site's Keys and pages): YES generates
+# Generate and apply (Alan, 2026-11-16; docs/flashing.md, the manual's Concepts and Keys pages): YES generates
 # only with grid recording on (RECORD TO GENERATE otherwise, nothing written); FUNC + YES is the only
 # way a take stays (APPLIED); leaving the track, the pattern or seedr, or turning grid recording off,
 # with a take pending puts the original back (NOT APPLIED). On A01 BD from the kept2 fixture.
