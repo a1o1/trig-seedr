@@ -24,7 +24,7 @@ them and set velocity and accents, notes, two lanes of parameter locks, trig con
 from a groove. YES writes a take so you hear it, FUNC + YES keeps it, NO puts your original back. Everything written
 is ordinary Rytm data: it plays, saves and reloads on a stock OS.
 
-<a id="status"></a>**Status: 0.7 is a beta.** Every feature planned for version 1 is in it. Every release passes the full set of
+<a id="status"></a>**Status: 0.7 is a beta.** Version 1's design is built, but not final: beta feedback decides what changes before 1.0. Every release passes the full set of
 checks in an emulator (analog-emu); 0.5.1 and 0.6.0 also passed tests on an Analog Rytm MKII with OS 1.74, and 0.7.1
 has not had a hardware pass yet ([Tested on hardware](docs/flashing.md#tested-on-hardware)). Use it on projects you
 have backed up, keep the stock OS and a DIN MIDI interface at hand to go back, and tell us what you find: [what beta
