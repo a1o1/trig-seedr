@@ -41,10 +41,12 @@ Files that exist only locally and must stay untracked: `trig-seedr/build/`, `mod
 | `STOCK` | the stock OS file | default under `Official Firmwares/` |
 
 `WORKSPACE` defaults to the folder above the checkout, and the test scripts also find it from a git worktree's path
-(`.claude/worktrees/<name>/`). Set it explicitly for a checkout elsewhere.
+(`.claude/worktrees/<name>/`). Set it explicitly for a checkout elsewhere. Use two `export` lines: the shell expands
+`$WORKSPACE` in a line before that line sets it, so on one line `B` would come out empty.
 
 ```sh
-export WORKSPACE=~/dev/github/elektron B=$WORKSPACE/analog-emu/target/release ELEKLOADER_CROSS=m68k-elf-
+export WORKSPACE=~/dev/github/elektron
+export B=$WORKSPACE/analog-emu/target/release ELEKLOADER_CROSS=m68k-elf-
 ```
 
 ## 4. Rules
