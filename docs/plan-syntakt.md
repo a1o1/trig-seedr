@@ -55,7 +55,7 @@ Each is taken by Alan; the tasks in section 3 that measure what it needs come fi
 
 | Task | What | Done when |
 |---|---|---|
-| S0.1 | Alan: the OS on his Syntakt (**1.42**, 2026-11-18); the stock `Syntakt_OS1.42.syx` in `Official Firmwares/` (not there yet) | the hash matches Synfact's and analog-emu's |
+| S0.1 | Alan: the OS on his Syntakt (**1.42**, 2026-11-18); the stock `Syntakt_OS1.42.syx` in `Official Firmwares/Syntakt OS 1.42/Syntakt OS/` | **done 2026-11-18:** sha256 `ded3c59f…37c1`, as Synfact's profile (`elekloader/devices/syntakt.py`) and analog-emu's notes give for 1.42 (the `8e2488…` in `core-st`'s README is 1.41's) |
 | S0.2 | analog-emu on the Syntakt: boot stock 1.42 with `dtboot`, drive keys by name, save and load snapshots, power off to a card | a script in `tools/` does each, from this checkout |
 | S0.3 | Synfact on the Mac: build `core-st` alone and with a hello mod from `../external/synfact-dev`; boot both in analog-emu; measure what the reserve and the heap give | the sizes in a status file; SD1 and SD2 can be decided |
 | S0.4 | Firmware notes for 1.42, as `firmware-notes-os174.md` for the Rytm: the current track and pattern, the track record (trig flags, note, velocity, length, micro timing, condition, retrig), NOT2–NOT4, track length and scale, the lock store and its limits, grid recording, the Euclidean flag, the TRIG page's sub-pages, the step routines stock uses to write | `docs/firmware-notes-st142.md`, each finding marked measured or inferred, Synfact's findings credited |
