@@ -76,7 +76,7 @@ and the Rytm's golden vectors and full suite must be unchanged.
 | S0.2 | analog-emu on the Syntakt: boot stock 1.42 with `dtboot`, drive keys by name, save and load snapshots, power off to a card | a script in `tools/` does each, from this checkout. **Done 2026-11-18** except power off ([`status/S0.2.md`](status/S0.2.md)): `tools/st_s02.sh` |
 | S0.3 | Synfact on the Mac: build `core-st` alone and with a hello mod from `../external/synfact-dev`; boot both in analog-emu; measure what the reserve and the heap give | the sizes in a status file; SD1 and SD2 can be decided |
 | S0.4 | Firmware notes for 1.42, as `firmware-notes-os174.md` for the Rytm: the current track and pattern, the track record (trig flags, note, velocity, length, micro timing, condition, retrig), NOT2–NOT4, track length and scale, the lock store and its limits, grid recording, the Euclidean flag, the TRIG page's sub-pages, the step routines stock uses to write | `docs/firmware-notes-st142.md`, each finding marked measured or inferred, Synfact's findings credited |
-| S0.5 | The lockable parameters of each Syntakt machine, as data (`device/syntakt_params.h`) | the table, checked against the emulator's parameter pages |
+| S0.5 | The lockable parameters of each Syntakt machine, as data (`device/st_params.h`) | the table, checked against the emulator's parameter pages. **Done 2026-11-18** ([`status/S0.5.md`](status/S0.5.md)): 44 machines, the shared pages, `st_track_params`; `tools/st_params.py`, `tools/st_s05.sh` |
 
 Gate SG0: Alan takes SD1–SD6.
 
