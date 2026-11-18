@@ -49,6 +49,23 @@ Each is taken by Alan; the tasks in section 3 that measure what it needs come fi
 | SD5 | Chord notes | NOT2–NOT4 per trig | Version 1 on the Syntakt writes NOTE only and keeps NOT2–NOT4 as they are (I3). Chords stay with note pools (design §12) |
 | SD6 | Releases | One version number for both devices, two firmware files per release, or separate versions | One version: `trig-seedr-<version>-os1.74.syx` and `trig-seedr-<version>-st-os1.42.syx` |
 
+### Provisional decisions (2026-11-18)
+
+Alan asked for the Syntakt work to go ahead without his intervention, so the lead took each recommendation above
+as a provisional decision. Each stands until Alan reverses it; work that depends on one says so.
+
+| # | Provisional decision |
+|---|---|
+| SD1 | Synfact's `core-st` (`../external/synfact-dev`), pinned to one commit, recorded in `mods/seedr-st/` |
+| SD2 | The code in the 64 KiB reserve; the large buffers (snapshot, take, work) on the OS heap through the core's allocation exports. Revisited if S0.3's measurements say it cannot fit |
+| SD3 | seedr opens as a third TRIG page, after Trig Parameters and Euclidean (measured in S0.2); TRIG held + PAGE as the shortcut |
+| SD4 | LOCK's lanes list the parameters of the track's machine; a lane whose parameter the machine lacks is refused (SETTING OUT OF RANGE) |
+| SD5 | NOTE only; NOT2–NOT4 kept as they are |
+| SD6 | One version number for both devices; the Syntakt file is `trig-seedr-<version>-st-os1.42.syx` |
+
+S1 starts now, on a branch, instead of after the Rytm's 1.0 tag: nothing merges to `main` until Alan reviews it,
+and the Rytm's golden vectors and full suite must be unchanged.
+
 ## 3. Tasks
 
 ### S0. Research (no product code; may run before the Rytm's 1.0)
