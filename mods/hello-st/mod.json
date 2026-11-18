@@ -1,0 +1,9 @@
+{
+ "id": "hello-st", "version": "0.1", "title": "hello (Syntakt)", "category": "Test",
+ "license": "GPL-2.0-or-later", "author": "trig-seedr",
+ "description": "Test build only (tools/st_s03.sh): counts the core's UI events and measures the native heap.",
+ "device": "syntakt", "os": "1.42", "sources": ["hello.c"],
+ "subscribe": [{"event": "ev_tick", "fn": "hello_tick", "order": 40}, {"event": "ev_draw", "fn": "hello_draw", "order": 40},
+               {"event": "ev_key", "fn": "hello_key", "order": 40}, {"event": "ev_enc", "fn": "hello_enc", "order": 40}],
+ "requires": ["core"]
+}
