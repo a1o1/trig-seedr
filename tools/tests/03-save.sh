@@ -1,6 +1,6 @@
 #!/bin/sh
 # Release 0.3's part 3 on version 1: SAVE / RELOAD PATTERN; power cycle (I9); the project's
-# modified mark.
+# modified mark; power off with a take pending (A7).
 R=$(cd "$(dirname "$0")/../.." && pwd); . "$R/tools/emu.sh"; . "$T/tests/fixtures.sh"
 emu_init 03-save
 emu_build
@@ -33,4 +33,19 @@ emu_keep
 emu_no
 emu_check "modified mark: 1 after a take is kept" "modified 1" "$(emu_cmp 5)"
 check_take "the take after the save: seed 1" src=random seed=1
+# 4. A7: power off with a take pending. The OS saves its working state with the take as it stands,
+# and after the cold boot the take is the track (the snapshot was in RAM): nothing pending, NO only
+# closes. (SAVE PATTERN, YES + SCENE, cannot run during a take: SCENE closes seedr, NOT APPLIED.)
+save_orig seed1
+emu_open
+emu_yes
+check_take "power off pending: YES takes seed 2" src=random seed=2 orig="$D/seed1.txt"
+emu_power_off
+emu_boot "$EMU_CARD"
+check_take "power off pending: the card has the take (seed 2)" src=random seed=2 orig="$D/seed1.txt"
+emu_open
+emu_check "power off pending: after the boot nothing is pending" 0 "$(emu_get auditioning)"
+emu_no
+emu_check "power off pending: NO closes" 0 "$(emu_get open)"
+check_take "power off pending: NO leaves the take" src=random seed=2 orig="$D/seed1.txt"
 emu_done

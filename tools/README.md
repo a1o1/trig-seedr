@@ -24,7 +24,7 @@ found from a worktree's path; set it for a checkout elsewhere.
 | `00-host` | no emulator: `make test` and `coldfire` for `lib/` and `device/`, the page-table tests, the recipe layout on the host and on ColdFire, `--fields`, identity, the golden vectors |
 | `01-generate` | boot empty; the new recipe is RANDOM (V6); YES seed 1 (new trigs with stock's SYN / SMP / ENV bits); seed 2 from the original; NO; FUNC + YES applies; the applied take stays after closing |
 | `02-groove` | TIME GRV on a RANDOM take; NO; SOURCE = TRACK with a groove on the kept take; GVEL (needs `grooves-live.h`); the regenerate rule |
-| `03-save` | SAVE / RELOAD PATTERN; power cycle; the project's modified mark |
+| `03-save` | SAVE / RELOAD PATTERN; power cycle; the project's modified mark; power off with a take pending stores the take (A7) |
 | `04-smplocks` | LOCK lane 1 (sample slot) locks; NO removes them; they survive SAVE + RELOAD PATTERN |
 | `05-rotate` | SOURCE = TRACK with PLACE ROT, FLD VEL by trig, TOOLS' ROTATE ALL (SD moves too), NO; whole steps carry sample locks |
 | `06-norows` | a test build with no lock rows left: a take with locks is refused and writes nothing (I8) |
@@ -37,6 +37,7 @@ found from a worktree's path; set it for a checkout elsewhere.
 | `13-apply` | generate and apply: RECORD off writes nothing (RECORD TO GENERATE); YES, NO, FUNC + YES (APPLIED); RECORD off, closing or another pattern with a take pending restore the original (NOT APPLIED) |
 | `21`..`32` | one file per version 1 workstream (F1 `21-rank` … F12 `32-map-accents`): each feature against `seedref`, and against the original code where there is one |
 | `41-fuzz-sample` | recipes from the host fuzzer (`lib/test_fuzz.c --sample`) on BD at 16, 24, 37 and 64 steps: each take against `seedref`, lane 2 included (I2); NO byte for byte (I7); applied, played, saved, reloaded, power-cycled (I9); refused with no lock rows (I8); two lanes on one parameter refused (task M2.2) |
+| `44-refuse` | YES on the FX track (NOT ON THE FX TRACK), YES and YOLO on BD in stock's Euclidean mode (EUCLID IS ON: TURN IT OFF): nothing written, nothing pending, the recipe kept; EUC off, YES generates (A9) |
 
 `01` leaves the fixture `kept2` (seed 2 kept) that `02`, `03`, `05`, `07` and `08` start from; `04` leaves `smp3` for `05`.
 
