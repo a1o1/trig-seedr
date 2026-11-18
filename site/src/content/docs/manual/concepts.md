@@ -92,7 +92,8 @@ take stays only when you apply it.
 | **FUNC + YES** (apply) | nothing to apply | **the take stays and the original is dropped**; the strip says **APPLIED**. The only way a take stays |
 | **NO** | closes Trig Seedr | the original comes back (**BACK TO THE ORIGINAL**); with no take pending, NO closes Trig Seedr |
 | Change track or pattern, close Trig Seedr, or turn RECORD off, with a take pending | | the original comes back; the strip says **NOT APPLIED** |
-| Save the project with a take pending | | the save stores the take as it is at that moment |
+| Save the pattern or the project with a take pending | | not from inside Trig Seedr: SCENE and GLOBAL close it first, so the take is not applied. See the known quirk below |
+| Power off with a take pending | | the Rytm saves its working state with the take on the track. After power on the take is ordinary pattern data: nothing is pending, and NO does not bring the original back |
 
 ![YES with RECORD off: nothing is written](../../../assets/screens/record.png)
 
@@ -102,6 +103,11 @@ take stays only when you apply it.
 - **A take that cannot be written** (for example a lock the pattern has no room for) writes nothing and the strip
   says why for 2 seconds. See [messages](../keys/#messages).
 - **TOOLS** (ROT ALL and YOLO) follow the same rules, with small differences listed on [TOOLS](../tools/).
+
+**Known quirk: YES + SCENE does not save while Trig Seedr is open.** Trig Seedr takes the YES as its own (with
+RECORD on, that YES generates), and SCENE closes Trig Seedr, so a pending take is not applied (NOT APPLIED). The
+Rytm sees SCENE without YES, so the pattern is not saved. To save a take: FUNC + YES, close Trig Seedr, then
+YES + SCENE.
 
 ## The seed
 
