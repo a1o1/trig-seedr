@@ -56,8 +56,8 @@ as a provisional decision. Each stands until Alan reverses it; work that depends
 
 | # | Provisional decision |
 |---|---|
-| SD1 | Synfact's `core-st` (`../external/synfact-dev`), pinned to one commit, recorded in `mods/seedr-st/` |
-| SD2 | The code in the 64 KiB reserve; the large buffers (snapshot, take, work) on the OS heap through the core's allocation exports. Revisited if S0.3's measurements say it cannot fit |
+| SD1 | **Revised after S0.3:** a minimal core of our own, built by `tools/st_build.sh --core mini` from core-st's hook bus (tick, draw, key, encoder, SETTINGS; 440 bytes of code). Synfact's full `core-st` 2.0.3 does not link with gcc 16.2: by itself it fills its 64 KiB area and is 3,680 bytes over |
+| SD2 | **Confirmed by S0.3 for the emulator:** the code (57,685 bytes) in the 64 KiB area at `0x46000000`, the large buffers (107,336 bytes) from the native heap (`fw_malloc`) at the first tick. **Not for a unit as is:** stock's sample buffer reaches `0x46000000` past about 84 s of loaded samples (Synfact's finding); a unit build needs an area proven unused |
 | SD3 | seedr opens as a third TRIG page, after Trig Parameters and Euclidean (measured in S0.2); TRIG held + PAGE as the shortcut |
 | SD4 | LOCK's lanes list the parameters of the track's machine; a lane whose parameter the machine lacks is refused (SETTING OUT OF RANGE) |
 | SD5 | NOTE only; NOT2–NOT4 kept as they are |
