@@ -89,7 +89,8 @@ More: [Building](https://a1o1.github.io/trig-seedr/getting-started/build/) (and 
 |---|---|
 | `lib/` | the engine: `seed.h` (the contract), `seed_render.c` (the chain), `seed_rng.c` (seeds, keys, VARY) and a module per layer; portable C99 with no device code and no C library; host tests |
 | `device/` | the OS 1.74 device layer (`rytm_ar2.h`): capabilities, read any track, write with whole-step moves through the stock step and lock routines, the lock-row check, snapshot / restore; its host tests |
-| `mods/seedr-ar2/` | the elekloader mod (`seedr.c`: keys, audition, drawing; `pages.c`: every page's knobs; `mod.json`) and its groove tables |
+| `frame/` | the mod's device-neutral part (`frame.c`: keys, audition, drawing; `pages.c`: every page's knobs; the preview and VIEW), shared by each device's mod |
+| `mods/seedr-ar2/` | the elekloader mod for the Analog Rytm MKII (`seedr.c`: the Rytm's side of `frame/frame.h`; `mod.json`) and its groove tables |
 | `tools/` | the test harness (`run_tests.sh`, `tests/`, `emu.sh`, `seedref.c`), the release build, the screenshots (`screens.sh`), groove conversion (`groove2h.py`), firmware study scripts |
 | `docs/` | requirements, the version 1 design and plan, flashing, testing, release notes, task status (`status/`), the development environment and firmware notes |
 | `site/` | the website and manual (Astro Starlight): the manual's pages are in `site/src/content/docs/` |

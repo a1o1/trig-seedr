@@ -84,9 +84,9 @@ Gate SG0: Alan takes SD1–SD6.
 
 | Task | What | Done when |
 |---|---|---|
-| S1.1 | Split `mods/seedr-ar2/seedr.c` into the device-neutral frame (keys, audition, recipes, drawing) and a Rytm part; the 29 device calls go through one interface | the Rytm's golden vectors are the same; the full Rytm suite passes; the `.syx` it builds differs from 1.0's only where the split moves code |
-| S1.2 | Host tests and the fuzzer on a second profile: the Syntakt's capabilities (13 tracks, its fields, its micro-timing range, machine-dependent lock parameters) | `make test` runs every module on both profiles |
-| S1.3 | `tools/emu.sh` per device: key names, addresses and the fixtures chosen by the firmware loaded | the Rytm suite passes unchanged |
+| S1.1 | Split `mods/seedr-ar2/seedr.c` into the device-neutral frame (keys, audition, recipes, drawing) and a Rytm part; the 29 device calls go through one interface | the Rytm's golden vectors are the same; the full Rytm suite passes; the `.syx` it builds differs from 1.0's only where the split moves code. **Done on branch `worktree-s1-split`** ([`status/S1.md`](status/S1.md)): `frame/` and `frame/frame.h`; host tests and the targeted emulator files pass; the full suite waits for the lead's batch |
+| S1.2 | Host tests and the fuzzer on a second profile: the Syntakt's capabilities (13 tracks, its fields, its micro-timing range, machine-dependent lock parameters) | `make test` runs every module on both profiles. **Done** with a provisional profile (`lib/props.h`, `-DPROP_DEVICE_ST`), to switch to S0.5's tables |
+| S1.3 | `tools/emu.sh` per device: key names, addresses and the fixtures chosen by the firmware loaded | the Rytm suite passes unchanged. **Not needed yet:** S0.2's `tools/emu_st.sh` sources `emu.sh` unchanged and replaces what differs |
 
 ### S2. The Syntakt device layer
 

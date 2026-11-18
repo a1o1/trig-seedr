@@ -94,7 +94,7 @@ struct seed_track {
 };
 
 /* ---- the recipe: one per track (V5). Every knob is an int16_t so that a page table can point
- * at any of them (mods/seedr-ar2/pages.c); the seed alone is wider. SEED_DEF in a value's `lo`
+ * at any of them (frame/pages.c); the seed alone is wider. SEED_DEF in a value's `lo`
  * is the knob's DEF: that field is left as it is (V4). ---- */
 
 #define SEED_DEF (-32768)

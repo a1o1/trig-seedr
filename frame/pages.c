@@ -209,7 +209,7 @@ static int choices_built(const struct pg_row *w)
 
 /* PR_SENSE (task M2.1, docs/status/M2.1.md): a row that could not change the take is not shown.
  * Each rule holds exactly when the engine ignores the value, so a hidden value is harmless (the
- * host test mods/seedr-ar2/test_interplay.c renders it both ways):
+ * host test frame/test_interplay.c renders it both ways):
  *   PHRS        the track is longer than a page (seed_render: a page or less is one phrase)
  *   CVAR, QUAL  the trig positions draw random numbers: SRC = RAND, MAP with CHAOS 4 or more
  *               (seed_map_lift), or SYNC above 0. Otherwise takes n and n + 1, and every

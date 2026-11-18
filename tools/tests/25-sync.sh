@@ -17,7 +17,7 @@ locks() { emu_py peek "$EMU_SNAP" "$(printf '0x%x' $((LK + 88 * $1)))" 2 42 -s; 
 nlocks() { locks "$1" | tr ' ' '\n' | grep -c -v '^-'; }
 # store: BD's step record and lock store, as a checksum
 store() { { emu_py peek "$EMU_SNAP" 0x407dd8e3 1 917; emu_py peek "$EMU_SNAP" $LK 1 5674; } | cksum; }
-# msg: the mod's message line (seedr.c msg), or nothing
+# msg: the mod's message line (frame/frame.c msg), or nothing
 msg() {
     _msg_p=$(emu_get msg)
     [ "$_msg_p" = 0 ] && return 0

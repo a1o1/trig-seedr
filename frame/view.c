@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 /* VIEW (design section 8): the track's steps, read-only, around a cursor on knob A. Task F10
  * (docs/plan-v1.md section 6); 0.3 drew it in seedr.c. The track is shown as it is (during an
- * audition: the take); seedr.c draws the footer below it.
+ * audition: the take); frame.c draws the footer below it.
  *
  *   rows 12..25  the 16 steps of the cursor's page, 8 pixels a step: a trig (tall when the device's
  *                own trig bits 0x0380 are set, hollow when muted), a mark over it for a retrig
@@ -78,7 +78,7 @@ void view_draw(void *bmp, uint8_t *p, const struct seed_track *t, int *cursor, c
     o = pg_put(o, " U");
     o = pg_snum(o, s->utime);
     *o = 0;
-    pv_text(bmp, 2, 28, line, CORE_ALIGN_LEFT);
+    pv_text(bmp, 2, 28, line, SF_LEFT);
 
     o = pg_put(line, "C");
     o = pg_cond(o, s->cond);
@@ -96,10 +96,10 @@ void view_draw(void *bmp, uint8_t *p, const struct seed_track *t, int *cursor, c
             o = pg_num(o, s->lane[i]);
         }
     *o = 0;
-    pv_text(bmp, 2, 38, line, CORE_ALIGN_LEFT);
+    pv_text(bmp, 2, 38, line, SF_LEFT);
 
     /* the flag word, then the defaults; the defaults go first when the line is full, then the flags */
-    lw = 2 + core_text_width(CORE_FONT_MAIN, line) + 6;
+    lw = 2 + sf_text_width(line) + 6;
     o = pg_put(right, "F");
     for (i = 12; i >= 0; i -= 4)
         *o++ = "0123456789ABCDEF"[(s->flags >> i) & 15];
@@ -109,8 +109,8 @@ void view_draw(void *bmp, uint8_t *p, const struct seed_track *t, int *cursor, c
     o = pg_put(o, " DV");
     o = pg_num(o, t->default_vel);
     *o = 0;
-    if (lw + core_text_width(CORE_FONT_MAIN, right) > 127)
+    if (lw + sf_text_width(right) > 127)
         *full = 0;
-    if (lw + core_text_width(CORE_FONT_MAIN, right) <= 127)
-        pv_text(bmp, 126, 38, right, CORE_ALIGN_RIGHT);
+    if (lw + sf_text_width(right) <= 127)
+        pv_text(bmp, 126, 38, right, SF_RIGHT);
 }

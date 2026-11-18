@@ -62,11 +62,12 @@ Workspace `~/dev/github/elektron` on the Mac, where development, tests and relea
 | `lib/props.h`, `lib/tests.h` | the property-test framework (random tracks and recipes, I1–I3, I6); host-test helpers | lead (from 0.5, 0.2) |
 | `device/rytm_ar2.h`, `rytm_params.h` | device layer; the lockable parameters and track fields as data (shared with `tools/seedref.c`) | 0.4, then the lead |
 | `device/Makefile`, `test_rytm_ar2.c`, `cf_rytm_ar2.c` | the device layer's host test and ColdFire check | 0.4, then the lead |
-| `mods/seedr-ar2/seedr.c` | keys, navigation, audition, recipe store, drawing | 0.3, then the lead |
-| `mods/seedr-ar2/pages.h`, `test_pages.c`, `Makefile` | the page-table types and their host test | 0.3, then the lead |
+| `frame/frame.c`, `frame/frame.h` | keys, navigation, audition, recipe store, drawing; the device part's interface (split out of `mods/seedr-ar2/seedr.c` by plan-syntakt S1.1) | 0.3, then the lead |
+| `mods/seedr-ar2/seedr.c` | the Rytm's side of `frame/frame.h` (keys, tracks, the TRIG sub-page, text); includes `frame/frame.c` | the lead |
+| `frame/pages.h`, `test_pages.c`, `test_interplay.c`, `Makefile` | the page-table types and their host tests (`make -C mods/seedr-ar2 test` runs them) | 0.3, then the lead |
 | `mods/seedr-ar2/mod.json` | the mod's sources and metadata | lead; a workstream adding a `lib/` file adds its line to `sources` and says so in its status file |
-| `mods/seedr-ar2/pages.c` | every page's knob table | 0.3 creates all; owners edit only their page's rows |
-| `mods/seedr-ar2/preview.c`, `preview.h`, `view.c` | preview strip; VIEW | F10 |
+| `frame/pages.c` | every page's knob table | 0.3 creates all; owners edit only their page's rows |
+| `frame/preview.c`, `preview.h`, `view.c` | preview strip; VIEW | F10 |
 | `tools/seedref.c`, `tools/emu.sh`, `emu.py`, `golden.sh`, `doctor.sh`, `run_tests.sh`, `tests/fixtures.sh` | reference renderer, emulator helpers, golden vectors, environment check | 0.5, then the lead |
 | `tools/tests/NN-<name>.sh` | one test file per task: `00`..`11` are M0's; F1..F11 use `21`..`31` (F1 `21-rank.sh`, F5 `25-sync.sh`, …) | each owner adds its file |
 | `docs/screens/` | screenshots: the top level is what the README and the site show; `docs/screens/<id>/` a task's own | each owner |

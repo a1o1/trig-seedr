@@ -1,5 +1,5 @@
 #!/bin/sh
-# Task F10, the preview strip and VIEW, in analog-emu. The preview (mods/seedr-ar2/preview.c) is the
+# Task F10, the preview strip and VIEW, in analog-emu. The preview (frame/preview.c) is the
 # take as YES would write it: its buffer pv_out is compared with seedref and with what YES then
 # writes, and the strip on the screen with pv_out. It renders once per knob change, before YES,
 # from the original during an audition, and again when stock's keys change the track; an idle
