@@ -1,0 +1,75 @@
+# The Syntakt milestone: trig-seedr on Syntakt OS 1.42 in analog-emu
+
+State: the emulator milestone is met; for Alan's review
+Branch: worktree-s0-2-emu-st (merges of S0.3, S0.4, S0.5, S1, S2, S3, S3b, S4, S5); nothing is on `main` or pushed
+Date: 2026-11-19
+
+Alan asked on 2026-11-18 for the Syntakt work to go ahead without his intervention, with parallel agents, to a
+locally tested milestone. The lead took SD1–SD6 provisionally (plan section 2), ran the tasks as agents in their
+own worktrees, and reviewed, re-ran and merged each one.
+
+## What works, in analog-emu
+
+trig-seedr opens on the stock Syntakt OS 1.42 as a third TRIG page and works as on the Rytm:
+
+- every page and knob, LOCK's lanes following each track's machine (SD4)
+- generate, NO, FUNC + YES and the NOT APPLIED rules
+- the refusals on the FX track and in stock's Euclidean mode
+- YOLO and ROTATE ALL
+- the project's modified mark
+
+Every take is compared field by field with `tools/seedref --device st`, the same engine built for the computer. The
+sequencer plays the trigs seedr writes, and a kept take survives a pattern save and reload and a project load after
+a power cycle.
+
+## Tests (the lead's re-runs on the merged branch)
+
+| Suite | Result |
+|---|---|
+| `sh tools/st_run_tests.sh` (`tools/tests-st/`) | 8 files, 102 checks, 0 failed (about 29 minutes): 01-generate 8, 03-save 6, 13-apply 21, 14-fields 18, 15-play 4, 41-fuzz-sample 13, 43-yolo 15, 44-refuse 17 |
+| `tools/st_s3.sh`, `tools/st_s3b.sh` | 18 and 28 checks, 0 failed |
+| `make -C device test` | `test_syntakt_st` 15,244, `test_st_params` 256,668, `test_rytm_ar2` 27,905; 0 failed |
+| `make -C lib test`, the frame tests | pass on the Rytm and the Syntakt profiles (interplay: 557,062 Rytm, 560,288 Syntakt) |
+| Rytm golden vectors | 129 the same |
+| Full Rytm suite (`sh tools/run_tests.sh`, on e6291d3 in a separate checkout) | 30 files, 476 checks, 0 failed (84 minutes); golden vectors 129 the same. S1's split does not change the Rytm. (`testing.md` says 477 for 0.7.1: its 43-yolo count, 29, differs from the 26 the file runs; S1.md) |
+
+## Sizes
+
+The Syntakt build uses our minimal core (440 bytes of code), not Synfact's `core-st`, which does not link with gcc
+16.2 (SD1, revised). seedr is built with `-Os`. In the 64 KiB area at `0x46000000`: code 53,788 bytes, data 10,420,
+**836 bytes spare**; about 163 KB of buffers from the OS heap (SD2).
+
+## Not ready for a unit
+
+These stop a build from going on a Syntakt as it is:
+
+1. **The memory area.** Stock's sample buffer reaches `0x46000000` past about 84 s of loaded samples (Synfact's
+   finding). A unit build needs an area proven unused.
+2. **The file.** elekloader's packer makes the container 144,912 bytes larger than stock's, which the Syntakt
+   profile refuses; `tools/st_build.sh` lifts that limit for the emulator only. A unit build needs the repack
+   Synfact uses (`elektron-firmware-tool`, not installed).
+3. **analog-emu** accepts a patched Syntakt file only on the local branch `syntakt-modified` (in
+   `../analog-emu-st`, not pushed). It belongs upstream.
+
+## For Alan
+
+- **SD1–SD6** were taken provisionally (plan section 2); SD1 was revised after S0.3.
+- **Rule 1:** `device/st_params.h` is generated from the stock file's parameter table (names, ids, ranges). Is it
+  committable and publishable?
+- **On the unit:** does the Syntakt keep an edit across a power off? analog-emu's power-off writes nothing on the
+  Syntakt (its model is the Rytm's).
+- **Room:** 836 bytes are left in the area; the next Syntakt feature needs more of seedr's data on the heap, a
+  smaller build, or another area.
+
+## Open points
+
+- Stock's popups over the screen are not found: seedr draws over a popup.
+- Retrig is not written on the Syntakt (it has none on its trig page; the bytes travel with the step).
+- 15-play checks one track's onsets; velocities and micro timing are not checked by level or ear.
+- 41's fuzz sample uses the Rytm's sample; a Syntakt-specific one would cover more lane parameters.
+- The groove tables still live in `mods/seedr-ar2/`.
+- `test_pages` has no Syntakt build.
+- S5 (the manual and the site) is done: the Syntakt is "in development, emulator only" on every page. S6 (a unit) is not started; U1–U3 (a safe memory area, the power-off model, the unit file's repack) are in progress.
+- PLACE's FLD still offers RTRG and ACC on the Syntakt, where they do nothing (`frame/pages.c` `c_fld`; found by S5).
+
+Each task's details: `docs/status/S0.2.md` … `S4.md`.
