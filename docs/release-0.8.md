@@ -11,7 +11,7 @@ build is the same instrument as 0.7.1, on code reorganised so that both devices 
 - **What it does:** the same pages, recipes and generate and apply rules as on the Rytm, as a third TRIG page after
   stock's Trig Parameters and Euclidean (TRIG held + PAGE opens it from anywhere). LOCK's lanes follow each track's
   machine: its SYN controls first, then the shared pages. The pages hide what the Syntakt has not got: retrigs,
-  accents, slides. NOTE is written, NOT2–NOT4 stay as they are. There is no lock-row limit on the Syntakt. Where it
+  accents, slides. NOTE is written, NOT2–NOT4 stay as they are. The Syntakt has no pattern-wide lock-row limit: each step has its own lock slots. Where it
   differs from the Rytm: the manual's device page, `devices/syntakt`.
 - **On a unit:** its first hardware pass was on 2026-11-19, on one Syntakt with OS 1.42: the way back to stock, the
   stock file rebuilt by elektron-firmware-tool, the memory canary, then trig-seedr and its 15 first checks
