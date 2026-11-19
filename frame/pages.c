@@ -12,42 +12,43 @@ const char *const pg_names[PG_N] = {
 /* ---- choices ---- */
 
 static const struct pg_choice c_src[SEED_SRC_N] = {
-    { "TRACK", 0 }, { "RAND", &seed_have_random }, { "EUCLID", &seed_have_euclid },
-    { "MAP", &seed_have_map }, { "COPY", &seed_have_copy }
+    { "TRACK", 0, 0 }, { "RAND", &seed_have_random, 0 }, { "EUCLID", &seed_have_euclid, 0 },
+    { "MAP", &seed_have_map, 0 }, { "COPY", &seed_have_copy, 0 }
 };
 static const struct pg_choice c_role[SEED_ROLE_N] = {
-    { "METER", 0 }, { "KICK", 0 }, { "BACK", 0 }, { "HAT", 0 }, { "PERC", 0 }
+    { "METER", 0, 0 }, { "KICK", 0, 0 }, { "BACK", 0, 0 }, { "HAT", 0, 0 }, { "PERC", 0, 0 }
 };
 static const struct pg_choice c_metr[SEED_METR_N] = {
-    { "4/4", 0 }, { "3/4", 0 }, { "6/8", 0 }, { "12/16", 0 }, { "5/8", 0 }, { "7/8", 0 }
+    { "4/4", 0, 0 }, { "3/4", 0, 0 }, { "6/8", 0, 0 }, { "12/16", 0, 0 }, { "5/8", 0, 0 }, { "7/8", 0, 0 }
 };
 static const struct pg_choice c_phrs[SEED_PHRS_N] = {
-    { "OFF", 0 }, { "AAAA", 0 }, { "AAAB", 0 }, { "ABAB", 0 }, { "ABAC", 0 }, { "ABCD", 0 }
+    { "OFF", 0, 0 }, { "AAAA", 0, 0 }, { "AAAB", 0, 0 }, { "ABAB", 0, 0 }, { "ABAC", 0, 0 }, { "ABCD", 0, 0 }
 };
-static const struct pg_choice c_cvar[SEED_CVAR_N] = { { "OFF", 0 }, { "1:2", 0 }, { "AAAB", 0 } };
-static const struct pg_choice c_mask[SEED_MASK_N] = { { "OFF", 0 }, { "AVOID", 0 }, { "ONLY", 0 } };
+static const struct pg_choice c_cvar[SEED_CVAR_N] = { { "OFF", 0, 0 }, { "1:2", 0, 0 }, { "AAAB", 0, 0 } };
+static const struct pg_choice c_mask[SEED_MASK_N] = { { "OFF", 0, 0 }, { "AVOID", 0, 0 }, { "ONLY", 0, 0 } };
 /* SEED_FLD_ALL is ROTATE ALL's (TOOLS), not FLD's */
 static const struct pg_choice c_fld[SEED_FLD_LANE2 + 1] = {
-    { "OFF", 0 }, { "VEL", 0 }, { "NOTE", 0 }, { "LEN", 0 }, { "UTIM", 0 }, { "COND", 0 },
-    { "RTRG", 0 }, { "ACC", 0 }, { "LANE1", 0 }, { "LANE2", 0 }
+    { "OFF", 0, 0 }, { "VEL", 0, SEED_F_VEL }, { "NOTE", 0, SEED_F_NOTE }, { "LEN", 0, SEED_F_LEN },
+    { "UTIM", 0, SEED_F_UTIME }, { "COND", 0, SEED_F_COND }, { "RTRG", 0, SEED_F_RETRIG },
+    { "ACC", 0, SEED_F_ACCENT }, { "LANE1", 0, SEED_F_LOCKS }, { "LANE2", 0, SEED_F_LOCKS }
 };
-static const struct pg_choice c_rmode[SEED_RMODE_N] = { { "TRIG", 0 }, { "GRID", 0 } };
+static const struct pg_choice c_rmode[SEED_RMODE_N] = { { "TRIG", 0, 0 }, { "GRID", 0, 0 } };
 static const struct pg_choice c_shape[SEED_SHAPE_N] = {
-    { "FLAT", 0 }, { "STRONG", 0 }, { "WEAK", 0 }, { "OFF", 0 }, { "NOT 1", 0 }, { "NOTBAR", 0 },
-    { "RANK", &seed_have_rank }, { "NOISE", &seed_have_noise }, { "EVRY", 0 }, { "MAP", &seed_have_map }
+    { "FLAT", 0, 0 }, { "STRONG", 0, 0 }, { "WEAK", 0, 0 }, { "OFF", 0, 0 }, { "NOT 1", 0, 0 }, { "NOTBAR", 0, 0 },
+    { "RANK", &seed_have_rank, 0 }, { "NOISE", &seed_have_noise, 0 }, { "EVRY", 0, 0 }, { "MAP", &seed_have_map, 0 }
 };
-static const struct pg_choice c_amod[SEED_AMOD_N] = { { "RAND", 0 }, { "TOP", &seed_have_rank } };
-static const struct pg_choice c_lmod[SEED_LMOD_N] = { { "RANGE", 0 }, { "LEGATO", &seed_have_list } };
+static const struct pg_choice c_amod[SEED_AMOD_N] = { { "RAND", 0, 0 }, { "TOP", &seed_have_rank, 0 } };
+static const struct pg_choice c_lmod[SEED_LMOD_N] = { { "RANGE", 0, 0 }, { "LEGATO", &seed_have_list, 0 } };
 static const struct pg_choice c_vsrc[SEED_VSRC_N] = {
-    { "RANGE", 0 }, { "LIST", &seed_have_list }, { "NOISE", &seed_have_noise }
+    { "RANGE", 0, 0 }, { "LIST", &seed_have_list, 0 }, { "NOISE", &seed_have_noise, 0 }
 };
 static const struct pg_choice c_order[SEED_ORDR_N] = {
-    { "UP", 0 }, { "DOWN", 0 }, { "PING", 0 }, { "PNG2", 0 }, { "ODD", 0 }, { "RAND", 0 }
+    { "UP", 0, 0 }, { "DOWN", 0, 0 }, { "PING", 0, 0 }, { "PNG2", 0, 0 }, { "ODD", 0, 0 }, { "RAND", 0, 0 }
 };
 static const struct pg_choice c_ctyp[SEED_CTYP_N] = {
-    { "X%", 0 }, { "A:B", 0 }, { "1ST", 0 }, { "FILL", 0 }, { "MIX", 0 }
+    { "X%", 0, 0 }, { "A:B", 0, 0 }, { "1ST", 0, 0 }, { "FILL", 0, 0 }, { "MIX", 0, 0 }
 };
-static const struct pg_choice c_tool[SEED_TOOL_N] = { { "ROT ALL", 0 }, { "YOLO", &seed_have_yolo } };
+static const struct pg_choice c_tool[SEED_TOOL_N] = { { "ROT ALL", 0, 0 }, { "YOLO", &seed_have_yolo, 0 } };
 
 /* ---- the rows ---- */
 
@@ -199,11 +200,19 @@ static int16_t *at(const struct pg_ctx *c, const struct pg_row *w)
     return (int16_t *)(b + w->off);
 }
 
-static int choices_built(const struct pg_row *w)
+/* a choice is offered when it is built and the track has the fields it needs (FLD's RTRG and ACC
+ * on a Syntakt track, which has neither: found in S5) */
+static int choice_ok(const struct pg_ctx *c, const struct pg_row *w, int v)
+{
+    const struct pg_choice *n = &w->names[v];
+    return pg_built(n->have) && (c->fields & n->need) == n->need;
+}
+
+static int choices_built(const struct pg_ctx *c, const struct pg_row *w)
 {
     int i, n = 0;
     for (i = w->lo; i <= w->hi; i++)
-        n += pg_built(w->names[i].have);
+        n += choice_ok(c, w, i);
     return n;
 }
 
@@ -265,7 +274,7 @@ int pg_row_shown(const struct pg_ctx *c, const struct pg_row *w)
         if (v < 0 || v > 31 || !(w->when_mask & PG_V(v)))
             return 0;
     }
-    if ((w->flags & PR_MULTI) && choices_built(w) < 2)
+    if ((w->flags & PR_MULTI) && choices_built(c, w) < 2)
         return 0;
     return 1;
 }
@@ -385,7 +394,7 @@ int pg_turn(const struct pg_ctx *c, const struct pg_row *w, int d, int lo_end)
     case PK_CHOICE:
         a = at(c, w);
         for (v = *a + d; v >= lo && v <= hi; v += d)
-            if (pg_built(w->names[v].have)) {
+            if (choice_ok(c, w, v)) {
                 *a = (int16_t)v;
                 return 1;
             }
