@@ -116,6 +116,11 @@ The Rytm's checks, on the Syntakt: generate, NO, apply (01, 13), save and reload
 limit (12, I8), the reference comparison (I2), the refusals on the FX track and in Euclidean mode (44), the fuzz
 sample (41), YOLO (43). Each file runs on both devices where it can; a Syntakt-only check has its own file.
 
+**Done 2026-11-19** ([`status/S4.md`](status/S4.md)): `tools/st_run_tests.sh` over `tools/tests-st/` (01 generate, 03
+save and reload, 13 apply, 14 fields and locks, 15 playback, 41 fuzz sample, 43 YOLO, 44 refusals), every take against
+`tools/seedref --device st`. Not tested: the working state across a power cycle (analog-emu), the lock-row limit
+(the Syntakt has none).
+
 ### S5. Documentation
 
 The manual says where the Syntakt differs (keys, LOCK's lists, chord notes); the site's install and back-to-stock

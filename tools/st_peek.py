@@ -5,6 +5,10 @@
     st_peek.py rec SNAP                                   1 while grid recording is on, else 0
     st_peek.py trigpage SNAP                              the TRIG view's sub-page, -1 if it is not shown
     st_peek.py euc SNAP [TRACK [PAT]]                     EUC and PL1 of a track
+    st_peek.py slot SNAP ID                               the lock slot of stock parameter ID (255: none)
+
+dump --seed prints cond as lib/'s code (the Rytm's), as the device layer reads it (device/syntakt_st.h
+st_cond_to_seed), so the dump compares with tools/seedref --device st line by line; --lane takes a lock slot.
 
 TRACK 0..12 (12 the FX track), PAT 0..127 (0 = A01), N the steps shown (default: the track's length).
 The dump's rows are emu.py dump's: flags & 0x3f, cond the Syntakt's own code (not the Rytm's), lane1 the
@@ -48,7 +52,33 @@ def length(snap, rec, pat):
     return int.from_bytes(raw, 'big', signed=True)
 
 
-def dump(snap, track=0, n=0, pat=0, lane=None):
+COND_OWN = 65
+
+
+def cond_to_seed(s):
+    """device/syntakt_st.h st_cond_to_seed: the Syntakt's condition code as lib/'s, -1 none"""
+    if s < 0 or s > 99:
+        return -1
+    if s < 30:
+        return s
+    if s in (30, 31):
+        return COND_OWN + s - 30
+    if s in (32, 33):
+        return 30 + s - 32
+    if (s - 34) & 1:
+        return COND_OWN + 2 + (s - 35) // 2
+    b, k, x = 3, 34, 32
+    while s >= k + 2 * b:
+        k, x, b = k + 2 * b, x + b, b + 1
+    return x + (s - k) // 2
+
+
+def slot(snap, pid):
+    """a stock parameter id's lock slot: byte +7 of its entry in the parameter table (S2)"""
+    return emu.mem(snap, 0x4022d843 + 52 * pid, 1)[0] if pid < 505 else 255
+
+
+def dump(snap, track=0, n=0, pat=0, lane=None, seed=False):
     r = record(snap, track, pat)
     rec = emu.mem(snap, r, 0x3d8)
     n = n or length(snap, r, pat)
@@ -70,7 +100,8 @@ def dump(snap, track=0, n=0, pat=0, lane=None):
             ('vel', [dflt(v) for v in u8(0x080)]),
             ('len', [dflt(v) for v in u8(0x0c0)]),
             ('utime', [str(v) for v in s8(0x100)]),
-            ('cond', ['-' if v < 0 else str(v) for v in s8(0x200)]),
+            ('cond', ['-' if v < 0 else str(v) for v in
+                      ([cond_to_seed(c) for c in s8(0x200)] if seed else s8(0x200))]),
             ('rlen', [str(v) for v in u8(0x140)]),
             ('rrate', [str(v) for v in u8(0x180)]),
             ('rvel', [str(v) for v in s8(0x1c0)]),
@@ -99,7 +130,8 @@ def trigpage(snap):
 
 
 def main(a):
-    lane = None
+    lane, seed = None, '--seed' in a
+    a = [x for x in a if x != '--seed']
     if '--lane' in a:
         i = a.index('--lane')
         lane = int(a[i + 1], 0)
@@ -107,11 +139,13 @@ def main(a):
     cmd, snap, rest = a[0], a[1], [int(x, 0) for x in a[2:]]
     if cmd == 'dump':
         track, n, pat = (rest + [0, 0, 0])[:3]
-        print(dump(snap, track, n, pat, lane))
+        print(dump(snap, track, n, pat, lane, seed))
     elif cmd == 'rec':
         print(rec_flag(snap))
     elif cmd == 'trigpage':
         print(trigpage(snap))
+    elif cmd == 'slot':
+        print(slot(snap, rest[0]))
     elif cmd == 'euc':
         track, pat = (rest + [0, 0])[:2]
         b = emu.mem(snap, record(snap, track, pat) + 0x3d1, 2)

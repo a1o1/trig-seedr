@@ -4,7 +4,7 @@
  * for the golden vectors (tools/golden.sh).
  *
  *   seedref [KEY=VALUE ...]        render and print the take
- *   seedref --keys                 every key with its default
+ *   seedref --keys                 every key with its default (with --device st: track= picks the track)
  *   seedref --fields KEY=VALUE...  the recipe fields those keys set, as "C-member-path value"
  *   seedref --recipe KEY=VALUE...  every recipe field, the defaults with those keys applied, in
  *                                  the same form (writing a whole recipe into the mod's store:
@@ -30,6 +30,14 @@
  *                  the track in scope (its role: device/rytm_params.h), as the mod rolls it
  * The capabilities are the Rytm's (device/rytm_params.h); grooves (grv=N) are the mod's tables.
  *
+ * The Syntakt (docs/plan-syntakt.md S4): --device st anywhere in the arguments gives the Syntakt OS 1.42's
+ * capabilities (device/st_params.h), per track as mods/seedr-st's device layer gives them: the track's
+ * fields (the FX track has no NOTE or VEL) and its lockable parameters (lane1.parm / lane2.parm index that
+ * list: the machine's SYN controls first), with machine=TYPE the track's machine (default: not known, the
+ * shared pages); a new recipe's lanes on their parameter's whole range (mods/seedr-st sd_lane_defaults); YOLO's
+ * role the machine's, or by the track's place when it is not known. --device st --ids [track=N] [machine=TYPE] prints the list as "index name stock-id".
+ * cond is lib/'s code (the Rytm's), as the layer reads the Syntakt's (tools/st_peek.py dump --seed).
+ *
  * Output, one line per field, one value per step below the length: length; trig (x or .); flags
  * (the SEED_KNOWN and SWING bits, hex); note, vel, len (- = the track's default); utime; cond
  * (- = none); rlen; rrate; rvel; lane1 (- = no lock). Exit status 3 and "result N" on stderr when
@@ -40,6 +48,7 @@
 #include <string.h>
 #include "../lib/seed.h"
 #include "../device/rytm_params.h"
+#include "../device/st_params.h"
 
 static const char *const n_src[] = { "track", "random", "euclid", "map", "copy", 0 };
 static const char *const n_role[] = { "meter", "kick", "back", "hat", "perc", 0 };
@@ -92,9 +101,50 @@ static const struct key keys[] = {
 /* the Rytm MKII's capabilities as lib/ sees them; lane 1's default parameter is the sample slot */
 /* the Rytm's capabilities, as device/rytm_ar2.h gives them to the mod */
 static const struct seed_param params[RT_NPARAMS] = RT_PARAMS;
-static const struct seed_caps caps = {
+static struct seed_caps caps = {
     13, 64, RT_VOICE_FIELDS, -23, 23, SEED_LANES, RT_NPARAMS, params, { RT_P_SMP, RT_P_FRQ }
 };
+
+/* the Syntakt's capabilities for one track (mods/seedr-st: device/syntakt_st.h st_seed_select) */
+static int syntakt, st_role = -1;
+static struct seed_param st_params[ST_TRACK_PARAMS_MAX];
+static uint16_t st_ids[ST_TRACK_PARAMS_MAX];
+static void syntakt_caps(int track, int machine)
+{
+    static const struct st_machine machines[ST_NMACHINES] = ST_MACHINES;
+    const struct st_machine *m = machine < 0 ? 0 : st_machine_of(machines, ST_NMACHINES, machine);
+    caps.tracks = ST_TRACKS;
+    caps.fields = track == ST_FX_TRACK ? ST_FX_FIELDS : ST_VOICE_FIELDS;
+    caps.utime_lo = ST_UTIME_LO;
+    caps.utime_hi = ST_UTIME_HI;
+    caps.nparams = (uint8_t)st_track_params(m, track, st_params, st_ids, caps.lane_parm);
+    caps.params = st_params;
+    st_role = m && track != ST_FX_TRACK ? m->role : -1;
+}
+
+/* a new recipe's lanes on their parameter's whole range (mods/seedr-st sd_lane_defaults) */
+static void syntakt_lane_defaults(struct seed_recipe *r)
+{
+    int i;
+    for (i = 0; i < SEED_LANES; i++)
+        if (r->lane[i].parm >= 0 && r->lane[i].parm < caps.nparams) {
+            r->lane[i].val.lo = st_params[r->lane[i].parm].lo;
+            r->lane[i].val.hi = st_params[r->lane[i].parm].hi;
+        }
+}
+
+/* YOLO's role of a Syntakt track by its place (mods/seedr-st sd_track_role, the machine not known) */
+static int syntakt_role(int t)
+{
+    static const int8_t role[ST_TRACKS] = {
+        SEED_ROLE_KICK, SEED_ROLE_BACK, SEED_ROLE_HAT, SEED_ROLE_PERC, SEED_ROLE_PERC, SEED_ROLE_PERC,
+        SEED_ROLE_PERC, SEED_ROLE_PERC, SEED_ROLE_PERC, SEED_ROLE_PERC, SEED_ROLE_PERC, SEED_ROLE_HAT,
+        SEED_ROLE_METER
+    };
+    if (st_role >= 0)
+        return st_role;
+    return t >= 0 && t < ST_TRACKS ? role[t] : SEED_ROLE_METER;
+}
 
 /* the groove tables the mod is built with (mods/seedr-ar2/seedr.c): grooves-live.h when it is
  * there (local only), else grooves-swing.h */
@@ -266,11 +316,39 @@ int main(int argc, char **argv)
     struct seed_recipe r;
     struct seed_ctx c;
     const char *orig_path = NULL;
-    int i, rc, all = 0, init = 0, length = 0, yroll = -1, ywild = 0;
+    int i, rc, all = 0, init = 0, length = 0, yroll = -1, ywild = 0, track = 0, machine = -1, ids = 0;
     for (i = 1; i < argc; i++) {
         if (!strncmp(argv[i], "orig=", 5)) orig_path = argv[i] + 5;
         else if (!strcmp(argv[i], "init=1")) init = 1;
         else if (!strncmp(argv[i], "length=", 7)) length = atoi(argv[i] + 7);
+        else if (!strcmp(argv[i], "--device") && i + 1 < argc) {
+            if (strcmp(argv[i + 1], "st") && strcmp(argv[i + 1], "rytm"))
+                die("unknown device", argv[i + 1]);
+            syntakt = !strcmp(argv[i + 1], "st");
+            argv[i] = argv[i + 1] = (char *)"--";
+        } else if (!strcmp(argv[i], "--ids")) {
+            ids = 1;
+            argv[i] = (char *)"--";
+        } else if (!strncmp(argv[i], "track=", 6)) track = atoi(argv[i] + 6);
+        else if (!strncmp(argv[i], "machine=", 8)) machine = atoi(argv[i] + 8);
+    }
+    if (syntakt) {
+        if (track < 0 || track >= ST_TRACKS)
+            die("track out of range", "track");
+        syntakt_caps(track, machine);
+        if (ids) {
+            for (i = 0; i < caps.nparams; i++)
+                printf("%d %s %d\n", i, st_params[i].name, st_ids[i]);
+            return 0;
+        }
+    }
+    /* "--" marks an argument taken above; the loops below skip it */
+    {
+        int j = 1;
+        for (i = 1; i < argc; i++)
+            if (strcmp(argv[i], "--"))
+                argv[j++] = argv[i];
+        argc = j;
     }
     if (orig_path)
         read_dump(&orig, orig_path);
@@ -282,13 +360,15 @@ int main(int argc, char **argv)
         seed_recipe_init(&r, &orig, NULL, &caps);
     else
         seed_recipe_defaults(&r, &caps);
+    if (syntakt)
+        syntakt_lane_defaults(&r);
     memset(&c, 0, sizeof c);
     c.caps = &caps;
     c.tracks = caps.tracks;
     c.grooves = grooves;
     c.ngrooves = N_GROOVES;
 
-    if (argc == 2 && !strcmp(argv[1], "--keys")) {
+    if (argc >= 2 && !strcmp(argv[1], "--keys")) {         /* the defaults (track= and machine= taken above) */
         printf("seed %u\n", (unsigned)r.seed);
         for (i = 0; i < NKEYS; i++)
             printf("%s %d\n", keys[i].name, *field(&r, &keys[i]));
@@ -313,7 +393,8 @@ int main(int argc, char **argv)
         memcpy(name, argv[i], n);
         name[n] = 0;
         eq++;
-        if (!strcmp(name, "orig") || !strcmp(name, "init") || !strcmp(name, "length"))
+        if (!strcmp(name, "orig") || !strcmp(name, "init") || !strcmp(name, "length") ||
+            !strcmp(name, "machine"))
             continue;
         if (!strcmp(name, "yolo")) {
             if (sscanf(eq, "%d:%d", &yroll, &ywild) != 2)
@@ -345,6 +426,10 @@ int main(int argc, char **argv)
         in.role = c.track < (int)sizeof roles ? roles[c.track] : SEED_ROLE_METER;
         in.length = orig.length;
         in.fields = c.track == 12 ? RT_FX_FIELDS : RT_VOICE_FIELDS;
+        if (syntakt) {
+            in.role = syntakt_role(c.track);
+            in.fields = caps.fields;
+        }
         in.ngrooves = N_GROOVES;
         for (in.any = 0, i = 0; i < orig.length; i++)
             in.any |= orig.s[i].flags & SEED_TRIG;
