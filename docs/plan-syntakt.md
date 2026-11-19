@@ -143,6 +143,7 @@ What a build needs before it can go on a unit. None of these flashes or contacts
 
 | Task | What | Done when |
 |---|---|---|
+| U1 | A mods' area the OS never uses, in place of `0x46000000`, which stock's sample blob reaches; room in it | **Done 2026-11-19** ([`status/U1.md`](status/U1.md)): `0x478af2ca`–`0x47c00000` unused (code, layout, canary in analog-emu); `tools/st_build.sh` builds at `ST_AREA`, default `0x47a00000`–`0x47b00000` (1 MiB, 983,876 bytes spare with seedr); every Syntakt check passes there |
 | U2 | Power off in analog-emu on the Syntakt: why it saved nothing, and the power-cycle check (I9, A7) | **Done 2026-11-19** ([`status/U2.md`](status/U2.md)): analog-emu-st `5c970d9` models the Syntakt's supercap signal; `tools/tests-st/03-save.sh` checks a kept take and a pending take across a power cycle |
 | U3 | The file: the stock 1.42 file rebuilt by elektron-firmware-tool (`../external/elektron-firmware-tool`, MIT) with seedr's patched MAIN only, within the official container's size and with an in-place margin of at least 4096 bytes | **Done 2026-11-19** ([`status/U3.md`](status/U3.md)): `tools/st_build.sh --unit`, `tools/st_unit.sh`. Unit-shaped only: it also needs U1's safe memory area |
 
