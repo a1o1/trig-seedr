@@ -18,7 +18,8 @@
 
 Pattern seeds for Elektron machines. trig-seedr adds pages to the machine's own screen that make and shape a track's
 trigs. The first version is for the Analog Rytm MKII (OS 1.74), as an [elekloader](https://github.com/elekloader/elekloader)
-mod; the Analog Four MKII and the Syntakt are planned next. On the Rytm each track has a recipe: a source of trigs
+mod. The Syntakt (OS 1.42) is in development, tested in an emulator only, with no file to flash yet; the Analog
+Four MKII is planned. On the Rytm each track has a recipe: a source of trigs
 (the track's own, random with roles, Euclidean, a map of drum patterns, or another track's), then pages that place
 them and set velocity and accents, notes, two lanes of parameter locks, trig conditions, retrigs and micro timing
 from a groove. YES writes a take so you hear it, FUNC + YES keeps it, NO puts your original back. Everything written
@@ -88,9 +89,10 @@ More: [Building](https://a1o1.github.io/trig-seedr/getting-started/build/) (and 
 | Path | What |
 |---|---|
 | `lib/` | the engine: `seed.h` (the contract), `seed_render.c` (the chain), `seed_rng.c` (seeds, keys, VARY) and a module per layer; portable C99 with no device code and no C library; host tests |
-| `device/` | the OS 1.74 device layer (`rytm_ar2.h`): capabilities, read any track, write with whole-step moves through the stock step and lock routines, the lock-row check, snapshot / restore; its host tests |
+| `device/` | the device layers: the Rytm's OS 1.74 (`rytm_ar2.h`: capabilities, read any track, write with whole-step moves through the stock step and lock routines, the lock-row check, snapshot / restore) and the Syntakt's OS 1.42 (`syntakt_st.h`, `st_params.h`; in development); their host tests |
 | `frame/` | the mod's device-neutral part (`frame.c`: keys, audition, drawing; `pages.c`: every page's knobs; the preview and VIEW), shared by each device's mod |
 | `mods/seedr-ar2/` | the elekloader mod for the Analog Rytm MKII (`seedr.c`: the Rytm's side of `frame/frame.h`; `mod.json`) and its groove tables |
+| `mods/seedr-st/` | the mod for the Syntakt, in development (`seedr.c`: the Syntakt's side of `frame/frame.h`); `docs/plan-syntakt.md` |
 | `tools/` | the test harness (`run_tests.sh`, `tests/`, `emu.sh`, `seedref.c`), the release build, the screenshots (`screens.sh`), groove conversion (`groove2h.py`), firmware study scripts |
 | `docs/` | requirements, the version 1 design and plan, flashing, testing, release notes, task status (`status/`), the development environment and firmware notes |
 | `site/` | the website and manual (Astro Starlight): the manual's pages are in `site/src/content/docs/` |
