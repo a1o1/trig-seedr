@@ -80,6 +80,24 @@ The fuzzer and the interplay test found faults that the earlier tests did not:
 
 Details of these three: [`status/M2.1.md`](status/M2.1.md).
 
+## The Syntakt (in development)
+
+trig-seedr for the Syntakt (OS 1.42) is in development and is tested in an emulator only; it is not part of a
+release. Its tests are kept apart from the Rytm's release counts above. Numbers are from 2026-11-19, on the branch
+of the Syntakt work ([`plan-syntakt.md`](plan-syntakt.md), [`status/syntakt-milestone.md`](status/syntakt-milestone.md)).
+
+| Level | What | Size | Invariants |
+|---|---|---|---|
+| Device layer | `device/test_syntakt_st.c`: random tracks, takes and rotations written through a model of the Syntakt's step and lock routines; `device/test_st_params.c`: the parameter table | 15,244 and 256,668 checks | I6–I8 |
+| Host tests on a Syntakt profile | every `lib/` test that uses `props.h`, and the interplay test, built a second time with the Syntakt's capabilities (`-DPROP_DEVICE_ST`) | interplay 560,288 checks | I1–I6, I10 |
+| Emulator | `tools/st_run_tests.sh` (`tools/tests-st/`): the mod on the stock Syntakt OS 1.42 in analog-emu, every take against `tools/seedref --device st`: generate, NO, apply, the NOT APPLIED rules, every field and both lock lanes, save and reload, playback, the fuzz sample, YOLO, the refusals | 8 files, 102 checks; about 29 minutes | I1, I2, I7–I9 |
+| Emulator, pages and machines | `tools/st_s3.sh` (opening, every page, the knobs) and `tools/st_s3b.sh` (LOCK per machine, ROTATE ALL, the modified mark) | 18 and 28 checks | I7 |
+| Hardware | none | | |
+
+Not tested on the Syntakt: a unit; the working state across a power cycle (the emulator does not save it: the
+tests save the project and load it after the power cycle instead); velocities and micro timing as played (the
+playback test checks one track's onsets).
+
 ## What is not tested
 
 - **Sound.** No test listens: the emulator's audio is not compared, and the hardware pass is by ear.

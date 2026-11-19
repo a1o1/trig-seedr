@@ -127,6 +127,11 @@ The manual says where the Syntakt differs (keys, LOCK's lists, chord notes); the
 pages cover the Syntakt (its STARTUP menu, the stock file over DIN MIDI); `requirements.md` names each
 requirement's tests on each device; `testing.md` gives both devices' counts.
 
+**Done 2026-11-19, for the emulator milestone:** the manual's page *The Syntakt* (`site/.../manual/syntakt.md`) and
+notes on Keys, LOCK, TRIG and DYNAMICS; "in development, emulator only" on the front page, the introduction, the
+beta page and the README; `requirements.md`'s Syntakt table; `testing.md`'s Syntakt section. The install and
+back-to-stock pages wait for a unit build (S6): no page offers a Syntakt file or install steps.
+
 ### S6. On a unit
 
 Alan's Syntakt: `flashing.md`'s checks, adapted, with recovery to stock practised first. Then a beta for the Syntakt,

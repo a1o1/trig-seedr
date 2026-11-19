@@ -7,6 +7,8 @@ sidebar: { order: 7 }
 LOCK writes parameter locks: two lanes, each on a parameter you choose. **UP / DOWN** picks the lane in view (lane 1
 or lane 2); the knobs show that lane's settings.
 
+On the Syntakt (in development), the lanes follow the track's machine: see [The Syntakt](../syntakt/#lock).
+
 ![LOCK, lane 1 on the sample slot with a noise contour](../../../assets/screens/lock.png)
 
 | Knob | Name | Values | Default | Shown |

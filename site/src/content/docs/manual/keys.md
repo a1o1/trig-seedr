@@ -23,6 +23,9 @@ sidebar: { order: 13 }
 
 What each key does to a take, step by step: [Generate and apply](../concepts/#generate-and-apply).
 
+On the Syntakt (in development), the keys are the same; the keys that close Trig Seedr are SYN, FLTR, AMP, LFO, FX,
+GLOBAL and MENU ([The Syntakt](../syntakt/#opening-and-closing)).
+
 ## Messages
 
 A message replaces the preview strip for 2 seconds. When YES could not write, nothing was written.
@@ -35,7 +38,7 @@ A message replaces the preview strip for 2 seconds. When YES could not write, no
 | NOT APPLIED | the take was pending when you changed track or pattern, closed Trig Seedr or turned RECORD off: the original is back |
 | NOT ON THE FX TRACK | Trig Seedr does not write the FX track (also shown in place of the strip) |
 | EUCLID IS ON: TURN IT OFF | the track is in stock's Euclidean mode; turn EUC off on the EUCLIDEAN page (also shown in place of the strip) |
-| NO LOCK ROWS LEFT | the take needs a parameter lock row the pattern does not have (72 per pattern) |
+| NO LOCK ROWS LEFT | the take needs a parameter lock row the pattern does not have (72 per pattern). The Rytm only: the Syntakt has no lock-row limit |
 | SETTING OUT OF RANGE | the recipe has a setting the engine refuses, such as both lock lanes on one parameter |
 | NOT AVAILABLE YET | the recipe uses a feature this build does not have |
 | NO TRACK DATA | the track could not be read |

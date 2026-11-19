@@ -7,7 +7,10 @@ sidebar: { order: 1 }
 Trig Seedr 0.7 is a beta. Its pages and features are the ones version 1's design describes, built and tested, but
 they are not final: it is given out so that people use it on their own units and say what works and what does not,
 and that feedback decides what changes before 1.0. Settings may be retuned, behaviour changed, and features added
-or taken out. More is planned after 1.0 (a TURING page; the Analog Four MKII and Syntakt).
+or taken out. More is planned after 1.0 (a TURING page; the Analog Four MKII).
+
+The beta is for the Analog Rytm MKII only. Trig Seedr for the Syntakt is in development and has been tested in an
+emulator only; there is no Syntakt file to flash ([The Syntakt](../../manual/syntakt/)).
 
 ## How it is tested
 
