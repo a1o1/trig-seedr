@@ -127,6 +127,14 @@ The manual says where the Syntakt differs (keys, LOCK's lists, chord notes); the
 pages cover the Syntakt (its STARTUP menu, the stock file over DIN MIDI); `requirements.md` names each
 requirement's tests on each device; `testing.md` gives both devices' counts.
 
+### U. Unit readiness
+
+What stands between the emulator milestone and a build for a unit (`docs/status/syntakt-milestone.md`).
+
+| Task | What | Done when |
+|---|---|---|
+| U2 | Power off in analog-emu on the Syntakt: why it saved nothing, and the power-cycle check (I9, A7) | **Done 2026-11-19** ([`status/U2.md`](status/U2.md)): analog-emu-st `5c970d9` models the Syntakt's supercap signal; `tools/tests-st/03-save.sh` checks a kept take and a pending take across a power cycle |
+
 ### S6. On a unit
 
 Alan's Syntakt: `flashing.md`'s checks, adapted, with recovery to stock practised first. Then a beta for the Syntakt,
