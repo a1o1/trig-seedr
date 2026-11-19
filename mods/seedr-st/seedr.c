@@ -130,9 +130,14 @@ static int sd_rotate(int t, int steps)
     return st_seed_rotate(t, steps);
 }
 
-/* the project's modified mark: not found on the Syntakt yet */
+/* The project's modified mark, as stock sets it after an edit: 0x40018c84(app, 1) from the UI task (the Rytm's
+ * 0x400aed98, found again by its code; it keeps the mark in the settings byte at 0x40653442 through
+ * 0x4006f300). sd_edited asks; the next tick sets it. */
+#define ST_SET_MODIFIED ((int (*)(void *, int))0x40018c84u)
+static volatile uint8_t st_edited;
 static void sd_edited(void)
 {
+    st_edited = 1;
 }
 
 /* Stock's TRIG page: the main screen's view (+0xc0) has vtable 0x401c9a9c and +0x88 = 0x13 while it
@@ -352,6 +357,12 @@ void st_tick(void *ctrl)
     st_attach();
     if (st_ready)
         gr_tick(ctrl);
+    if (st_edited) {
+        uint8_t *app = ST_BRAIN();
+        st_edited = 0;
+        if (app)
+            ST_SET_MODIFIED(app, 1);
+    }
 }
 
 void st_draw(void *bmp, void *ctrl)

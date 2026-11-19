@@ -8,6 +8,7 @@
 #      (now one place later), lane 1's DEC is not SY BITS's: YES says SETTING OUT OF RANGE and writes nothing
 #   4. lane 1 set again (PARM turned): YES writes again
 #   5. TOOLS' ROTATE ALL +3 rotates whole steps (every row of the dump) within each track's length; NO undoes it
+#   6. the project's modified mark: set by a stock edit, and by seedr's FUNC + YES
 # Needs ../analog-emu-st (status/S0.3.md; ST_B overrides). Writes only under build/emu/st-s3b/ and build/emu-st/.
 R=$(cd "$(dirname "$0")/.." && pwd)
 case $R in
@@ -124,4 +125,20 @@ emu_check "ROTATE ALL +3: track 2's steps" "$(echo "$D2" | rot 3)" "$(peek dump 
 emu_keys NO
 emu_check "NO: track 1 back" "$D1" "$(peek dump "$EMU_SNAP" 0)"
 emu_check "NO: track 2 back" "$D2" "$(peek dump "$EMU_SNAP" 1)"
+
+# 6. the project's modified mark (the settings byte 0x40653442): 0 after a boot, 1 after stock's own edit (a trig
+# in grid recording); after a fresh boot, seedr's FUNC + YES sets it too
+mark() { emu_py peek "$EMU_SNAP" 0x40653442 1; }
+emu_boot
+emu_check "modified mark: 0 after a boot" 0 "$(mark)"
+emu_rec 1
+emu_keys T2
+emu_check "modified mark: 1 after stock's trig on step 2" 1 "$(mark)"
+emu_boot
+emu_keys TRIG TRIG TRIG
+emu_rec 1
+emu_keys YES
+emu_keep
+emu_check "FUNC + YES: APPLIED" "APPLIED" "$(emu_msg)"
+emu_check "modified mark: 1 after seedr's take is applied" 1 "$(mark)"
 emu_done
