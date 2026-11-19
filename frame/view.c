@@ -8,7 +8,8 @@
  *                (left) and a lock on either lane (right), a line under it for the accent flag,
  *                and the cursor under that
  *   row 28       S step, N note, V velocity, L length (- = the track's default), U micro timing
- *   row 38       C condition, R retrig rate and velocity, each lane's lock (its parameter's name
+ *   row 38       C condition, R retrig rate and velocity (not on a device without retrigs: the Syntakt),
+ *                each lane's lock (its parameter's name
  *                and value) when the step has one; at the right the flag word and the track's
  *                default note and velocity, left out when the line is full */
 #include <stdint.h>
@@ -32,7 +33,7 @@ static int has_lock(const struct seed_step *s)
     return 0;
 }
 
-static void steps(uint8_t *p, const struct seed_track *t, int cursor)
+static void steps(uint8_t *p, const struct seed_track *t, int cursor, int retrig)
 {
     int i, pg = cursor / SEED_PAGE * SEED_PAGE;
     for (i = 0; i < SEED_PAGE && pg + i < t->length; i++) {
@@ -44,7 +45,7 @@ static void steps(uint8_t *p, const struct seed_track *t, int cursor)
             else
                 pv_box(p, x + 1, 15, x + 4, 19, fill);
         }
-        if (s->flags & SEED_RETRIG)
+        if (retrig && (s->flags & SEED_RETRIG))
             pv_box(p, x, 12, x + 1, 12, 1);
         if (has_lock(s))
             pv_box(p, x + 4, 12, x + 5, 12, 1);
@@ -67,7 +68,7 @@ void view_draw(void *bmp, uint8_t *p, const struct seed_track *t, int *cursor, c
         *cursor = t->length - 1;
     if (*cursor < 0)
         *cursor = 0;
-    steps(p, t, *cursor);
+    steps(p, t, *cursor, caps->fields & SEED_F_RETRIG);
     s = &t->s[*cursor];
 
     o = pg_put(line, "S");
@@ -82,13 +83,15 @@ void view_draw(void *bmp, uint8_t *p, const struct seed_track *t, int *cursor, c
 
     o = pg_put(line, "C");
     o = pg_cond(o, s->cond);
-    o = pg_put(o, " R");
-    if (s->flags & SEED_RETRIG) {
-        o = pg_rate(o, s->rrate);
-        *o++ = ' ';
-        o = pg_num(o, s->rvel);
-    } else
-        o = pg_put(o, "-");
+    if (caps->fields & SEED_F_RETRIG) {
+        o = pg_put(o, " R");
+        if (s->flags & SEED_RETRIG) {
+            o = pg_rate(o, s->rrate);
+            *o++ = ' ';
+            o = pg_num(o, s->rvel);
+        } else
+            o = pg_put(o, "-");
+    }
     for (i = 0; i < SEED_LANES && i < caps->lanes; i++)
         if (s->lane[i] != SEED_NO_LOCK && parm[i] >= 0 && parm[i] < caps->nparams) {
             *o++ = ' ';

@@ -123,13 +123,11 @@ static int sd_euclid(void)
     return st_euclid(obj);
 }
 
-/* ROTATE ALL: the Syntakt's whole-step shift (with its locks) is not found yet (firmware notes,
- * section 8): every track is skipped */
+/* ROTATE ALL: whole steps with their locks, by the device layer (st_seed_rotate: OS 1.42 has no stock
+ * shift a mod can call); a track in stock's Euclidean mode is skipped */
 static int sd_rotate(int t, int steps)
 {
-    (void)t;
-    (void)steps;
-    return 0;
+    return st_seed_rotate(t, steps);
 }
 
 /* the project's modified mark: not found on the Syntakt yet */
@@ -229,6 +227,23 @@ static void sd_text_draw(void *bmp, int x, int y, int align, const char *s)
  * lane is set again (the frame's SD_LANE_CHECK) */
 #define SD_LANE_CHECK
 static int sd_lanes_lacking(int n, const struct seed_recipe *r);
+
+/* LOCK's RNGE in a new recipe: each lane's parameter's whole range (TUNE 40..88, FRQ 0..127). lib/ starts
+ * every lane on 1..8, which on the Rytm is the sample slots and on the Syntakt the low end of most knobs. */
+#define SD_LANE_DEFAULTS
+static void sd_lane_defaults(int n, struct seed_recipe *r)
+{
+    const struct st_list *l;
+    int i;
+    if (n < 0 || n >= ST_TRACKS || !st_seed_state())
+        return;
+    l = st_seed_list(n);
+    for (i = 0; i < SEED_LANES; i++)
+        if (r->lane[i].parm >= 0 && r->lane[i].parm < l->n) {
+            r->lane[i].val.lo = l->p[r->lane[i].parm].lo;
+            r->lane[i].val.hi = l->p[r->lane[i].parm].hi;
+        }
+}
 
 #include "../../frame/frame.c"
 

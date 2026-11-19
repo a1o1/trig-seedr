@@ -43,15 +43,21 @@ static const struct seed_caps prop_caps = { 13, 64, RT_VOICE_FIELDS, -23, 23, SE
 #else
 #include "../device/st_params.h"
 /* 12 tracks and the FX track with device/st_params.h's fields (S0.5): note, velocity, length, micro timing
- * −23..+23, condition and locks; no retrig, accent or slide. The lockable parameters are a small set
- * standing for the machines' (TODO: st_params.h builds a track's list at run time, per machine, which this
- * static profile cannot take as it is; names, ids and ranges are placeholders, some signed, so a lane with a
- * negative range is covered) */
+ * -23..+23, condition and locks; no retrig, accent or slide. The lockable parameters: track 1's list with SP
+ * TWINSHOT (type 44), the longest a track has (its 8 SYN controls, the filter, base-width, amp and LFO pages),
+ * as st_track_params builds it for the device (stock's ranges, all 0 or more: TUNE 40..88). Built at start-up,
+ * since st_track_params runs, as on the device. */
 #define PROP_ST_FIELDS ST_VOICE_FIELDS
-static const struct seed_param prop_params[6] = {
-    { "TUNE", 1, -60, 60 }, { "DEC", 2, 0, 127 }, { "FREQ", 3, 0, 127 }, { "RES", 4, 0, 127 },
-    { "PAN", 5, -64, 63 }, { "VOL", 6, 0, 127 } };
-static const struct seed_caps prop_caps = { 13, 64, PROP_ST_FIELDS, -23, 23, SEED_LANES, 6, prop_params, { 0, 2 } };
+static struct seed_param prop_params[ST_TRACK_PARAMS_MAX];
+static struct seed_caps prop_caps = { 13, 64, PROP_ST_FIELDS, ST_UTIME_LO, ST_UTIME_HI, SEED_LANES, 0, prop_params,
+                                      { 0, 0 } };
+__attribute__((constructor)) static void prop_st_caps(void)
+{
+    static const struct st_machine m[ST_NMACHINES] = ST_MACHINES;
+    uint16_t ids[ST_TRACK_PARAMS_MAX];
+    prop_caps.nparams = (uint8_t)st_track_params(st_machine_of(m, ST_NMACHINES, 44), 0, prop_params, ids,
+                                                 prop_caps.lane_parm);
+}
 #endif
 /* the capabilities the generators and contexts use; a test may point it at another device's
  * (test_fuzz.c) */

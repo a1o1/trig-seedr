@@ -390,6 +390,54 @@ static inline int st_snap_restore(struct st_snap *s)
     return 1;
 }
 
+/* ---- ROTATE ALL: whole steps, with their locks ----
+ * OS 1.42 has no whole-step shift that a mod could call (firmware notes section 8), so the track's first `len`
+ * steps are rotated in a copy and written back as a restore is (st_snap_restore: every step through stock's
+ * routines, then the bytes): step i goes to (i + k) mod len, as lib/'s seed_rotate and the Rytm's stock shift
+ * do. Every per-step array of the record moves (flags, VEL .. NOT4, the unidentified +0x240 / +0x280 too) and
+ * each step's 72 lock slots with it; the swing bit (0x0010) stays with the position. The track's defaults,
+ * length, Euclidean settings and the lock store's byte per slot do not change (a lock on some step still is). */
+static inline void st_reverse(uint8_t *base, unsigned size, int a, int b)
+{
+    unsigned j;
+    for (; a < b; a++, b--)
+        for (j = 0; j < size; j++) {
+            uint8_t x = base[a * size + j];
+            base[a * size + j] = base[b * size + j];
+            base[b * size + j] = x;
+        }
+}
+
+static inline void st_rot(uint8_t *base, unsigned size, int len, int k)
+{
+    st_reverse(base, size, 0, len - 1);
+    st_reverse(base, size, 0, k - 1);
+    st_reverse(base, size, k, len - 1);
+}
+
+/* tmp: scratch (a snapshot's size); 1 when the track was rotated */
+static inline int st_rotate(struct st_snap *tmp, unsigned obj, int track, int len, int steps)
+{
+    uint8_t swing[SEED_STEPS];
+    int k, i, a;
+    if (len < 1 || len > SEED_STEPS || !st_snap_take(tmp, obj, track))
+        return 0;
+    k = ((steps % len) + len) % len;
+    if (!k)
+        return 1;
+    for (i = 0; i < len; i++)
+        swing[i] = (uint8_t)(tmp->record[ST_FLAGS + 2 * i + 1] & 0x10);
+    st_rot(tmp->record + ST_FLAGS, 2, len, k);
+    for (i = 0; i < len; i++)
+        tmp->record[ST_FLAGS + 2 * i + 1] = (uint8_t)((tmp->record[ST_FLAGS + 2 * i + 1] & ~0x10) | swing[i]);
+    for (a = ST_VEL; a <= ST_NOT4; a += SEED_STEPS)
+        st_rot(tmp->record + a, 1, len, k);
+    st_rot(tmp->locks, 2 * ST_STEP_LOCKS, len, k);
+    st_snap_restore(tmp);
+    tmp->valid = 0;
+    return 1;
+}
+
 /* ==== version 1: struct seed_dev (lib/seed.h, design section 10) ==== */
 
 static inline int st_seed_fields(int track)
@@ -414,6 +462,7 @@ struct st_seed_state {
     uint8_t tmp[ST_TRACKS];            /* taken by a write without a snapshot, dropped after it */
     int written;                       /* steps the last write changed */
     struct st_list list[ST_TRACKS];
+    struct st_snap rot;                /* ROTATE ALL's scratch (st_rotate) */
 };
 #define ST_SEED_STATE_SIZE sizeof(struct st_seed_state)
 
@@ -759,6 +808,18 @@ static inline void st_seed_changed(int track)
     if (obj)
         for (i = 0; i < SEED_STEPS; i++)
             st_notify_step(obj, i);
+}
+
+/* ROTATE ALL on a track: its whole steps by `steps`, with their locks (st_rotate); 0 when skipped (a track in
+ * stock's Euclidean mode, or no state) */
+static inline int st_seed_rotate(int track, int steps)
+{
+    struct st_seed_state *st = st_seed_state();
+    unsigned obj = st_seed_obj(track);
+    const uint8_t *r;
+    if (!st || !obj || !(r = st_record(obj)) || r[ST_EUCLID])
+        return 0;
+    return st_rotate(&st->rot, obj, track, st_seed_length(obj), steps);
 }
 
 static inline const struct seed_dev *st_seed_device(void)

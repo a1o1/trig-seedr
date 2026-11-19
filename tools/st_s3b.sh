@@ -7,6 +7,7 @@
 #   3. the machine changed to SY BITS (type 37, 8 controls) with stock's menu (FUNC + SYN): lane 2 stays on FRQ
 #      (now one place later), lane 1's DEC is not SY BITS's: YES says SETTING OUT OF RANGE and writes nothing
 #   4. lane 1 set again (PARM turned): YES writes again
+#   5. TOOLS' ROTATE ALL +3 rotates whole steps (every row of the dump) within each track's length; NO undoes it
 # Needs ../analog-emu-st (status/S0.3.md; ST_B overrides). Writes only under build/emu/st-s3b/ and build/emu-st/.
 R=$(cd "$(dirname "$0")/.." && pwd)
 case $R in
@@ -42,6 +43,8 @@ emu_page LOCK
 emu_shot lock-bd-modern
 emu_check "lane 1 starts on knob A (TUNE, place 0); lane 2 on FRQ (place 7 + 4)" "0 11" \
     "$(emu_get 'recipe[0].lane[0].parm') $(emu_get 'recipe[0].lane[1].parm')"
+emu_check "RNGE: each lane's parameter's whole range (TUNE 40..88, FRQ 0..127)" "40 88 0 127" \
+    "$(emu_get 'recipe[0].lane[0].val.lo') $(emu_get 'recipe[0].lane[0].val.hi') $(emu_get 'recipe[0].lane[1].val.lo') $(emu_get 'recipe[0].lane[1].val.hi')"
 
 # 2. lane 1 on DEC (place 2), lane 2 on FRQ, both 100 %
 emu_knob LOCK A:lane1.parm 2
@@ -94,4 +97,31 @@ print(int(re.findall(r'\{ *"[^"]*", *(0x[0-9a-f]+)', line)[1], 16))
 PY
 )
 emu_check "... lane 1's locks in SY BITS's knob B's slot" "$(trigs)" "$(locked "$(slot "$SB")")"
+emu_keys NO
+
+# 5. TOOLS' ROTATE ALL +3: tracks 1 and 2's whole steps, each row of the dump rotated within the track's length
+# (step i to i + 3); NO puts both back
+D1=$(peek dump "$EMU_SNAP" 0) D2=$(peek dump "$EMU_SNAP" 1)
+rot() {
+    python3 -c '
+import sys
+rows = [l.split() for l in sys.stdin.read().splitlines()]
+n, k = int(rows[0][1]), int(sys.argv[1])
+for r in rows:
+    if r[0] not in ("length", "flags"):
+        v = r[1:]
+        r[1:n + 1] = [v[(i - k) % n] for i in range(n)]
+    print(" ".join(r))' "$1" | grep -v "^flags"
+}
+emu_page TOOLS
+emu_check "TOOL: ROT ALL" 0 "$(emu_get tool.tool)"
+emu_knob TOOLS STEPS 3
+emu_keys YES
+emu_shot rotate
+emu_check "ROTATE ALL +3: ROTATED 13 TRACKS" "ROTATED 13 TRACKS" "$(emu_msg)"
+emu_check "ROTATE ALL +3: track 1's steps" "$(echo "$D1" | rot 3)" "$(peek dump "$EMU_SNAP" 0 | grep -v '^flags')"
+emu_check "ROTATE ALL +3: track 2's steps" "$(echo "$D2" | rot 3)" "$(peek dump "$EMU_SNAP" 1 | grep -v '^flags')"
+emu_keys NO
+emu_check "NO: track 1 back" "$D1" "$(peek dump "$EMU_SNAP" 0)"
+emu_check "NO: track 2 back" "$D2" "$(peek dump "$EMU_SNAP" 1)"
 emu_done

@@ -491,6 +491,41 @@ static void test_fuzz(int cases)
     }
 }
 
+/* ROTATE ALL (st_seed_rotate): step i of the first len goes to (i + k) mod len with every field and its 72 lock
+ * slots; the swing bit, the steps past the length, the track's defaults and the byte per slot stay; a track
+ * in stock's Euclidean mode is skipped; other tracks do not change */
+static void test_rotate(void)
+{
+    int c, t, i, j, k, steps, ok;
+    for (c = 0; c < 400; c++) {
+        fixture_n(500u + (uint32_t)c);
+        t = rnd(ST_TRACKS);
+        len[t] = 1 + rnd(64);
+        steps = rnd(201) - 100;
+        k = ((steps % len[t]) + len[t]) % len[t];
+        save();
+        CHECK(st_seed_rotate(t, steps) == 1);
+        for (j = 0, ok = 1; j < ST_TRACKS; j++)
+            ok &= j == t || same_track(j);
+        CHECK(ok);
+        for (i = 0, ok = 1; i < SEED_STEPS; i++) {
+            int d = i < len[t] ? (i + k) % len[t] : i, a;
+            ok &= (flags(t, d) & ~SEED_SWING) == ((rec0[t][2 * i] << 8 | rec0[t][2 * i + 1]) & ~SEED_SWING);
+            ok &= (flags(t, i) & SEED_SWING) == (rec0[t][2 * i + 1] & SEED_SWING);
+            for (a = ST_VEL; a <= ST_NOT4; a += SEED_STEPS)
+                ok &= rec[t][a + d] == rec0[t][a + i];
+            ok &= !memcmp(&lks[t][2 * ST_STEP_LOCKS * d], &lks0[t][2 * ST_STEP_LOCKS * i], 2 * ST_STEP_LOCKS);
+        }
+        CHECK(ok);
+        CHECK(!memcmp(&rec[t][0x3c0], &rec0[t][0x3c0], ST_RECORD_SIZE - 0x3c0));
+        CHECK(!memcmp(&lks[t][ST_LOCK_IDS], &lks0[t][ST_LOCK_IDS], ST_LOCKS_SIZE - ST_LOCK_IDS));
+    }
+    fixture();
+    rec[3][ST_EUCLID] = 1;
+    save();
+    CHECK(st_seed_rotate(3, 5) == 0 && same());
+}
+
 int main(void)
 {
     int cases = getenv("DEV_FUZZ") ? atoi(getenv("DEV_FUZZ")) : 2000;
@@ -506,6 +541,7 @@ int main(void)
     test_new_trig();
     test_snapshot();
     test_context();
+    test_rotate();
     test_fuzz(cases);
     printf("  test_syntakt_st: %d checks, %d failed\n", checks, fails);
     return fails != 0;

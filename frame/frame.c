@@ -136,6 +136,9 @@ static struct seed_recipe *recipe_of(int n)
             seed_recipe_defaults(r, dev->caps);
         if (!pg_src_built(r->src))
             r->src = SEED_SRC_TRACK;    /* an empty track and no generator built yet */
+#ifdef SD_LANE_DEFAULTS
+        sd_lane_defaults(n, r);         /* the device's lock ranges (lib/'s 1..8 is the Rytm's sample slots) */
+#endif
         recipe_set |= 1u << n;
         turned |= (uint16_t)(1u << n);
     }
