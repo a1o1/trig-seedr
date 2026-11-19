@@ -72,20 +72,20 @@ while read -r line <&3; do
     K=$((K + 1))
     # shellcheck disable=SC2086
     set -- $line
-    case $K in 1|4) T=0 ;; 2|5) T=10 ;; *) T=3 ;; esac       # 64, 16 and 5 steps
-    prepare $T "$@"
+    case $K in 1|4) TK=0 ;; 2|5) TK=11 ;; *) TK=3 ;; esac       # 64, 16 and 5 steps
+    prepare $TK "$@"
     W0=$(want "$@")
     emu_yes
     case $W0 in
     refused*)
-        emu_check "sample $K (track $((T + 1))): refused on the host, nothing written on the device" "$B0 0" \
+        emu_check "sample $K (track $((TK + 1))): refused on the host, nothing written on the device" "$B0 0" \
             "$(digest) $(emu_get auditioning)"
         echo "  sample $K: $line"
         echo "  $W0, device: $(emu_msg)"
         continue ;;
     esac
     F0=$EMU_FAIL
-    emu_check "sample $K (track $((T + 1)), $(sed -n 's/^length //p' "$D/orig$K.txt") steps): YES = seedref (I2)" "$W0" "$(got "$@")"
+    emu_check "sample $K (track $((TK + 1)), $(sed -n 's/^length //p' "$D/orig$K.txt") steps): YES = seedref (I2)" "$W0" "$(got "$@")"
     [ "$EMU_FAIL" -gt "$F0" ] && echo "  sample $K: $line"
     if [ $K -ne 3 ]; then
         emu_no
