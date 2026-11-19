@@ -422,6 +422,39 @@ static void test_text(void)
     CHECK(!strcmp(b, "-32768"), "num -32768: %s", b);
 }
 
+/* FLD offers only the fields the track has: a Syntakt track has no retrig and no accent, so a turn
+ * never lands on RTRG or ACC there (S5's finding); a track with every field gets every choice */
+static void test_fld_fields(void)
+{
+    struct pg_ctx c;
+    const struct pg_row *w;
+    int i, seen[SEED_FLD_LANE2 + 1];
+    ctx(&c);
+    fresh();
+    c.fields = SEED_F_NOTE | SEED_F_VEL | SEED_F_LEN | SEED_F_UTIME | SEED_F_COND | SEED_F_LOCKS;
+    w = row(&c, PG_PLACE, "FLD");
+    CHECK(w != 0, "PLACE FLD not shown");
+    if (!w)
+        return;
+    memset(seen, 0, sizeof seen);
+    for (i = 0; i < 20; i++) {
+        pg_turn(&c, w, 1, 0);
+        seen[r.fld] = 1;
+    }
+    CHECK(!seen[SEED_FLD_RTRG] && !seen[SEED_FLD_ACC], "FLD offers RTRG or ACC without the fields");
+    CHECK(seen[SEED_FLD_COND] && seen[SEED_FLD_LANE2], "FLD skips the fields the track has");
+    for (i = 0; i < 20; i++)
+        pg_turn(&c, w, -1, 0);
+    CHECK(r.fld == SEED_FLD_OFF, "FLD back to OFF: %d", r.fld);
+    c.fields = (uint16_t)~0u;
+    memset(seen, 0, sizeof seen);
+    for (i = 0; i < 20; i++) {
+        pg_turn(&c, w, 1, 0);
+        seen[r.fld] = 1;
+    }
+    CHECK(seen[SEED_FLD_RTRG] && seen[SEED_FLD_ACC], "FLD hides RTRG or ACC on a track that has them");
+}
+
 int main(void)
 {
     test_one_row_a_knob();
@@ -431,6 +464,7 @@ int main(void)
     test_pages();
     test_reachable();
     test_text();
+    test_fld_fields();
 #ifdef SEEDR_SHOW_ALL
     printf("test_pages (all shown): %d checks, %d failed\n", checks, failed);
 #else

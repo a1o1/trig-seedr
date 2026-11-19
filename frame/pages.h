@@ -67,6 +67,7 @@ enum pg_fmt {
 struct pg_choice {
     const char *name;
     const uint8_t *have;
+    uint16_t need;                    /* SEED_F_* the track must have for the choice to show; 0: none */
 };
 
 struct pg_row {
