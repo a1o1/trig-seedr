@@ -1,7 +1,7 @@
 ---
 title: Trying it in the emulator
 description: "Run the patched OS in analog-emu's window and try Trig Seedr before flashing a unit."
-sidebar: { order: 4 }
+sidebar: { order: 5 }
 ---
 
 analog-emu runs the Rytm's OS in a window with its panel, so you can try Trig Seedr before going near a unit. Build
@@ -28,3 +28,10 @@ Then follow the [Quick start](../quick-start/) from step 2.
 An emulator card has no factory samples. Add WAVs with `dtcard play.img add *.wav`, then on the Rytm: GLOBAL →
 SAMPLES → incoming → RIGHT → SELECT ALL → RIGHT → LOAD TO PROJ → YES. They land in the project's sample slots, ready
 for a LOCK lane on SMP.
+
+## The Syntakt
+
+The Syntakt's build is tried the same way in `analog-emu-st` (analog-emu with the Syntakt's models): its tests
+(`sh tools/st_run_tests.sh`) boot the stock Syntakt OS 1.42 with Trig Seedr and drive it through the Syntakt's keys.
+The window: `../analog-emu-st/target/release/rytm build/emu-st/seedr-emu.syx --card st.img` after
+`sh tools/st_build.sh seedr` ([Building](../build/#the-syntakt)).

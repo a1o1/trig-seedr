@@ -24,8 +24,8 @@ sidebar: { order: 13 }
 
 What each key does to a take, step by step: [Generate and apply](../concepts/#generate-and-apply).
 
-On the Syntakt (in development), the keys are the same; the keys that close Trig Seedr are SYN, FLTR, AMP, LFO, FX,
-GLOBAL and MENU ([The Syntakt](../syntakt/#opening-and-closing)).
+On the Syntakt, the keys are the same; the keys that close Trig Seedr are SYN, FLTR, AMP, LFO, FX,
+GLOBAL and MENU ([Syntakt](../../devices/syntakt/#opening-and-closing)).
 
 ## Messages
 

@@ -3,7 +3,7 @@
 trig-seedr 0.7 is a beta ([what that means](https://a1o1.github.io/trig-seedr/beta/beta/)). Every release is tested
 in full in analog-emu; the releases that have also run on a unit are listed under [Tested on hardware](#tested-on-hardware).
 Flash it when a failed flash would not cost you anything, with the recovery route below ready, and work on projects
-you have backed up.
+you have backed up. For the Syntakt, see [Flashing a Syntakt](https://a1o1.github.io/trig-seedr/getting-started/flashing-syntakt/).
 
 ## Before you start
 

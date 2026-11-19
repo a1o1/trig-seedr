@@ -148,19 +148,20 @@ What each level covers and what is not tested: [`testing.md`](testing.md).
 | TL1 | TOOLS ROT ALL rotates every track (Euclidean-mode tracks skipped) with its own YES, under generate and apply | V7 | 05, 13 |
 | TL2 | TOOLS YOLO rolls a recipe for the track in scope from musical ranges, keeps the meter, the lanes' parameters and the shared MAP settings; NO restores the track and the recipe | V7, 0.7 | `test_yolo`, 43; hw 15 |
 
-## On the Syntakt (in development)
+## On the Syntakt
 
-trig-seedr for the Syntakt (OS 1.42) is in development and is tested in an emulator only
-([`plan-syntakt.md`](plan-syntakt.md)). The requirements above are written for the Rytm; this table says how each
+trig-seedr for the Syntakt (OS 1.42) is ready for testing: it is tested in full in an emulator, and 0.7.1 passed a
+first hardware pass on one unit ([`flashing-st.md`](flashing-st.md); [`plan-syntakt.md`](plan-syntakt.md)). The requirements above are written for the Rytm; this table says how each
 applies to the Syntakt and which test covers it there. `stNN` is `tools/tests-st/NN-*.sh` (`sh
 tools/st_run_tests.sh`); `s3`, `s3b` are `tools/st_s3.sh`, `tools/st_s3b.sh`; `test_syntakt_st` is the device layer's
-host test; "Syntakt profile" is a `lib/` or interplay test built with `-DPROP_DEVICE_ST`.
+host test; "Syntakt profile" is a `lib/` or interplay test built with `-DPROP_DEVICE_ST`; "st hw *n*" is check *n* of
+[`flashing-st.md`](flashing-st.md)'s first checks, by hand on a unit.
 
 | # | On the Syntakt | Tests there |
 |---|---|---|
-| G1 | OS 1.42, as an elekloader mod on a minimal hook-bus core; not a release, and no boot-screen version yet | every Syntakt emulator test |
+| G1 | OS 1.42, as an elekloader mod on a minimal hook-bus core, in its own release file with the boot-screen version | every Syntakt emulator test; st hw 1, 2 |
 | G2 | the same `lib/` | Syntakt profile |
-| G3 | plays (st15), pattern save and reload, project load after a power cycle (st03); the working state across a power off is not tested (the emulator does not save it) | st03, st15 |
+| G3 | plays, saves and reloads the pattern, and keeps the working state across a power off | st03, st15; st hw 12, 13 |
 | G4, G5 | as on the Rytm; every take against `seedref --device st` | st01, st13, st14, st41, st43, st44, `test_syntakt_st` |
 | G6 | as on the Rytm; `device/st_params.h` is made from your own stock file's parameter table (names, ids, ranges) by `tools/st_params.sh`, never committed | — |
 | G7 | fits the 64 KiB area (836 bytes spare); no render-time test | — |
@@ -168,7 +169,7 @@ host test; "Syntakt profile" is a `lib/` or interplay test built with `-DPROP_DE
 | K2 | as on the Rytm | s3 |
 | K3–K9 | as on the Rytm | `test_pages` (Rytm build only), s3, st13 |
 | A1–A6 | as on the Rytm | st01, st13, st14, st41 |
-| A7 | with seedr open, FUNC + YES applies; stock's Save Ptn runs with seedr closed, when nothing is pending: not tested separately | — |
+| A7 | with seedr open, FUNC + YES applies; stock's Save Ptn runs with seedr closed. A power off with a take pending stores the take as it stands | st03; st hw 14 |
 | A8 | a refused recipe writes nothing; the lock-row case does not apply (the Syntakt has no row pool) | st14, st41, `test_syntakt_st` |
 | A9 | as on the Rytm | st44 |
 | E1–E7, E9 | as on the Rytm | Syntakt profile; st41 |

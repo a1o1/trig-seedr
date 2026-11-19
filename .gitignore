@@ -30,6 +30,7 @@ site/.astro/
 site/src/content/docs/developers/
 site/src/assets/screens/
 site/src/content/docs/getting-started/flashing.md
+site/src/content/docs/getting-started/flashing-syntakt.md
 site/src/content/docs/about/testing.md
 site/src/content/docs/manual/knobs.md
 

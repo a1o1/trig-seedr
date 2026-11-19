@@ -5,7 +5,7 @@ sidebar: { order: 5 }
 ---
 
 DYNAMICS sets each trig's velocity and the Rytm's accent flag, at the trigs' final positions (after PLACE). The
-Syntakt (in development) has no accent flag: there, ACC and AMOD are hidden ([The Syntakt](../syntakt/)).
+Syntakt has no accent flag: there, ACC and AMOD are hidden ([Syntakt](../../devices/syntakt/)).
 
 ![DYNAMICS](../../../assets/screens/dynamics.png)
 

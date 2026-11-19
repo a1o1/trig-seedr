@@ -4,8 +4,8 @@ description: "Trig conditions (COND, CTYP, CVAL) and retrigs (RTRG, RATE, RCUR).
 sidebar: { order: 8 }
 ---
 
-TRIG writes the Rytm's trig conditions and retrigs. The Syntakt (in development) has no retrigs: there, RTRG, RATE
-and RCUR are hidden ([The Syntakt](../syntakt/)).
+TRIG writes the Rytm's trig conditions and retrigs. The Syntakt has no retrigs: there, RTRG, RATE
+and RCUR are hidden ([Syntakt](../../devices/syntakt/)).
 
 ![TRIG](../../../assets/screens/trig.png)
 

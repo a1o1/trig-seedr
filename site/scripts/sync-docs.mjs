@@ -18,11 +18,14 @@ rmSync(join(docs, 'features'), { recursive: true, force: true });
 
 // 1. repository docs
 const pages = [
-  ['docs/flashing.md', 'getting-started/flashing.md', 'Flashing a unit', 3],
+  ['docs/flashing.md', 'getting-started/flashing.md', 'Flashing a Rytm MKII', 3],
+  ['docs/flashing-st.md', 'getting-started/flashing-syntakt.md', 'Flashing a Syntakt', 4],
   ['docs/requirements.md', 'developers/requirements.md', 'Requirements', 1],
-  ['docs/firmware-notes-os174.md', 'developers/firmware-notes.md', 'Firmware notes (OS 1.74)', 2],
-  ['tools/README.md', 'developers/tools-and-tests.md', 'Tools and tests', 3],
-  ['CONTRIBUTING.md', 'developers/contributing.md', 'Contributing', 4],
+  ['docs/firmware-notes-os174.md', 'developers/firmware-notes.md', 'Firmware notes (Rytm OS 1.74)', 2],
+  ['docs/firmware-notes-st142.md', 'developers/firmware-notes-syntakt.md', 'Firmware notes (Syntakt OS 1.42)', 3],
+  ['docs/adding-a-device.md', 'developers/adding-a-device.md', 'Adding a device', 5],
+  ['tools/README.md', 'developers/tools-and-tests.md', 'Tools and tests', 4],
+  ['CONTRIBUTING.md', 'developers/contributing.md', 'Contributing', 6],
   ['docs/testing.md', 'about/testing.md', 'How it is tested', 1],
 ];
 for (const [src, dst, title, order] of pages) {

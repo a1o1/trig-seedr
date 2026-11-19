@@ -1,27 +1,29 @@
 ---
 title: What beta means
-description: "How 0.7 is tested, what that does and does not cover, and how to use it safely."
+description: "How 0.8 is tested on each device, what that does and does not cover, and how to use it safely."
 sidebar: { order: 1 }
 ---
 
-Trig Seedr 0.7 is a beta. Its pages and features are the ones version 1's design describes, built and tested, but
+Trig Seedr 0.8 is a beta. Its pages and features are the ones version 1's design describes, built and tested, but
 they are not final: it is given out so that people use it on their own units and say what works and what does not,
 and that feedback decides what changes before 1.0. Settings may be retuned, behaviour changed, and features added
 or taken out. More is planned after 1.0 (a TURING page; the Analog Four MKII).
 
-The beta is for the Analog Rytm MKII only. Trig Seedr for the Syntakt is in development and has been tested in an
-emulator only; there is no Syntakt file to flash ([The Syntakt](../../manual/syntakt/)).
+The beta is for the **Analog Rytm MKII** (OS 1.74) and, ready for testing since 0.8, the **Syntakt** (OS 1.42). Each
+device has its own build, flashing page and list of hardware passes: [Devices](../../devices/overview/).
 
 ## How it is tested
 
-| Where | What | For 0.7 |
+| Where | What | When |
 |---|---|---|
-| On a computer | every part of the engine, with random recipes in the millions, against the design's rules | every release |
-| In analog-emu | the patched OS in an emulator that runs Elektron's own firmware, driven through the Rytm's keys and knobs: generate, NO, apply, save, reload, power cycle, the lock-row limit, every page | every release, in full |
-| On a Rytm MKII with OS 1.74 | the checks in [Flashing a unit](../../getting-started/flashing/#first-checks-on-the-unit), by hand | 0.5.1, 0.6.0 and 0.7.1 passed |
+| On a computer | every part of the engine, with random recipes in the millions, against the design's rules, on each device's capabilities | every release |
+| In analog-emu | the patched OS in an emulator that runs Elektron's own firmware, driven through the device's keys and knobs: generate, NO, apply, save, reload, power cycle, every page; on the Rytm also the lock-row limit | every release, in full, on each device |
+| On a Rytm MKII with OS 1.74 | the checks in [Flashing a Rytm MKII](../../getting-started/flashing/#first-checks-on-the-unit), by hand | 0.5.1, 0.6.0 and 0.7.1 passed |
+| On a Syntakt with OS 1.42 | the checks in [Flashing a Syntakt](../../getting-started/flashing-syntakt/#first-checks-on-the-unit), by hand, after the way back to stock and a memory canary | 0.7.1 passed on one unit |
 
-Every hardware pass is listed in [Tested on hardware](../../getting-started/flashing/#tested-on-hardware). The
-details, and what no test covers (sound, other units, long sessions): [How it is tested](../../about/testing/).
+Every hardware pass is listed on each device's flashing page:
+[Rytm MKII](../../getting-started/flashing/#tested-on-hardware), [Syntakt](../../getting-started/flashing-syntakt/#tested-on-hardware).
+The details, and what no test covers (sound, other units, long sessions): [How it is tested](../../about/testing/).
 
 ## What can change before 1.0
 
@@ -38,9 +40,10 @@ details, and what no test covers (sound, other units, long sessions): [How it is
 - **Back up first.** Save your projects and samples to a computer with Elektron Transfer before flashing.
 - **Work on a backed-up project.** A take is written into the pattern; FUNC + YES keeps it, and a save stores
   whatever is on the track at that moment.
-- **Keep the way back to stock at hand:** the stock `Analog-Rytm_MKII_OS1.74.syx`, Elektron Transfer and a 5-pin DIN
-  MIDI interface. Flashing the stock OS removes Trig Seedr and leaves your projects as they are:
-  [Back to stock](../../getting-started/flashing/#back-to-stock).
+- **Keep the way back to stock at hand:** your device's stock OS file (`Analog-Rytm_MKII_OS1.74.syx` or
+  `Syntakt_OS1.42.syx`), Elektron Transfer and a 5-pin DIN MIDI interface. Flashing the stock OS removes Trig Seedr
+  and leaves your projects as they are: Back to stock for the [Rytm MKII](../../getting-started/flashing/#back-to-stock)
+  and the [Syntakt](../../getting-started/flashing-syntakt/#back-to-stock).
 - Modified firmware is used at your own risk. Trig Seedr is not affiliated with or endorsed by Elektron.
 
 ## Telling us what you found
