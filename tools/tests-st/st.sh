@@ -16,12 +16,15 @@ B=${ST_B:-$_st_ws/analog-emu-st/target/release}
 export T
 ST_SLOT=
 
-# st_build: seedr for the Syntakt, built again only when a source changed; FW, MAP, DTEMU_FW, EMU_PROFILE
+# st_build: seedr for the Syntakt, built again only when a source changed; FW, MAP, DTEMU_FW, EMU_PROFILE. With
+# ST_UNIT=1 the tests run the unit-shaped file (st_build.sh --unit: repacked by elektron-firmware-tool, task U3);
+# its MAIN is the same linked image, so the map is the emulator build's
 st_build() {
-    FW=$R/build/emu-st/seedr-emu.syx MAP=$R/build/emu-st/seedr-emu.syx.map.json
+    FW=$R/build/emu-st/seedr-emu.syx MAP=$R/build/emu-st/seedr-emu.syx.map.json _stb_u=
+    [ -n "$ST_UNIT" ] && FW=$R/build/emu-st/seedr-unit.syx _stb_u=--unit
     mkdir -p "$R/build/emu-st"; emu_lock "$R/build/emu-st/seedr"
     if emu_stale "$FW" "$R/mods/seedr-st" "$R/frame" "$R/lib" "$R/device" "$R/mods/seedr-ar2/grooves-swing.h"; then
-        sh "$T/st_build.sh" seedr "$R/mods/seedr-st" > "$R/build/emu-st/seedr.build.log" 2>&1 ||
+        sh "$T/st_build.sh" seedr $_stb_u "$R/mods/seedr-st" > "$R/build/emu-st/seedr.build.log" 2>&1 ||
             { emu_unlock "$R/build/emu-st/seedr"; cat "$R/build/emu-st/seedr.build.log" >&2; emu_die "st_build.sh"; }
     fi
     emu_unlock "$R/build/emu-st/seedr"
