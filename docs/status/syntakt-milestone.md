@@ -56,10 +56,11 @@ These stop a build from going on a Syntakt as it is:
 - **SD1–SD6**: confirmed by Alan on 2026-11-19 (plan section 2), SD2 as U1's area.
 - **Rule 1:** `device/st_params.h` is generated from the stock file's parameter table (names, ids, ranges). Is it
   committable and publishable?
-- **On the unit:** does the Syntakt keep an edit across a power off? analog-emu's power-off writes nothing on the
-  Syntakt (its model is the Rytm's).
-- **Room:** 836 bytes are left in the area; the next Syntakt feature needs more of seedr's data on the heap, a
-  smaller build, or another area.
+- **On the unit, in order (plan S6, `docs/flashing-st.md`):** S6.1 the way back on stock; S6.2 stock round-tripped
+  by elektron-firmware-tool; S6.3 the memory canary with all 64 sample slots loaded; S6.4 trig-seedr and the 15
+  first checks, power off with a take kept (I9) and pending (A7) among them. The files are built:
+  `sh tools/st_canary.sh`, `sh tools/build_release_st.sh`.
+- **Room:** solved by U1's area (983,876 bytes spare in its 1 MiB).
 
 ## Open points
 
