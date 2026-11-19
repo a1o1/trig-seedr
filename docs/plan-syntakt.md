@@ -105,8 +105,10 @@ published is Alan's call before anything leaves the branch.
 | Task | What | Done when |
 |---|---|---|
 | S3.1 | `mods/seedr-st/`: `mod.json` for the core SD1 picks, the device part of the frame, opening and closing (SD3), the messages | it boots in analog-emu and opens. **Done 2026-11-19** ([`status/S3.md`](status/S3.md)): `tools/st_s3.sh`, 18 PASS: opens as the third TRIG page, every page, knobs, RECORD TO GENERATE, YES writes a take and NO restores record and lock store byte for byte, NOT ON THE FX TRACK |
-| S3.2 | The pages: LOCK's lists per machine (SD4); every other page as on the Rytm | `test_pages` and `test_interplay` pass for the Syntakt. **Done, but for LOCK's per-machine lists**: `test_interplay` on the Syntakt profile 557,872 checks, 0 failed; a track's machine type is not found yet, so LOCK lists the shared pages (status/S3.md, open points) |
-| S3.3 | Memory as SD2 decides | the build fits, with the margin a status file states. **Done**: core 456 + `.run` 52,424 + `.bss` 10,300 in the 64 KiB area, 2,320 bytes spare; about 152 KB from the native heap |
+| S3.2 | The pages: LOCK's lists per machine (SD4); every other page as on the Rytm | `test_pages` and `test_interplay` pass for the Syntakt. **Done 2026-11-19** (S3, then S3b, [`status/S3b.md`](status/S3b.md)): LOCK lists the track's machine's SYN controls, then the shared pages; a lane follows its parameter through a machine change, and one the new machine lacks says SETTING OUT OF RANGE (`tools/st_s3b.sh`, 28 PASS). `test_interplay` on the Syntakt profile (now `st_params.h`'s list) 560,288 checks, 0 failed |
+| S3.3 | Memory as SD2 decides | the build fits, with the margin a status file states. **Done**: core 456 + `.run` 53,788 + `.bss` 10,420 in the 64 KiB area after S3b, **836 bytes spare**; about 163 KB from the native heap (S3b adds ROTATE ALL's 10.6 KB scratch) |
+
+| S3b | S3's open points: the track's machine (LOCK per machine), VIEW without retrig, LOCK's RNGE default, `lib/props.h`'s Syntakt parameters, ROTATE ALL, the modified mark | **Done 2026-11-19** ([`status/S3b.md`](status/S3b.md)); stock's popups over the screen (`sd_stock_overlay`) still not found |
 
 ### S4. Emulator tests on the Syntakt
 

@@ -59,13 +59,17 @@ static const struct seed_dev *sd_device(void)
     return st_seed_device();
 }
 
-/* the current track, and the device's caps pointed at its list (st_seed_current) */
+static void st_machine_sync(int n);
+
+/* the current track, its machine read (st_machine_sync), and the device's caps pointed at its list */
 static int sd_current(unsigned *pat)
 {
     unsigned obj;
     int n = st_current(&obj, pat);
-    if (st_seed_state())
+    if (st_seed_state()) {
+        st_machine_sync(n);
         st_seed_select(n);
+    }
     return n;
 }
 
@@ -119,18 +123,21 @@ static int sd_euclid(void)
     return st_euclid(obj);
 }
 
-/* ROTATE ALL: the Syntakt's whole-step shift (with its locks) is not found yet (firmware notes,
- * section 8): every track is skipped */
+/* ROTATE ALL: whole steps with their locks, by the device layer (st_seed_rotate: OS 1.42 has no stock
+ * shift a mod can call); a track in stock's Euclidean mode is skipped */
 static int sd_rotate(int t, int steps)
 {
-    (void)t;
-    (void)steps;
-    return 0;
+    return st_seed_rotate(t, steps);
 }
 
-/* the project's modified mark: not found on the Syntakt yet */
+/* The project's modified mark, as stock sets it after an edit: 0x40018c84(app, 1) from the UI task (the Rytm's
+ * 0x400aed98, found again by its code; it keeps the mark in the settings byte at 0x40653442 through
+ * 0x4006f300). sd_edited asks; the next tick sets it. */
+#define ST_SET_MODIFIED ((int (*)(void *, int))0x40018c84u)
+static volatile uint8_t st_edited;
 static void sd_edited(void)
 {
+    st_edited = 1;
 }
 
 /* Stock's TRIG page: the main screen's view (+0xc0) has vtable 0x401c9a9c and +0x88 = 0x13 while it
@@ -220,19 +227,117 @@ static void sd_text_draw(void *bmp, int x, int y, int align, const char *s)
     }
 }
 
+/* LOCK's lanes follow the track's machine (SD4): a lane is on a stock parameter, and after a machine change
+ * it stays on it when the new machine has it; when not, YES and the strip say SETTING OUT OF RANGE until the
+ * lane is set again (the frame's SD_LANE_CHECK) */
+#define SD_LANE_CHECK
+static int sd_lanes_lacking(int n, const struct seed_recipe *r);
+
+/* LOCK's RNGE in a new recipe: each lane's parameter's whole range (TUNE 40..88, FRQ 0..127). lib/ starts
+ * every lane on 1..8, which on the Rytm is the sample slots and on the Syntakt the low end of most knobs. */
+#define SD_LANE_DEFAULTS
+static void sd_lane_defaults(int n, struct seed_recipe *r)
+{
+    const struct st_list *l;
+    int i;
+    if (n < 0 || n >= ST_TRACKS || !st_seed_state())
+        return;
+    l = st_seed_list(n);
+    for (i = 0; i < SEED_LANES; i++)
+        if (r->lane[i].parm >= 0 && r->lane[i].parm < l->n) {
+            r->lane[i].val.lo = l->p[r->lane[i].parm].lo;
+            r->lane[i].val.hi = l->p[r->lane[i].parm].hi;
+        }
+}
+
 #include "../../frame/frame.c"
+
+/* The machine on a track: the kit (the application's +0x130) gives the track's model, the model its Sound
+ * (vtable +0x28), and the Sound's byte +0xa2 is the machine's type (Synfact's recorder-st, save.c and
+ * native.h, OS 1.42; measured: tools/st_s3b.sh). The FX track has none: -1. */
+#define ST_BRAIN ((uint8_t *(*)(void))0x4016e9c8u)
+#define ST_TRACK_MODEL ((uint8_t *(*)(void *, uint32_t))0x4000f04cu)
+static volatile int8_t st_machine_seen[ST_TRACKS]; /* the type last read, per track (-1: none yet): for the tools */
+static uint16_t st_lacking[ST_TRACKS][SEED_LANES];  /* a lane's stock id the machine lacks, 0xffff: none */
+static int16_t st_lacking_at[ST_TRACKS][SEED_LANES]; /* ... and the lane's parm when it was marked */
+
+static int st_machine_type(int t)
+{
+    uint8_t *app, *model, *sound;
+    if (t < 0 || t >= ST_FX_TRACK || !(app = ST_BRAIN()) || !(model = ST_TRACK_MODEL(app + 0x130, (uint32_t)t)))
+        return -1;
+    sound = ((uint8_t *(*)(void *))(*(uint32_t **)model)[0x28 / 4])(model);
+    return sound ? sound[0xa2] : -1;
+}
+
+/* Read the track's machine; on a change, move its recipe's lanes to their parameters' places in the new
+ * list, or mark a lane whose parameter the new machine lacks */
+static void st_machine_sync(int n)
+{
+    uint16_t sid[SEED_LANES];
+    const struct st_list *l;
+    int type = st_machine_type(n), i, k;
+    if (n < 0 || n >= ST_TRACKS || st_seed_state()->list[n].machine == type) {
+        if (n >= 0 && n < ST_TRACKS)
+            st_machine_seen[n] = (int8_t)type;
+        return;
+    }
+    l = st_seed_list(n);
+    for (i = 0; i < SEED_LANES; i++) {
+        int p = recipe[n].lane[i].parm;
+        sid[i] = st_lacking[n][i] != 0xffff && p == st_lacking_at[n][i] ? st_lacking[n][i] :
+                 p >= 0 && p < l->n ? l->id[p] : 0xffff;
+    }
+    st_seed_set_machine(n, type);
+    st_machine_seen[n] = (int8_t)type;
+    if (!(recipe_set & (1u << n)))
+        return;
+    l = st_seed_list(n);
+    for (i = 0; i < SEED_LANES; i++) {
+        st_lacking[n][i] = 0xffff;
+        if (sid[i] == 0xffff)
+            continue;
+        for (k = 0; k < l->n && l->id[k] != sid[i]; k++)
+            ;
+        if (k < l->n)
+            recipe[n].lane[i].parm = (int16_t)k;
+        else {
+            st_lacking[n][i] = sid[i];
+            if (recipe[n].lane[i].parm >= l->n)
+                recipe[n].lane[i].parm = (int16_t)(l->n - 1);
+            st_lacking_at[n][i] = recipe[n].lane[i].parm;
+        }
+    }
+}
+
+/* a lane in use whose parameter the machine lacks, still where it was marked (turning PARM clears it) */
+static int sd_lanes_lacking(int n, const struct seed_recipe *r)
+{
+    int i;
+    if (n < 0 || n >= ST_TRACKS)
+        return 0;
+    for (i = 0; i < SEED_LANES; i++)
+        if (st_lacking[n][i] != 0xffff && r->lane[i].parm == st_lacking_at[n][i] && r->lane[i].pct > 0)
+            return 1;
+    return 0;
+}
 
 /* The memory the 64 KiB mods' area has no room for, from the native heap at the first tick (the UI
  * task): the device layer's (its 13 snapshots) and the frame's buffers. Until then seedr stays shut. */
 static void st_attach(void)
 {
     uint8_t *m;
+    int t;
     if (st_ready)
         return;
     m = FW_MALLOC(((ST_SEED_STATE_SIZE + 3) & ~3u) + frame_heap_size());
     if ((uint32_t)m < 0x40000000u || !st_seed_attach(m, ST_SEED_STATE_SIZE))
         return;
     frame_heap_attach(m + ((ST_SEED_STATE_SIZE + 3) & ~3u));
+    for (t = 0; t < ST_TRACKS; t++) {
+        st_machine_seen[t] = -1;
+        st_lacking[t][0] = st_lacking[t][1] = 0xffff;
+    }
     st_ready = 1;
 }
 
@@ -252,6 +357,12 @@ void st_tick(void *ctrl)
     st_attach();
     if (st_ready)
         gr_tick(ctrl);
+    if (st_edited) {
+        uint8_t *app = ST_BRAIN();
+        st_edited = 0;
+        if (app)
+            ST_SET_MODIFIED(app, 1);
+    }
 }
 
 void st_draw(void *bmp, void *ctrl)

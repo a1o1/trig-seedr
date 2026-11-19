@@ -103,11 +103,53 @@ static void test_tracks(void)
     check_track(0, 0);                                              /* DISABLE: the pages alone */
 }
 
+/* A machine change on a track (the Syntakt mod's st_machine_sync, SD4): a lane follows its stock id into the
+ * new machine's list. Every page parameter is found again in the same row of the page, and a SYN control
+ * only when the new machine has that stock id, at the knob it has there. */
+static int find(const uint16_t *ids, int n, uint16_t sid)
+{
+    int k;
+    for (k = 0; k < n && ids[k] != sid; k++)
+        ;
+    return k < n ? k : -1;
+}
+
+static void test_machine_change(void)
+{
+    struct seed_param out[2][ST_TRACK_PARAMS_MAX];
+    uint16_t ids[2][ST_TRACK_PARAMS_MAX];
+    int16_t lane[2][SEED_LANES];
+    int t, a, b, k, m;
+    for (t = 0; t < 12; t++)
+        for (a = 0; a < ST_NMACHINES; a++)
+            for (b = 0; b < ST_NMACHINES; b++) {
+                const struct st_machine *ma = &machines[a], *mb = &machines[b];
+                int na, nb;
+                if (!((ma->tracks >> t) & 1) || !((mb->tracks >> t) & 1))
+                    continue;
+                na = st_track_params(ma, t, out[0], ids[0], lane[0]);
+                nb = st_track_params(mb, t, out[1], ids[1], lane[1]);
+                CHECK(find(ids[1], nb, ids[0][lane[0][1]]) == lane[1][1]);   /* lane 2's default: FRQ */
+                for (k = 0; k < na; k++) {
+                    int at = find(ids[1], nb, ids[0][k]);
+                    if (k >= ma->n) {                                       /* a page's: found, same row */
+                        CHECK(at == k - ma->n + mb->n);
+                        CHECK(at >= 0 && strcmp(out[0][k].name, out[1][at].name) == 0);
+                    } else {                                                /* a SYN control */
+                        for (m = 0; m < mb->n && mb->p[m].id != ids[0][k]; m++)
+                            ;
+                        CHECK(at == (m < mb->n ? m : -1));
+                    }
+                }
+            }
+}
+
 int main(void)
 {
     test_machines();
     test_pages();
     test_tracks();
+    test_machine_change();
     printf("test_st_params: %d checks, %d failed\n", checks, fails);
     return fails != 0;
 }
