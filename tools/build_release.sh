@@ -11,7 +11,7 @@
 R=$(cd "$(dirname "$0")/.." && pwd); . "$R/tools/emu.sh"
 EMU_NAME=build_release
 V=$(python3 -c "import json; print(json.load(open('$R/mods/seedr-ar2/mod.json'))['version'])")
-# the OS version field is 4 characters: TS07 for 0.7(.0), T071 for 0.7.1 (a patch release must be told apart on
+# the OS version field is 4 characters: TS08 for 0.8(.0), T071 for 0.7.1 (a patch release must be told apart on
 # the boot screen)
 TAG=$(echo "$V" | awk -F. '{ if ($3 + 0 > 0) printf "T%d%d%d", $1, $2, $3; else printf "TS%d%d", $1, $2 }')
 OUT=$R/build/trig-seedr-$V-os1.74.syx

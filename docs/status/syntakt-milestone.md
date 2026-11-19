@@ -1,7 +1,7 @@
 # The Syntakt milestone: trig-seedr on Syntakt OS 1.42 in analog-emu
 
-State: the emulator milestone is met; for Alan's review
-Branch: worktree-s0-2-emu-st (merges of S0.3, S0.4, S0.5, S1, S2, S3, S3b, S4, S5); nothing is on `main` or pushed
+State: met in analog-emu, merged to `main` (48691f5); first hardware pass on one Syntakt passed 2026-11-19 (plan S6.1–S6.4); released as ready for testing in 0.8.0
+Branch: merged to `main`
 Date: 2026-11-19
 
 Alan asked on 2026-11-18 for the Syntakt work to go ahead without his intervention, with parallel agents, to a
