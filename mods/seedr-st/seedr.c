@@ -161,10 +161,134 @@ static void sd_request_frame(void *ctrl)
     *((volatile uint8_t *)ctrl + 0x20) = 1;  /* core-st: the byte that asks for a frame */
 }
 
-/* stock's popups and menus over the screen: not found on the Syntakt yet */
+/* Stock's popups and menus over the screen (task P1), as elekloader core-ar2's core_stock_overlay finds them
+ * on the Rytm: the views on the controller ev_tick passes (+28 the first node, +20 the end; a node's +0 the
+ * next, +8 its view), each known by its class's RTTI name (vtable - 4 the typeinfo, its +4 "<len><name>").
+ * Measured in analog-emu with seedr open (tools/st_views.py, status/P1.md):
+ *   - the main screen's stack ends with HelpBubbleView (0x402374f0); a whole-screen menu replaces the stack
+ *     (TEMPO: TempoMenuView; FUNC + PTN: ClickMenuView; FUNC + TRK: TrackNoteMenuView)
+ *   - after it: PatternSelectView (PTN, BANK), TrackSelectionView (TRK), TapTempoView (FUNC + TEMPO) draw
+ *     over the page; QuickMuteMenuView (while FUNC is held) and PermanentMuteMenuView (FUNC + BANK) draw
+ *     nothing over it, so seedr's FUNC + YES and FUNC + knob keep the screen
+ * 1: a popup over the page; 2: a window; 4: no main screen (a whole-screen menu, or boot). */
+static void *ui_ctrl;                   /* frame.c's: the view controller from ev_tick */
+#define ST_CODE_LO 0x40000000u
+#define ST_CODE_HI 0x40400000u
+#define VT_HELPBUBBLE 0x402374f0u
+#define ST_K_NONE 0
+#define ST_K_VIEW 1
+#define ST_K_WINDOW 2
+
+static const char *st_class(uint32_t vt)
+{
+    uint32_t ti, nm;
+    const char *s;
+    if (vt < ST_CODE_LO + 4 || vt >= ST_CODE_HI || (vt & 1))
+        return 0;
+    ti = *(const uint32_t *)(vt - 4);
+    if (ti < ST_CODE_LO || ti >= ST_CODE_HI || (ti & 1))
+        return 0;
+    nm = *(const uint32_t *)(ti + 4);
+    if (nm < ST_CODE_LO || nm >= ST_CODE_HI)
+        return 0;
+    s = (const char *)nm;
+    while (*s >= '0' && *s <= '9')
+        s++;
+    return s;
+}
+
+static int st_is(const char *s, int n, const char *x)
+{
+    int i;
+    for (i = 0; i < n; i++)
+        if (s[i] != x[i])
+            return 0;
+    return x[n] == 0;
+}
+
+static int st_ends(const char *s, int n, const char *x)
+{
+    int m = 0;
+    while (x[m])
+        m++;
+    return m <= n && st_is(s + n - m, m, x);
+}
+
+/* the views stacked over the main screen that draw nothing over the page */
+static const char *const st_quiet[] = { "QuickMuteMenuView", "PermanentMuteMenuView" };
+/* overlays whose names don't end in MenuView or Window */
+static const char *const st_overlays[] = {
+    "PatternSelectView", "TrackSelectionView", "TapTempoView", "NameView", "SoundBrowser", "KitBrowserView",
+    "ProjectManager", "SoundManager", "SampleManager", "MachineListView",
+};
+
+static int st_kind(uint32_t vt)
+{
+    const char *s = st_class(vt);
+    int n = 0;
+    unsigned j;
+    if (!s)
+        return ST_K_NONE;
+    while (n < 48 && s[n])
+        n++;
+    if (n >= 48)
+        return ST_K_NONE;
+    if (st_ends(s, n, "Window"))
+        return ST_K_WINDOW;
+    for (j = 0; j < sizeof st_quiet / sizeof st_quiet[0]; j++)
+        if (st_is(s, n, st_quiet[j]))
+            return ST_K_NONE;
+    if (st_ends(s, n, "MenuView"))
+        return ST_K_VIEW;
+    for (j = 0; j < sizeof st_overlays / sizeof st_overlays[0]; j++)
+        if (st_is(s, n, st_overlays[j]))
+            return ST_K_VIEW;
+    return ST_K_NONE;
+}
+
+/* a few classes' answers, so a tick costs a walk of the list and no names */
+#define ST_NCACHE 8
+static uint32_t st_cache_vt[ST_NCACHE];
+static uint8_t st_cache_kind[ST_NCACHE];
+static unsigned st_cache_next;
+
+static int st_kind_cached(uint32_t vt)
+{
+    unsigned i;
+    for (i = 0; i < ST_NCACHE; i++)
+        if (st_cache_vt[i] == vt)
+            return st_cache_kind[i];
+    i = st_cache_next++ % ST_NCACHE;
+    st_cache_kind[i] = (uint8_t)st_kind(vt);
+    st_cache_vt[i] = vt;
+    return st_cache_kind[i];
+}
+
 static int sd_stock_overlay(void)
 {
-    return 0;
+    const uint8_t *c = (const uint8_t *)ui_ctrl;
+    const uint32_t *n;
+    int k, after = 0, bits = 0;
+    if (!c)
+        return 0;
+    n = *(const uint32_t *const *)(c + 28);
+    for (k = 0; k < 32 && n && (const uint8_t *)n != c + 20; k++) {
+        const uint32_t *v = (const uint32_t *)n[2];
+        if (v) {
+            uint32_t vt = v[0];
+            int kind = vt == VT_HELPBUBBLE ? ST_K_NONE : st_kind_cached(vt);
+            if (kind == ST_K_WINDOW)
+                bits |= 2;
+            else if (kind == ST_K_VIEW && after)
+                bits |= 1;
+            if (vt == VT_HELPBUBBLE)
+                after = 1;
+        }
+        n = (const uint32_t *)n[0];
+    }
+    if (!after)
+        bits |= 4;
+    return bits;
 }
 
 /* the bitmap (vtable, 128, 64, 2, pixels): 128 x 64, 8 bytes a column, row 0 the top in bit 0 of the

@@ -101,4 +101,38 @@ emu_check "FX: seedr opens" 1 "$(emu_get open)"
 emu_shot fx
 emu_yes
 emu_check "FX track, YES: NOT ON THE FX TRACK" "NOT ON THE FX TRACK" "$(emu_msg)"
+
+# 6. stock's popups (task P1): seedr steps aside while one shows, and draws again after it; FUNC held
+# (QuickMuteMenuView) keeps seedr's screen, so FUNC + YES and FUNC + knob still show it
+emu_keys TRK+T1
+emu_open
+emu_run -s 2400M                        # the strip's 2 s message gone
+fb() { "$DTPEEK" "$EMU_SNAP" fb | shasum | cut -c1-16; }
+OPEN=$(fb)
+HOME_SNAP=$EMU_SNAP
+held() {
+    emu_at "$HOME_SNAP"
+    if [ "${1#F+}" != "$1" ]; then
+        emu_run -s 200M --press FUNC@+50M:2100M --press "${1#F+}@+100M:2000M"
+    else
+        emu_run -s 200M --press "$1@+100M:2000M"
+    fi
+}
+for k in TEMPO PTN TRK F+TEMPO; do
+    held "$k"
+    emu_shot "popup-$(echo "$k" | tr '+' '_')"
+    emu_check "$k held: seedr steps aside (stock's screen)" 1 "$([ "$(fb)" != "$OPEN" ] && echo 1)"
+    emu_check "$k held: seedr stays open" 1 "$(emu_get open)"
+done
+emu_at "$HOME_SNAP"
+emu_run -s 200M --press FUNC@+100M:2000M
+emu_check "FUNC held (QuickMuteMenuView): seedr's screen stays" "$OPEN" "$(fb)"
+emu_check "FUNC held: QuickMuteMenuView is up" 1 "$(python3 "$T/st_views.py" "$EMU_SNAP" "$(emu_get ui_ctrl)" | grep -c QuickMuteMenuView)"
+# PTN latches stock's pattern select ("A??", waiting for a trig key); PTN again cancels it
+emu_at "$HOME_SNAP"
+emu_keys PTN
+emu_check "PTN: pattern select, seedr aside" 1 "$([ "$(fb)" != "$OPEN" ] && echo 1)"
+emu_keys PTN
+emu_run -s 600M
+emu_check "PTN again: pattern select cancelled, seedr draws again" "$OPEN" "$(fb)"
 emu_done
