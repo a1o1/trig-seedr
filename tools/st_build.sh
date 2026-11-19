@@ -14,7 +14,13 @@
 # refuses (its flash_limit: Synfact repacks with elektron-firmware-tool for a unit). This script lifts that limit
 # in-process for the build. Never send a *-emu.syx to a unit.
 #
-# Variables: WORKSPACE (as tools/emu.sh), STOCK_ST (the stock 1.42 file), ELEKLOADER_CROSS (default m68k-elf-).
+# The mods' area (the core's boot copier puts the mods' code and data there): ST_AREA, hex LO-HI, default
+# 47a00000-47b00000, 1 MiB inside the range status/U1.md shows the OS never uses (above the DSP boot buffer, below
+# the DMA ring). Synfact's profile has 46000000-46010000, which stock's sample blob reaches past about 84 s of
+# samples; ST_AREA=46000000-46010000 builds there as before.
+#
+# Variables: WORKSPACE (as tools/emu.sh), STOCK_ST (the stock 1.42 file), ELEKLOADER_CROSS (default m68k-elf-),
+# ST_AREA.
 set -e
 R=$(cd "$(dirname "$0")/.." && pwd)
 case $R in
@@ -25,6 +31,7 @@ STOCK=${STOCK_ST:-"$E/Official Firmwares/Syntakt OS 1.42/Syntakt OS/Syntakt_OS1.
 SRC=$E/external/synfact-dev
 W=$R/build/emu-st
 export ELEKLOADER_CROSS=${ELEKLOADER_CROSS:-m68k-elf-} PYTHONDONTWRITEBYTECODE=1
+ST_AREA=${ST_AREA:-47a00000-47b00000}
 
 [ $# -ge 1 ] || { echo "usage: sh tools/st_build.sh NAME [--core st|mini] [MODDIR...]" >&2; exit 2; }
 NAME=$1; shift
@@ -91,13 +98,17 @@ while [ $i -le $n ]; do
 done
 OUT=$W/$NAME-emu.syx
 rm -f "$OUT" "$OUT.map.json"
-(cd "$SF" && python3 - "$STOCK" "$OUT" "$W/$NAME.lock.json" "$@" <<'PY'
+(cd "$SF" && python3 - "$ST_AREA" "$STOCK" "$OUT" "$W/$NAME.lock.json" "$@" <<'PY'
 import sys
 from elekloader.devices import syntakt
 from elekloader import patch
 # emulator only: the official container's size protects a transfer to a unit, not analog-emu
 object.__setattr__(syntakt.DEVICE, 'flash_limit', 0x400000)
-stock, out, lock, mods = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4:]
+# the mods' area (ST_AREA)
+lo, hi = (int(x, 16) for x in sys.argv[1].split('-'))
+object.__setattr__(syntakt.DEVICE, 'areas', {'ddr': (lo, hi)})
+object.__setattr__(syntakt.DEVICE, 'ddr', (lo, hi))
+stock, out, lock, mods = sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5:]
 sys.argv = ['patch', '--stock', stock, '--out', out, '--lockfile', lock] + sum((['--mod', m] for m in mods), [])
 patch.main()
 PY

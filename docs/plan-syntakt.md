@@ -127,6 +127,14 @@ The manual says where the Syntakt differs (keys, LOCK's lists, chord notes); the
 pages cover the Syntakt (its STARTUP menu, the stock file over DIN MIDI); `requirements.md` names each
 requirement's tests on each device; `testing.md` gives both devices' counts.
 
+### U. Unit readiness (2026-11-19)
+
+What stops a Syntakt build from going on a unit (status/syntakt-milestone.md), done in the emulator only.
+
+| Task | What | Done when |
+|---|---|---|
+| U1 | A mods' area the OS never uses, in place of `0x46000000`, which stock's sample blob reaches; room in it | **Done 2026-11-19** ([`status/U1.md`](status/U1.md)): `0x478af2ca`–`0x47c00000` unused (code, layout, canary in analog-emu); `tools/st_build.sh` builds at `ST_AREA`, default `0x47a00000`–`0x47b00000` (1 MiB, 983,876 bytes spare with seedr); every Syntakt check passes there |
+
 ### S6. On a unit
 
 Alan's Syntakt: `flashing.md`'s checks, adapted, with recovery to stock practised first. Then a beta for the Syntakt,
