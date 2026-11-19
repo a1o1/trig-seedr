@@ -1,9 +1,10 @@
 # trig-seedr
 
 [![License: GPL v2+](https://img.shields.io/badge/License-GPL%20v2%2B-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-v0.7.1-blue.svg)](https://github.com/a1o1/trig-seedr/releases)
-[![Status](https://img.shields.io/badge/Status-0.7%20beta-yellow.svg)](#status)
+[![Version](https://img.shields.io/badge/Version-v0.8.0-blue.svg)](https://github.com/a1o1/trig-seedr/releases)
+[![Status](https://img.shields.io/badge/Status-0.8%20beta-yellow.svg)](#status)
 [![Device](https://img.shields.io/badge/Analog%20Rytm%20MKII-OS%201.74-black.svg)](docs/firmware-notes-os174.md)
+[![Device](https://img.shields.io/badge/Syntakt-OS%201.42-black.svg)](docs/firmware-notes-st142.md)
 [![elekloader](https://img.shields.io/badge/elekloader-core--ar2%200.13-purple.svg)](https://github.com/elekloader/elekloader)
 [![Language](https://img.shields.io/badge/C99-freestanding%20ColdFire-informational.svg)](lib/)
 [![Tests](https://img.shields.io/badge/tests-717k%20host%20%7C%20477%20emulator-brightgreen.svg)](tools/README.md)
@@ -70,7 +71,7 @@ compiler (`ELEKLOADER_CROSS=m68k-elf-`).
 sh tools/doctor.sh                        # the environment
 make -C lib test coldfire                 # the engine: host tests (sanitizers) and a ColdFire build check
 sh tools/run_tests.sh                     # every check: host, then the emulator (NAME... for some)
-sh tools/build_release.sh                 # the firmware to flash: build/trig-seedr-0.7.1-os1.74.syx
+sh tools/build_release.sh                 # the firmware to flash: build/trig-seedr-0.8.0-os1.74.syx
 ```
 
 For the Syntakt: the stock OS in `Official Firmwares/Syntakt OS 1.42/Syntakt OS/Syntakt_OS1.42.syx` (or set
