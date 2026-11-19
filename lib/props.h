@@ -41,13 +41,13 @@ static const struct seed_param prop_params[RT_NPARAMS] = RT_PARAMS;
 static const struct seed_caps prop_caps = { 13, 64, RT_VOICE_FIELDS, -23, 23, SEED_LANES, RT_NPARAMS, prop_params,
                                             { RT_P_SMP, RT_P_FRQ } };
 #else
-/* PROVISIONAL, until the Syntakt's own tables exist (TODO S0.5: switch to device/st_params.h and its
- * fields): 12 tracks and the FX track; trigs with note, velocity, length, micro timing, condition and
- * retrig, no accent and no slide (assumed; S0.4 measures them); the micro-timing range is the Rytm's
- * (assumed); a small set of lockable parameters standing for the machines' (their names, ids and
- * ranges are placeholders, some signed, so a lane with a negative range is covered) */
-#define PROP_ST_FIELDS (SEED_F_NOTE | SEED_F_VEL | SEED_F_LEN | SEED_F_UTIME | SEED_F_COND | SEED_F_RETRIG | \
-                        SEED_F_LOCKS)
+#include "../device/st_params.h"
+/* 12 tracks and the FX track with device/st_params.h's fields (S0.5): note, velocity, length, micro timing
+ * −23..+23, condition and locks; no retrig, accent or slide. The lockable parameters are a small set
+ * standing for the machines' (TODO: st_params.h builds a track's list at run time, per machine, which this
+ * static profile cannot take as it is; names, ids and ranges are placeholders, some signed, so a lane with a
+ * negative range is covered) */
+#define PROP_ST_FIELDS ST_VOICE_FIELDS
 static const struct seed_param prop_params[6] = {
     { "TUNE", 1, -60, 60 }, { "DEC", 2, 0, 127 }, { "FREQ", 3, 0, 127 }, { "RES", 4, 0, 127 },
     { "PAN", 5, -64, 63 }, { "VOL", 6, 0, 127 } };

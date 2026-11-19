@@ -91,8 +91,22 @@ static struct seed_tool tool = { SEED_TOOL_ROTATE_ALL, 1, 50, 0 };
  * the take otherwise (NO, NOT APPLIED put it back) */
 static struct seed_recipe yolo_undo;
 static int yolo_track = -1, yolo_used = -1;
-static struct seed_track orig, take_out, shown;
-static struct seed_work work;
+/* The take's buffers. A device part that defines SD_FRAME_HEAP gives them from its heap instead
+ * (frame_heap_size, frame_heap_attach), when its mods' area is too small for them (the Syntakt). */
+#ifdef SD_FRAME_HEAP
+struct frame_bufs {
+    struct seed_track orig, take_out, shown;
+    struct seed_work work;
+};
+static struct frame_bufs *frame_bufs;
+#define f_orig (frame_bufs->orig)
+#define f_take_out (frame_bufs->take_out)
+#define f_shown (frame_bufs->shown)
+#define f_work (frame_bufs->work)
+#else
+static struct seed_track f_orig, f_take_out, f_shown;
+static struct seed_work f_work;
+#endif
 
 static void lane_parms(const struct seed_recipe *r, int16_t *parm)
 {
@@ -116,8 +130,8 @@ static struct seed_recipe *recipe_of(int n)
     if (!(recipe_set & (1u << n))) {
         struct seed_recipe *r = &recipe[n];
         lane_parms(0, parm);
-        if (dev->read(n, parm, &shown) == SEED_OK)
-            seed_recipe_init(r, &shown, have_last ? &last : 0, dev->caps);
+        if (dev->read(n, parm, &f_shown) == SEED_OK)
+            seed_recipe_init(r, &f_shown, have_last ? &last : 0, dev->caps);
         else
             seed_recipe_defaults(r, dev->caps);
         if (!pg_src_built(r->src))
@@ -215,16 +229,16 @@ static int take(void)
     if (!audition(A_TAKE, bit))
         return 0;
     lane_parms(r, parm);
-    rc = dev->read(n, parm, &orig);     /* the original: the snapshot, or the track just restored */
+    rc = dev->read(n, parm, &f_orig);     /* the original: the snapshot, or the track just restored */
     if (rc >= 0) {
         dev->context(&ctx, n);
         ctx.shared = shared;
         ctx.grooves = grooves;
         ctx.ngrooves = N_GROOVES;
-        rc = seed_render(&take_out, &orig, r, &ctx, &work);
+        rc = seed_render(&f_take_out, &f_orig, r, &ctx, &f_work);
     }
     if (rc >= 0)
-        rc = dev->write(n, parm, &take_out);
+        rc = dev->write(n, parm, &f_take_out);
     if (rc < 0) {
         if (fresh) {                    /* nothing was written: no audition */
             dev->drop();
@@ -269,15 +283,15 @@ static void yolo_run(void)
         tool.roll = (int16_t)(tool.roll < 9999 ? tool.roll + 1 : 0);
     yolo_used = tool.roll;
     lane_parms(r, parm);
-    if (dev->read(n, parm, &shown) != SEED_OK)
-        shown.length = 0;
+    if (dev->read(n, parm, &f_shown) != SEED_OK)
+        f_shown.length = 0;
     in.caps = dev->caps;
     in.role = sd_track_role(n);
     in.length = clampi(sd_track_length(n), 1, SEED_STEPS);
     in.fields = sd_track_fields(n);
     in.ngrooves = N_GROOVES;
-    for (in.any = 0, i = 0; i < shown.length && i < SEED_STEPS; i++)
-        in.any |= shown.s[i].flags & SEED_TRIG;
+    for (in.any = 0, i = 0; i < f_shown.length && i < SEED_STEPS; i++)
+        in.any |= f_shown.s[i].flags & SEED_TRIG;
     seed_yolo(r, &yolo_undo, tool.roll, tool.wild, &in);
     turned |= (uint16_t)(1u << n);              /* take() writes the rolled seed, not the next */
     if (!take()) {                              /* not written (the screen says why): the recipe back */
@@ -709,7 +723,7 @@ static void draw_strip(void *bmp, uint8_t *p, int n, const struct seed_recipe *r
         in.shared = &shared;
         in.grooves = grooves;
         in.ngrooves = N_GROOVES;
-        in.orig = auditioning == A_TAKE && n == aud_track ? &orig : &shown;
+        in.orig = auditioning == A_TAKE && n == aud_track ? &f_orig : &f_shown;
         rc = pv_draw(p, &in, STRIP_TOP, STRIP_BOTTOM);
         if (rc < 0)
             why = error_text(rc);
@@ -740,8 +754,19 @@ struct scr_key {
     struct seed_track shown;
     struct seed_ctx ctx;
 };
+#ifdef SD_FRAME_HEAP
+struct scr_bufs {
+    struct scr_key now, drawn;          /* zeroed when attached, so their unused bytes stay equal */
+    uint8_t frame[1024];
+};
+static struct scr_bufs *scr_bufs;
+#define scr_now (scr_bufs->now)
+#define scr_drawn (scr_bufs->drawn)
+#define scr_frame (scr_bufs->frame)
+#else
 static struct scr_key scr_now, scr_drawn;   /* static: zeroed once, so their unused bytes stay equal */
 static uint8_t scr_frame[1024];         /* the last frame drawn in full */
+#endif
 static int scr_have;                    /* scr_frame and scr_drawn hold a frame */
 unsigned scr_draws, scr_full;           /* frames seedr drew, and those drawn in full (tools/tests/42-perf.sh) */
 unsigned scr_always;                    /* tests: 1 marks every tick and draws every frame in full, as before M2.3 */
@@ -841,14 +866,14 @@ static void draw_all(void *bmp)
     if (lane >= dev->caps->lanes)
         lane = c.lane = 0;
     lane_parms(c.r, parm);
-    ok = dev->read(n, parm, &shown) == SEED_OK;
+    ok = dev->read(n, parm, &f_shown) == SEED_OK;
     p = px(bmp);
     for (i = 0; i < 1024; i++)
         p[i] = 0;
     draw_title(bmp, p, &c, n);
     if (page == PG_VIEW) {
         if (ok)
-            view_draw(bmp, p, &shown, &cursor, dev->caps, parm);
+            view_draw(bmp, p, &f_shown, &cursor, dev->caps, parm);
         draw_footer(bmp, p);                    /* VIEW draws the steps itself: no strip */
     } else {
         draw_cells(bmp, &c);
@@ -856,3 +881,21 @@ static void draw_all(void *bmp)
             draw_strip(bmp, p, n, c.r);
     }
 }
+
+#ifdef SD_FRAME_HEAP
+/* the buffers' size, and their memory (frame_heap_size() bytes, aligned to 4), zeroed here */
+static unsigned frame_heap_size(void)
+{
+    return sizeof(struct frame_bufs) + sizeof(struct scr_bufs);
+}
+
+static void frame_heap_attach(void *m)
+{
+    uint8_t *b = m;
+    unsigned i;
+    for (i = 0; i < frame_heap_size(); i++)
+        b[i] = 0;
+    frame_bufs = (struct frame_bufs *)m;
+    scr_bufs = (struct scr_bufs *)(b + sizeof(struct frame_bufs));
+}
+#endif
