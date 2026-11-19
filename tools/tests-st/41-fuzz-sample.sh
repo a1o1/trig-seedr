@@ -6,15 +6,17 @@
 #       tracks' dumps), both lock lanes included
 #   I7  NO puts the track's record and lock store back byte for byte; FUNC + YES keeps the take (sample 3)
 #   I8  a recipe seedref refuses writes nothing
-# The sample's lane parameters are lib/'s indexes into the track's list (seedref --device st --ids). FUZZ_SAMPLES
-# (default 6) and FUZZ_SAMPLE_SEED (default 41) pick the sample.
+# The sample is the Syntakt's (lib/test_fuzz.c --sample-st, task P1): each recipe is made for its track and that
+# track's machine as seedr read it, so both lanes run over the track's whole list (its machine's SYN controls and
+# pages; seedref --device st --ids) with values in each parameter's range. Tracks 1 (digital), 12 (the cymbal
+# voice), 4 (digital) and 9 (an analog drum voice), in turn. FUZZ_SAMPLES (default 8) and FUZZ_SAMPLE_SEED
+# (default 41) pick the sample.
 R=$(cd "$(dirname "$0")/../.." && pwd); . "$R/tools/tests-st/st.sh"; . "$R/tools/tests-st/fixtures.sh"
 emu_init st41-fuzz-sample
 st_build
 # shellcheck disable=SC2046
 emu_cc fuzz "$R/lib/test_fuzz.c" $(ls "$R"/lib/*.c | grep -v '/test_')
-N=${FUZZ_SAMPLES:-6} SEED=${FUZZ_SAMPLE_SEED:-41}
-"$W/fuzz" --sample "$N" "$SEED" > "$D/sample.txt" || emu_die "fuzz --sample"
+N=${FUZZ_SAMPLES:-8} SEED=${FUZZ_SAMPLE_SEED:-41}
 
 # arg KEY ARGS...: KEY's value in a sample line (DEFAULT when it is not there)
 arg() { _a_k=$1; shift; for _a in "$@"; do case $_a in "$_a_k"=*) echo "${_a#*=}"; return ;; esac; done; echo "${DEFAULT:-}"; }
@@ -36,14 +38,17 @@ slots() {
     L2=$(st_slot $EMU_TRACK "$(DEFAULT=$(seedref --keys track=$EMU_TRACK | awk '$1 == "lane2.parm" {print $2}') arg lane2.parm "$@")")
 }
 
-# prepare TRACK ARGS...: seedr closed, grid recording off; the track selected; the recipe, the pattern's MAP
-# settings and a fresh YES (no seed advance) written; seedr opened; the original saved
-prepare() {
-    EMU_TRACK=$1; shift
+# pick TRACK: seedr closed, grid recording off; the track selected and its machine read by seedr (st_seen)
+pick() {
+    EMU_TRACK=$1
     [ "$(emu_get open)" = 0 ] || emu_keys NO
     emu_rec 0
     emu_keys "TRK+T$((EMU_TRACK + 1))"
     st_seen
+}
+# prepare ARGS...: on the picked track, the recipe, the pattern's MAP settings and a fresh YES (no seed advance)
+# written; seedr opened; the original saved
+prepare() {
     EMU_POKES="$EMU_POKES $(emu_addr turned):2=65535"
     emu_recipe $EMU_TRACK "$@"
     emu_poke shared.map_x "$(DEFAULT=128 arg map_x "$@")"
@@ -69,12 +74,16 @@ got() {
 
 emu_boot
 K=0
-while read -r line <&3; do
+while [ $K -lt "$N" ]; do
     K=$((K + 1))
+    case $((K % 4)) in 1) TK=0 ;; 2) TK=11 ;; 3) TK=3 ;; *) TK=8 ;; esac
+    pick $TK
+    MT=$(st_machine $TK)
+    line=$("$W/fuzz" --sample-st 1 $((SEED + K)) "$MT" $TK) || emu_die "fuzz --sample-st"
+    echo "$line" >> "$D/sample.txt"
     # shellcheck disable=SC2086
     set -- $line
-    case $K in 1|4) TK=0 ;; 2|5) TK=11 ;; *) TK=3 ;; esac       # 64, 16 and 5 steps
-    prepare $TK "$@"
+    prepare "$@"
     W0=$(want "$@")
     emu_yes
     case $W0 in
@@ -86,7 +95,7 @@ while read -r line <&3; do
         continue ;;
     esac
     F0=$EMU_FAIL
-    emu_check "sample $K (track $((TK + 1)), $(sed -n 's/^length //p' "$D/orig$K.txt") steps): YES = seedref (I2)" "$W0" "$(got "$@")"
+    emu_check "sample $K (track $((TK + 1)), machine $MT, $(sed -n 's/^length //p' "$D/orig$K.txt") steps): YES = seedref (I2)" "$W0" "$(got "$@")"
     [ "$EMU_FAIL" -gt "$F0" ] && echo "  sample $K: $line"
     if [ $K -ne 3 ]; then
         emu_no
@@ -98,5 +107,5 @@ while read -r line <&3; do
     B1=$(digest)
     emu_keys NO
     emu_check "sample $K: closed, the applied take stays" "0 $B1" "$(emu_get open) $(digest)"
-done 3< "$D/sample.txt"
+done
 emu_done

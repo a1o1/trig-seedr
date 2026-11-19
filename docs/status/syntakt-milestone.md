@@ -64,13 +64,16 @@ These stop a build from going on a Syntakt as it is:
 
 ## Open points
 
-- Stock's popups over the screen are not found: seedr draws over a popup.
+- Fixed (P1): seedr steps aside for stock's popups and whole-screen menus (the view controller's classes, as on the
+  Rytm); `tools/st_s3.sh` checks TEMPO, PTN, TRK and FUNC + TEMPO, and that FUNC held keeps seedr's screen.
 - Retrig is not written on the Syntakt (it has none on its trig page; the bytes travel with the step).
 - 15-play checks one track's onsets; velocities and micro timing are not checked by level or ear.
-- 41's fuzz sample uses the Rytm's sample; a Syntakt-specific one would cover more lane parameters.
+- Done (P1): 41's fuzz sample is the Syntakt's (`test_fuzz --sample-st`): lanes over each machine's whole list, on
+  tracks 1, 12, 4 and 9.
 - The groove tables still live in `mods/seedr-ar2/`.
-- `test_pages` has no Syntakt build.
-- S5 (the manual and the site) is done: the Syntakt is "in development, emulator only" on every page. S6 (a unit) is not started; U1–U3 (a safe memory area, the power-off model, the unit file's repack) are in progress.
+- Done (P1): `test_pages` has a Syntakt build (`test_pages_st`).
+- S5 (the manual and the site) is done: the Syntakt is "in development, emulator only" on every page. U1–U3 (a safe memory area, the power-off model, the unit file's repack) are done (status/U1.md … U3.md); S6's steps
+  on a unit wait for Alan (docs/flashing-st.md).
 - Fixed: PLACE's FLD offered RTRG and ACC on the Syntakt, where they do nothing (found by S5). A choice now names the fields it needs (`frame/pages.c`); `test_pages` checks it.
 
-Each task's details: `docs/status/S0.2.md` … `S4.md`.
+Each task's details: `docs/status/S0.2.md` … `S4.md`, `U1.md` … `U3.md`, `P1.md`.
