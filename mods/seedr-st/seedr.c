@@ -59,13 +59,17 @@ static const struct seed_dev *sd_device(void)
     return st_seed_device();
 }
 
-/* the current track, and the device's caps pointed at its list (st_seed_current) */
+static void st_machine_sync(int n);
+
+/* the current track, its machine read (st_machine_sync), and the device's caps pointed at its list */
 static int sd_current(unsigned *pat)
 {
     unsigned obj;
     int n = st_current(&obj, pat);
-    if (st_seed_state())
+    if (st_seed_state()) {
+        st_machine_sync(n);
         st_seed_select(n);
+    }
     return n;
 }
 
@@ -220,19 +224,100 @@ static void sd_text_draw(void *bmp, int x, int y, int align, const char *s)
     }
 }
 
+/* LOCK's lanes follow the track's machine (SD4): a lane is on a stock parameter, and after a machine change
+ * it stays on it when the new machine has it; when not, YES and the strip say SETTING OUT OF RANGE until the
+ * lane is set again (the frame's SD_LANE_CHECK) */
+#define SD_LANE_CHECK
+static int sd_lanes_lacking(int n, const struct seed_recipe *r);
+
 #include "../../frame/frame.c"
+
+/* The machine on a track: the kit (the application's +0x130) gives the track's model, the model its Sound
+ * (vtable +0x28), and the Sound's byte +0xa2 is the machine's type (Synfact's recorder-st, save.c and
+ * native.h, OS 1.42; measured: tools/st_s3b.sh). The FX track has none: -1. */
+#define ST_BRAIN ((uint8_t *(*)(void))0x4016e9c8u)
+#define ST_TRACK_MODEL ((uint8_t *(*)(void *, uint32_t))0x4000f04cu)
+static volatile int8_t st_machine_seen[ST_TRACKS]; /* the type last read, per track (-1: none yet): for the tools */
+static uint16_t st_lacking[ST_TRACKS][SEED_LANES];  /* a lane's stock id the machine lacks, 0xffff: none */
+static int16_t st_lacking_at[ST_TRACKS][SEED_LANES]; /* ... and the lane's parm when it was marked */
+
+static int st_machine_type(int t)
+{
+    uint8_t *app, *model, *sound;
+    if (t < 0 || t >= ST_FX_TRACK || !(app = ST_BRAIN()) || !(model = ST_TRACK_MODEL(app + 0x130, (uint32_t)t)))
+        return -1;
+    sound = ((uint8_t *(*)(void *))(*(uint32_t **)model)[0x28 / 4])(model);
+    return sound ? sound[0xa2] : -1;
+}
+
+/* Read the track's machine; on a change, move its recipe's lanes to their parameters' places in the new
+ * list, or mark a lane whose parameter the new machine lacks */
+static void st_machine_sync(int n)
+{
+    uint16_t sid[SEED_LANES];
+    const struct st_list *l;
+    int type = st_machine_type(n), i, k;
+    if (n < 0 || n >= ST_TRACKS || st_seed_state()->list[n].machine == type) {
+        if (n >= 0 && n < ST_TRACKS)
+            st_machine_seen[n] = (int8_t)type;
+        return;
+    }
+    l = st_seed_list(n);
+    for (i = 0; i < SEED_LANES; i++) {
+        int p = recipe[n].lane[i].parm;
+        sid[i] = st_lacking[n][i] != 0xffff && p == st_lacking_at[n][i] ? st_lacking[n][i] :
+                 p >= 0 && p < l->n ? l->id[p] : 0xffff;
+    }
+    st_seed_set_machine(n, type);
+    st_machine_seen[n] = (int8_t)type;
+    if (!(recipe_set & (1u << n)))
+        return;
+    l = st_seed_list(n);
+    for (i = 0; i < SEED_LANES; i++) {
+        st_lacking[n][i] = 0xffff;
+        if (sid[i] == 0xffff)
+            continue;
+        for (k = 0; k < l->n && l->id[k] != sid[i]; k++)
+            ;
+        if (k < l->n)
+            recipe[n].lane[i].parm = (int16_t)k;
+        else {
+            st_lacking[n][i] = sid[i];
+            if (recipe[n].lane[i].parm >= l->n)
+                recipe[n].lane[i].parm = (int16_t)(l->n - 1);
+            st_lacking_at[n][i] = recipe[n].lane[i].parm;
+        }
+    }
+}
+
+/* a lane in use whose parameter the machine lacks, still where it was marked (turning PARM clears it) */
+static int sd_lanes_lacking(int n, const struct seed_recipe *r)
+{
+    int i;
+    if (n < 0 || n >= ST_TRACKS)
+        return 0;
+    for (i = 0; i < SEED_LANES; i++)
+        if (st_lacking[n][i] != 0xffff && r->lane[i].parm == st_lacking_at[n][i] && r->lane[i].pct > 0)
+            return 1;
+    return 0;
+}
 
 /* The memory the 64 KiB mods' area has no room for, from the native heap at the first tick (the UI
  * task): the device layer's (its 13 snapshots) and the frame's buffers. Until then seedr stays shut. */
 static void st_attach(void)
 {
     uint8_t *m;
+    int t;
     if (st_ready)
         return;
     m = FW_MALLOC(((ST_SEED_STATE_SIZE + 3) & ~3u) + frame_heap_size());
     if ((uint32_t)m < 0x40000000u || !st_seed_attach(m, ST_SEED_STATE_SIZE))
         return;
     frame_heap_attach(m + ((ST_SEED_STATE_SIZE + 3) & ~3u));
+    for (t = 0; t < ST_TRACKS; t++) {
+        st_machine_seen[t] = -1;
+        st_lacking[t][0] = st_lacking[t][1] = 0xffff;
+    }
     st_ready = 1;
 }
 

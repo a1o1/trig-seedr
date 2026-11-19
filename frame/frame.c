@@ -220,6 +220,12 @@ static int take(void)
         return 0;
     }
     r = recipe_of(n);
+#ifdef SD_LANE_CHECK
+    if (sd_lanes_lacking(n, r)) {       /* a lane on a parameter the track's machine lacks (Syntakt SD4) */
+        say(error_text(SEED_E_ARG));
+        return 0;
+    }
+#endif
     /* YES again on the take being heard, or after applying it: the next seed. A take that was put
      * back (NO, NOT APPLIED) comes back as it was (Alan, M2.5) */
     if (!(turned & bit) && ((auditioning == A_TAKE && aud_mask == bit) || (kept & bit)))
@@ -716,6 +722,10 @@ static void draw_strip(void *bmp, uint8_t *p, int n, const struct seed_recipe *r
         why = "NOT ON THE FX TRACK";
     else if (sd_euclid())
         why = "EUCLID IS ON: TURN IT OFF";
+#ifdef SD_LANE_CHECK
+    else if (r && sd_lanes_lacking(n, r))
+        why = error_text(SEED_E_ARG);
+#endif
     else {
         in.device = dev;
         in.track = n;
