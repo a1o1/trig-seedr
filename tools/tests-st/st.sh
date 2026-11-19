@@ -54,7 +54,7 @@ seedref() {
         case $_sr_a in track=*) _sr_t=${_sr_a#track=} ;; machine=*) _sr_m=given ;; esac
     done
     if [ -z "$_sr_m" ] && [ -n "$EMU_SNAP" ] && [ -n "$MAP" ]; then
-        "$W/seedref" --device st machine="$(st_machine "$_sr_t")" "$@"
+        "$W/seedref" --device st "$@" machine="$(st_machine "$_sr_t")"     # last: seedref reads its mode from the first
     else
         "$W/seedref" --device st "$@"
     fi
