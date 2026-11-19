@@ -22,8 +22,14 @@
 #include <stdlib.h>
 #include <time.h>
 #include "props.h"
-#ifndef PROP_DEVICE_ST
+/* the Syntakt's tables, made from your own stock file (tools/st_params.sh); --sample-st needs them */
+#if !defined(PROP_DEVICE_ST) && __has_include("../device/st_params.h")
 #include "../device/st_params.h"
+#endif
+#if defined(PROP_DEVICE_ST) || __has_include("../device/st_params.h")
+#define HAVE_ST_PARAMS 1
+#else
+#define HAVE_ST_PARAMS 0
 #endif
 
 static int fails, checks;
@@ -706,6 +712,7 @@ static void sample(int n, uint32_t seed)
     }
 }
 
+#if HAVE_ST_PARAMS
 /* N recipes for a Syntakt track (tools/tests-st/41-fuzz-sample.sh; task P1): the track's own list for the
  * machine TYPE, as st_track_params builds it for the device (SD4), so both lanes run over its SYN controls and
  * pages and take values in each parameter's range; the rest as sample()'s. A lane on a parameter the other
@@ -735,6 +742,7 @@ static void sample_st(int n, uint32_t seed, int type, int track)
         print_recipe(stdout, &r);
     }
 }
+#endif
 
 int main(int argc, char **argv)
 {
@@ -749,7 +757,12 @@ int main(int argc, char **argv)
         return 0;
     }
     if (argc == 6 && !strcmp(argv[1], "--sample-st")) {
+#if HAVE_ST_PARAMS
         sample_st(atoi(argv[2]), (uint32_t)strtoul(argv[3], 0, 0), atoi(argv[4]), atoi(argv[5]));
+#else
+        fprintf(stderr, "--sample-st: no device/st_params.h (sh tools/st_params.sh)\n");
+        return 1;
+#endif
         return 0;
     }
     if (one) {

@@ -54,8 +54,8 @@ These stop a build from going on a Syntakt as it is:
 ## For Alan
 
 - **SD1–SD6**: confirmed by Alan on 2026-11-19 (plan section 2), SD2 as U1's area.
-- **Rule 1:** `device/st_params.h` is generated from the stock file's parameter table (names, ids, ranges). Is it
-  committable and publishable?
+- **Rule 1:** decided 2026-11-19: `device/st_params.h` is made locally from your own stock file by
+  `tools/st_params.sh` and never committed.
 - **On the unit, in order (plan S6, `docs/flashing-st.md`):** S6.1 the way back on stock; S6.2 stock round-tripped
   by elektron-firmware-tool; S6.3 the memory canary with all 64 sample slots loaded; S6.4 trig-seedr and the 15
   first checks, power off with a take kept (I9) and pending (A7) among them. The files are built:

@@ -31,6 +31,8 @@
 # ST_AREA.
 set -e
 R=$(cd "$(dirname "$0")/.." && pwd)
+# device/st_params.h is made from the stock file, never committed (tools/st_params.sh)
+[ -n "$(sh "$R/tools/st_params.sh")" ] || { echo "st_build.sh: no device/st_params.h (sh tools/st_params.sh)" >&2; exit 1; }
 case $R in
 */.claude/worktrees/*) E=${WORKSPACE:-$(cd "${R%/.claude/worktrees/*}/.." && pwd)} ;;
 *) E=${WORKSPACE:-$(cd "$R/.." && pwd)} ;;

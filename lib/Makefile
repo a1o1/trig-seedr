@@ -14,11 +14,15 @@ CFLAGS_CF = -mcpu=54455 -O2 -ffreestanding -fno-builtin -nostdlib -Wall -Wextra 
 SRC := $(sort $(filter-out test_%.c,$(wildcard *.c)))
 HDR := $(wildcard *.h)
 TESTS := $(patsubst %.c,%,$(sort $(wildcard test_*.c)))
-TESTS_ST := $(patsubst %.c,%_st,$(sort $(shell grep -l '"props.h"' test_*.c)))
+# the Syntakt profile needs device/st_params.h, made from your own stock Syntakt file (tools/st_params.sh);
+# without it the Syntakt runs are skipped
+ST_PARAMS := $(shell sh ../tools/st_params.sh)
+TESTS_ST := $(if $(ST_PARAMS),$(patsubst %.c,%_st,$(sort $(shell grep -l '"props.h"' test_*.c))))
 
 test: $(TESTS) $(TESTS_ST)
 	@set -e; for t in $(TESTS); do ./$$t; done
 	@set -e; for t in $(TESTS_ST); do echo "$$t (Syntakt profile):"; ./$$t; done
+	@[ -n "$(ST_PARAMS)" ] || echo "Syntakt profile: skipped (no device/st_params.h; tools/st_params.sh)"
 
 test_%_st: test_%.c $(SRC) $(HDR)
 	$(CC) $(CFLAGS_HOST) -DPROP_DEVICE_ST $< $(SRC) -o $@

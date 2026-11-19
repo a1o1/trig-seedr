@@ -89,7 +89,7 @@ More: [Building](https://a1o1.github.io/trig-seedr/getting-started/build/) (and 
 | Path | What |
 |---|---|
 | `lib/` | the engine: `seed.h` (the contract), `seed_render.c` (the chain), `seed_rng.c` (seeds, keys, VARY) and a module per layer; portable C99 with no device code and no C library; host tests |
-| `device/` | the device layers: the Rytm's OS 1.74 (`rytm_ar2.h`: capabilities, read any track, write with whole-step moves through the stock step and lock routines, the lock-row check, snapshot / restore) and the Syntakt's OS 1.42 (`syntakt_st.h`, `st_params.h`; in development); their host tests |
+| `device/` | the device layers: the Rytm's OS 1.74 (`rytm_ar2.h`: capabilities, read any track, write with whole-step moves through the stock step and lock routines, the lock-row check, snapshot / restore) and the Syntakt's OS 1.42 (`syntakt_st.h`; `st_params.h` is made from your own stock file by `tools/st_params.sh`, never committed; in development); their host tests |
 | `frame/` | the mod's device-neutral part (`frame.c`: keys, audition, drawing; `pages.c`: every page's knobs; the preview and VIEW), shared by each device's mod |
 | `mods/seedr-ar2/` | the elekloader mod for the Analog Rytm MKII (`seedr.c`: the Rytm's side of `frame/frame.h`; `mod.json`) and its groove tables |
 | `mods/seedr-st/` | the mod for the Syntakt, in development (`seedr.c`: the Syntakt's side of `frame/frame.h`); `docs/plan-syntakt.md` |

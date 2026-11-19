@@ -15,6 +15,8 @@ tools/genref
 __pycache__/
 # groove tables derived from Ableton's files
 mods/seedr-ar2/grooves-live.h
+# the Syntakt's parameter tables, made from your own stock file (tools/st_params.sh)
+device/st_params.h
 # the test build made by tools/test_seedr.sh (PART=6)
 mods/seedr-norows-test/
 # early prototype, superseded by seedr's VIEW page

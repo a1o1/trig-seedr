@@ -11,6 +11,8 @@ esac
 STOCK=${STOCK_ST:-"$_st_e/Official Firmwares/Syntakt OS 1.42/Syntakt OS/Syntakt_OS1.42.syx"}
 . "$R/tools/emu.sh"
 FW=$STOCK
+# device/st_params.h is made from the stock file, never committed (tools/st_params.sh)
+[ -n "$(sh "$R/tools/st_params.sh")" ] || emu_die "no device/st_params.h: needs the stock Syntakt file (sh tools/st_params.sh)"
 export DTEMU_FW=$FW                     # dtpeek reads the firmware from it (emu_shot, st_lit)
 
 # emu_boot [CARD]: a cold boot to the main screen (4G; stock 1.42 shows no start-up dialog), on

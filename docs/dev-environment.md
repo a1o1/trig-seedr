@@ -17,7 +17,7 @@ Development is on the Mac. Since version 0.4 the Mac is the reference: everythin
 | `Manuals/` | reference manuals | no |
 | `.toolchains/` | the Linux toolchain 0.3 was built with (section 8) | no |
 
-Files that exist only locally and must stay untracked: `trig-seedr/build/`, `mods/*/out/`, `mods/seedr-ar2/grooves-live.h`, every `.syx`, `.snap` and `.img`.
+Files that exist only locally and must stay untracked: `trig-seedr/build/`, `mods/*/out/`, `mods/seedr-ar2/grooves-live.h`, `device/st_params.h` (made by `tools/st_params.sh` from your own stock Syntakt file), every `.syx`, `.snap` and `.img`.
 
 ## 2. The Mac (macOS on Apple silicon): the reference
 

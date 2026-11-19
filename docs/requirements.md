@@ -162,7 +162,7 @@ host test; "Syntakt profile" is a `lib/` or interplay test built with `-DPROP_DE
 | G2 | the same `lib/` | Syntakt profile |
 | G3 | plays (st15), pattern save and reload, project load after a power cycle (st03); the working state across a power off is not tested (the emulator does not save it) | st03, st15 |
 | G4, G5 | as on the Rytm; every take against `seedref --device st` | st01, st13, st14, st41, st43, st44, `test_syntakt_st` |
-| G6 | as on the Rytm; `device/st_params.h` is generated from the stock file's parameter table (names, ids, ranges) and waits for Alan's review | — |
+| G6 | as on the Rytm; `device/st_params.h` is made from your own stock file's parameter table (names, ids, ranges) by `tools/st_params.sh`, never committed | — |
 | G7 | fits the 64 KiB area (836 bytes spare); no render-time test | — |
 | K1 | as on the Rytm; the closing keys are SYN, FLTR, AMP, LFO, FX, GLOBAL and MENU | s3, st13 |
 | K2 | as on the Rytm | s3 |

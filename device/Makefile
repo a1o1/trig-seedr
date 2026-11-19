@@ -11,11 +11,16 @@ CFLAGS_CF = -mcpu=54455 -O2 -ffreestanding -fno-builtin -nostdlib -Wall -Wextra 
 
 LIB := $(sort $(filter-out ../lib/test_%.c,$(wildcard ../lib/*.c)))
 HDR := $(wildcard *.h) $(wildcard ../lib/*.h)
-TESTS := $(patsubst %.c,%,$(sort $(wildcard test_*.c)))
-CF := $(sort $(wildcard cf_*.c))
+# the Syntakt's tests and ColdFire check need st_params.h, made from your own stock Syntakt file
+# (tools/st_params.sh); without it they are skipped
+ST_PARAMS := $(shell sh ../tools/st_params.sh)
+ST_SRC := test_st_params.c test_syntakt_st.c cf_syntakt_st.c
+TESTS := $(patsubst %.c,%,$(sort $(filter-out $(if $(ST_PARAMS),,$(ST_SRC)),$(wildcard test_*.c))))
+CF := $(sort $(filter-out $(if $(ST_PARAMS),,$(ST_SRC)),$(wildcard cf_*.c)))
 
 test: $(TESTS)
 	@set -e; for t in $(TESTS); do ./$$t; done
+	@[ -n "$(ST_PARAMS)" ] || echo "Syntakt tests: skipped (no st_params.h; tools/st_params.sh)"
 
 test_%: test_%.c $(LIB) $(HDR)
 	$(CC) $(CFLAGS_HOST) $< $(LIB) -o $@

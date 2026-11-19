@@ -48,7 +48,14 @@
 #include <string.h>
 #include "../lib/seed.h"
 #include "../device/rytm_params.h"
+/* the Syntakt's tables are made from your own stock file (tools/st_params.sh) and never committed: without
+ * them, --device st is refused and the Rytm's renders are unchanged */
+#if __has_include("../device/st_params.h")
 #include "../device/st_params.h"
+#define HAVE_ST_PARAMS 1
+#else
+#define HAVE_ST_PARAMS 0
+#endif
 
 static const char *const n_src[] = { "track", "random", "euclid", "map", "copy", 0 };
 static const char *const n_role[] = { "meter", "kick", "back", "hat", "perc", 0 };
@@ -105,6 +112,7 @@ static struct seed_caps caps = {
     13, 64, RT_VOICE_FIELDS, -23, 23, SEED_LANES, RT_NPARAMS, params, { RT_P_SMP, RT_P_FRQ }
 };
 
+#if HAVE_ST_PARAMS
 /* the Syntakt's capabilities for one track (mods/seedr-st: device/syntakt_st.h st_seed_select) */
 static int syntakt, st_role = -1;
 static struct seed_param st_params[ST_TRACK_PARAMS_MAX];
@@ -145,6 +153,15 @@ static int syntakt_role(int t)
         return st_role;
     return t >= 0 && t < ST_TRACKS ? role[t] : SEED_ROLE_METER;
 }
+#else
+#define ST_TRACKS 13
+static int syntakt;
+static struct { const char *name; } st_params[1];
+static uint16_t st_ids[1];
+static void syntakt_caps(int track, int machine) { (void)track; (void)machine; }
+static void syntakt_lane_defaults(struct seed_recipe *r) { (void)r; }
+static int syntakt_role(int t) { (void)t; return SEED_ROLE_METER; }
+#endif
 
 /* the groove tables the mod is built with (mods/seedr-ar2/seedr.c): grooves-live.h when it is
  * there (local only), else grooves-swing.h */
@@ -325,6 +342,8 @@ int main(int argc, char **argv)
             if (strcmp(argv[i + 1], "st") && strcmp(argv[i + 1], "rytm"))
                 die("unknown device", argv[i + 1]);
             syntakt = !strcmp(argv[i + 1], "st");
+            if (syntakt && !HAVE_ST_PARAMS)
+                die("no device/st_params.h: make it from your stock Syntakt file", "sh tools/st_params.sh");
             argv[i] = argv[i + 1] = (char *)"--";
         } else if (!strcmp(argv[i], "--ids")) {
             ids = 1;
