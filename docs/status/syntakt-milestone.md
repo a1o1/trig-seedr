@@ -70,6 +70,6 @@ These stop a build from going on a Syntakt as it is:
 - The groove tables still live in `mods/seedr-ar2/`.
 - `test_pages` has no Syntakt build.
 - S5 (the manual and the site) is done: the Syntakt is "in development, emulator only" on every page. S6 (a unit) is not started; U1–U3 (a safe memory area, the power-off model, the unit file's repack) are in progress.
-- PLACE's FLD still offers RTRG and ACC on the Syntakt, where they do nothing (`frame/pages.c` `c_fld`; found by S5).
+- Fixed: PLACE's FLD offered RTRG and ACC on the Syntakt, where they do nothing (found by S5). A choice now names the fields it needs (`frame/pages.c`); `test_pages` checks it.
 
 Each task's details: `docs/status/S0.2.md` … `S4.md`.
