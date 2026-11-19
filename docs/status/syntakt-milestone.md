@@ -53,7 +53,7 @@ These stop a build from going on a Syntakt as it is:
 
 ## For Alan
 
-- **SD1–SD6** were taken provisionally (plan section 2); SD1 was revised after S0.3.
+- **SD1–SD6**: confirmed by Alan on 2026-11-19 (plan section 2), SD2 as U1's area.
 - **Rule 1:** `device/st_params.h` is generated from the stock file's parameter table (names, ids, ranges). Is it
   committable and publishable?
 - **On the unit:** does the Syntakt keep an edit across a power off? analog-emu's power-off writes nothing on the

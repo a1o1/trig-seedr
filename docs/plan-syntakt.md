@@ -49,19 +49,19 @@ Each is taken by Alan; the tasks in section 3 that measure what it needs come fi
 | SD5 | Chord notes | NOT2–NOT4 per trig | Version 1 on the Syntakt writes NOTE only and keeps NOT2–NOT4 as they are (I3). Chords stay with note pools (design §12) |
 | SD6 | Releases | One version number for both devices, two firmware files per release, or separate versions | One version: `trig-seedr-<version>-os1.74.syx` and `trig-seedr-<version>-st-os1.42.syx` |
 
-### Provisional decisions (2026-11-18)
+### Decisions (confirmed by Alan, 2026-11-19)
 
-Alan asked for the Syntakt work to go ahead without his intervention, so the lead took each recommendation above
-as a provisional decision. Each stands until Alan reverses it; work that depends on one says so.
+The lead took each recommendation above as a provisional decision on 2026-11-18, so the work could go ahead without
+Alan's intervention; the work then measured them. Alan confirmed all six on 2026-11-19.
 
-| # | Provisional decision |
-|---|---|
-| SD1 | **Revised after S0.3:** a minimal core of our own, built by `tools/st_build.sh --core mini` from core-st's hook bus (tick, draw, key, encoder, SETTINGS; 440 bytes of code). Synfact's full `core-st` 2.0.3 does not link with gcc 16.2: by itself it fills its 64 KiB area and is 3,680 bytes over |
-| SD2 | **Confirmed by S0.3 for the emulator:** the code (57,685 bytes) in the 64 KiB area at `0x46000000`, the large buffers (107,336 bytes) from the native heap (`fw_malloc`) at the first tick. **Not for a unit as is:** stock's sample buffer reaches `0x46000000` past about 84 s of loaded samples (Synfact's finding); a unit build needs an area proven unused |
-| SD3 | seedr opens as a third TRIG page, after Trig Parameters and Euclidean (measured in S0.2); TRIG held + PAGE as the shortcut |
-| SD4 | LOCK's lanes list the parameters of the track's machine; a lane whose parameter the machine lacks is refused (SETTING OUT OF RANGE) |
-| SD5 | NOTE only; NOT2–NOT4 kept as they are |
-| SD6 | One version number for both devices; the Syntakt file is `trig-seedr-<version>-st-os1.42.syx` |
+| # | Decision | Evidence |
+|---|---|---|
+| SD1 | **A minimal core of our own**: core-st's hook bus alone (`tools/st_build.sh --core mini`; 456 bytes of code), not Synfact's full `core-st` | `core-st` 2.0.3 does not link with gcc 16.2 (3,680 bytes over its area; S0.3). The minimal core gives tick, draw, key, encoder and SETTINGS. seedr does not run beside Synfact's mods on one unit; revisited only if users ask for that |
+| SD2 | **U1's area, `0x47a00000`–`0x47b00000`** (`ST_AREA`'s default) for the code and data; the large buffers from the OS heap (`fw_malloc`) | Synfact's 64 KiB area at `0x46000000` held seedr only with `-Os` and 836 bytes spare, and stock's sample blob reaches it. U1's range is never used by the OS in every emulator check (status/U1.md). Before any flash: U1's canary on the unit, with all 64 sample slots loaded |
+| SD3 | **A third TRIG page** after Trig Parameters and Euclidean; TRIG held + PAGE as the shortcut | The Syntakt's TRIG key cycles the Rytm's two sub-pages (measured, S0.2); `tools/st_s3.sh` opens seedr there |
+| SD4 | **LOCK follows the track's machine**: its SYN controls first, then the shared pages; lane 1 on knob A (SMP1 on SP TWINSHOT); a lane the machine lacks is refused (SETTING OUT OF RANGE) | S3b; the takes equal `seedref --device st` field by field (S4) |
+| SD5 | **NOTE only**; NOT2–NOT4 kept as they are | I3: a layer changes only its fields. Chords come with note pools (design §12), for both devices |
+| SD6 | **One version number, two files**: `trig-seedr-<version>-os1.74.syx` and `trig-seedr-<version>-st-os1.42.syx`; the Syntakt's file is a beta until it passes the hardware checks on Alan's unit (S6) | One engine, golden vectors and frame; both suites run from one branch |
 
 S1 starts now, on a branch, instead of after the Rytm's 1.0 tag: nothing merges to `main` until Alan reviews it,
 and the Rytm's golden vectors and full suite must be unchanged.
@@ -78,7 +78,7 @@ and the Rytm's golden vectors and full suite must be unchanged.
 | S0.4 | Firmware notes for 1.42, as `firmware-notes-os174.md` for the Rytm: the current track and pattern, the track record (trig flags, note, velocity, length, micro timing, condition, retrig), NOT2–NOT4, track length and scale, the lock store and its limits, grid recording, the Euclidean flag, the TRIG page's sub-pages, the step routines stock uses to write | `docs/firmware-notes-st142.md`, each finding marked measured or inferred, Synfact's findings credited. **Done 2026-11-18** ([`status/S0.4.md`](status/S0.4.md)): `tools/st_peek.py`, `tools/st_s04.sh` (13 PASS) |
 | S0.5 | The lockable parameters of each Syntakt machine, as data (`device/st_params.h`) | the table, checked against the emulator's parameter pages. **Done 2026-11-18** ([`status/S0.5.md`](status/S0.5.md)): 44 machines, the shared pages, `st_track_params`; `tools/st_params.py`, `tools/st_s05.sh` |
 
-Gate SG0: Alan takes SD1–SD6.
+Gate SG0: Alan takes SD1–SD6. **Passed 2026-11-19** (section 2).
 
 **For Alan's review (rule 1):** `device/st_params.h` is generated by `tools/st_params.py` from the stock file's
 parameter table: names as the screen shows them, ids and ranges, as `rytm_params.h` holds for the Rytm (written
