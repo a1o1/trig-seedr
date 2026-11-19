@@ -80,10 +80,12 @@ The fuzzer and the interplay test found faults that the earlier tests did not:
 
 Details of these three: [`status/M2.1.md`](status/M2.1.md).
 
-## The Syntakt (ready for testing)
+## The Syntakt (ready for testing, beta)
 
-trig-seedr for the Syntakt (OS 1.42) is ready for testing from 0.8.0: the emulator checks below, and a first pass
-on one unit. Its counts are kept apart from the Rytm's above. Numbers are from 0.8.0 (2026-11-19;
+trig-seedr for the Syntakt (OS 1.42) is ready for testing, as a beta, from 0.8.0: the emulator checks below, and a
+first hardware pass on one unit on 2026-11-19 (plan S6.1–S6.4: the way back to stock, the stock file rebuilt by the
+tool, the memory canary, then `docs/flashing-st.md`'s checks 1–15, all passed, on the 0.7.1-labelled build of
+0.8.0's code). Its counts are kept apart from the Rytm's above. Numbers are from 0.8.0 (2026-11-19;
 [`plan-syntakt.md`](plan-syntakt.md), [`status/syntakt-milestone.md`](status/syntakt-milestone.md)).
 
 | Level | What | Size | Invariants |
