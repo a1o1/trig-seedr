@@ -1,6 +1,6 @@
 #!/bin/sh
 # tools/st_build.sh: a Syntakt OS 1.42 build for analog-emu (docs/plan-syntakt.md, task S0.3).
-#     sh tools/st_build.sh NAME [--core st|mini] [MODDIR...]
+#     sh tools/st_build.sh NAME [--core st|mini] [--unit] [MODDIR...]
 # builds the core and each mod with Synfact's elekloader (../external/synfact-dev, copied to build/emu-st/synfact so
 # nothing is written into external/), patches the stock file, and writes build/emu-st/NAME-emu.syx and its
 # .syx.map.json. Prints the .syx's path last.
@@ -13,6 +13,14 @@
 # EMULATOR ONLY: elekloader's packer makes a container larger than the official file's, which the Syntakt profile
 # refuses (its flash_limit: Synfact repacks with elektron-firmware-tool for a unit). This script lifts that limit
 # in-process for the build. Never send a *-emu.syx to a unit.
+#
+#   --unit       also build/emu-st/NAME-unit.syx (task U3): the stock file rebuilt by elektron-firmware-tool
+#                (tools/eft.sh) with the patched MAIN (section 3) only, then checked by elekloader's syx.verify with
+#                the profile's own limit (the official container's size) and an in-place margin of at least 4096
+#                bytes (Synfact's rule). The tool's packing level is the tightest, of 3, 2, 1, 0, that passes both:
+#                a tighter stream lets the bootloader's in-place writer overtake unread input (status/U3.md). Its
+#                facts in NAME-unit.json. Unit-shaped, NOT for a unit yet: the memory area at 0x46000000 is not
+#                proven safe (status/U3.md). Never send it anywhere
 #
 # Variables: WORKSPACE (as tools/emu.sh), STOCK_ST (the stock 1.42 file), ELEKLOADER_CROSS (default m68k-elf-).
 set -e
@@ -28,8 +36,14 @@ export ELEKLOADER_CROSS=${ELEKLOADER_CROSS:-m68k-elf-} PYTHONDONTWRITEBYTECODE=1
 
 [ $# -ge 1 ] || { echo "usage: sh tools/st_build.sh NAME [--core st|mini] [MODDIR...]" >&2; exit 2; }
 NAME=$1; shift
-CORE=mini
-if [ "$1" = --core ]; then CORE=$2; shift 2; fi
+CORE=mini UNIT=
+while :; do
+    case $1 in
+    --core) CORE=$2; shift 2 ;;
+    --unit) UNIT=1; shift ;;
+    *) break ;;
+    esac
+done
 [ -f "$STOCK" ] || { echo "the stock Syntakt OS 1.42 file is missing: $STOCK" >&2; exit 1; }
 [ -d "$SRC/elekloader" ] || { echo "Synfact is missing: $SRC" >&2; exit 1; }
 
@@ -105,3 +119,40 @@ PY
 grep -E '^linked|^verified' "$W/$NAME.patch.log"
 [ -f "$OUT" ] || { cat "$W/$NAME.patch.log" >&2; exit 1; }
 echo "$OUT"
+
+# ---- --unit (task U3): repack with elektron-firmware-tool, verify with the profile's own limits ----
+if [ -n "$UNIT" ]; then
+    EFT=$(sh "$R/tools/eft.sh")
+    UOUT=$W/$NAME-unit.syx
+    rm -f "$UOUT" "$W/$NAME-unit.json" "$W/$NAME-main.bin"
+    (cd "$SF" && python3 -c 'import sys; from elekloader import syx
+open(sys.argv[2], "wb").write(syx.Syx.load(sys.argv[1]).section(3))' "$OUT" "$W/$NAME-main.bin")
+    ok=
+    for LEVEL in 3 2 1 0; do
+        rm -f "$UOUT"
+        "$EFT" -i "$STOCK" -c 3 "$W/$NAME-main.bin" -l $LEVEL -o "$UOUT" > "$W/$NAME-unit.log" 2>&1 \
+            || { cat "$W/$NAME-unit.log" >&2; exit 1; }
+        if (cd "$SF" && python3 - "$STOCK" "$UOUT" "$W/$NAME-main.bin" "$W/$NAME-unit.json" $LEVEL <<'PY'
+import json, sys
+from elekloader import syx
+from elekloader.devices import syntakt
+stock, raw, main = syx.Syx.load(sys.argv[1]), open(sys.argv[2], 'rb').read(), open(sys.argv[3], 'rb').read()
+try:
+    facts = syx.verify(raw, stock, main, syntakt.DEVICE)   # the profile as shipped: flash_limit = the official container
+except syx.SyxError as e:
+    print('level %s: %s' % (sys.argv[5], e)); raise SystemExit(1)
+if facts['main']['inplace_min_gap'] < 4096:
+    print('level %s: in-place margin %d < 4096' % (sys.argv[5], facts['main']['inplace_min_gap'])); raise SystemExit(1)
+built = syx.Syx(raw)
+facts.update(level=int(sys.argv[5]), changed_sections=[s for s in stock.stored if built.stored[s] != stock.stored[s]],
+             stock_container=stock.total, flash_limit='0x%06x' % syntakt.DEVICE.flash_limit)
+json.dump(facts, open(sys.argv[4], 'w'), indent=1)
+print('verified %s (level %s): container %d of %d bytes, in-place margin %d, sections changed %s'
+      % (sys.argv[2].rsplit('/', 1)[-1], sys.argv[5], facts['container_len'], stock.total,
+         facts['main']['inplace_min_gap'], facts['changed_sections']))
+PY
+        ); then ok=1; break; fi
+    done
+    [ -n "$ok" ] || { echo "no packing level verifies: $UOUT" >&2; rm -f "$UOUT"; exit 1; }
+    echo "$UOUT"
+fi
