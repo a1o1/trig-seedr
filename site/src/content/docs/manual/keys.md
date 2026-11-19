@@ -20,6 +20,7 @@ sidebar: { order: 13 }
 | FUNC + YES | apply: keep the take (the only way a take stays) |
 | NO | with a take pending: back to the original; otherwise: close Trig Seedr |
 | PAGE, the TRIG keys, the transport | stock's: PAGE still picks which 16 steps the TRIG keys show |
+| YES + SCENE (stock's save pattern) | does not save while Trig Seedr is open: [known quirk](../concepts/#generate-and-apply). Close Trig Seedr first |
 
 What each key does to a take, step by step: [Generate and apply](../concepts/#generate-and-apply).
 

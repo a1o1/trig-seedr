@@ -58,9 +58,9 @@ What each level covers and what is not tested: [`testing.md`](testing.md).
 | A4 | NO restores the original byte for byte, lock store included | I7 | 01, 13, 11, `test_rytm_ar2` |
 | A5 | FUNC + YES applies the take and drops the snapshot; it is the only way a take stays | §9, A4 | 01, 13 |
 | A6 | Changing track or pattern, closing trig-seedr or turning grid recording off with a take pending restores the original (NOT APPLIED) | §9 | 13; hw 6 |
-| A7 | A pattern save during a pending take stores the take as it stands | §9 | — (stock's save; not checked separately) |
+| A7 | A pattern save during a pending take stores the take as it stands | §9 | 03 (power off with a take pending; SAVE PATTERN closes trig-seedr first, so the take is not applied) |
 | A8 | A take that cannot be written (a lock with no row left, a refused recipe) writes nothing and says why | I8 | 06, 12, 41, `test_rytm_ar2` |
-| A9 | YES writes nothing on the FX track (NOT ON THE FX TRACK) or on a track in stock's Euclidean mode (EUCLID IS ON: TURN IT OFF) | §10 | — (no emulator test yet) |
+| A9 | YES writes nothing on the FX track (NOT ON THE FX TRACK) or on a track in stock's Euclidean mode (EUCLID IS ON: TURN IT OFF) | §10 | 44 |
 
 ## E. Engine
 

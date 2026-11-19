@@ -407,7 +407,7 @@ emu_keep() { emu_keys F+YES; }
 emu_msg() {
     _msg_p=$(emu_get msg)
     [ "$_msg_p" = 0 ] && return 0
-    emu_py peek "$EMU_SNAP" "$(printf '0x%x' $((_msg_p & 0xffffffff)))" 1 24 | python3 -c \
+    emu_py peek "$EMU_SNAP" "$(printf '0x%x' $((_msg_p & 0xffffffff)))" 1 40 | python3 -c \
         "import sys; b=bytes(int(x) for x in sys.stdin.read().split()); print(b.split(b'\\0')[0].decode())"
 }
 
