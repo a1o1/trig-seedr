@@ -13,7 +13,7 @@ This page replaces 0.3's requirements (D1–D21: the GENERATOR, ROTATE and GROOV
 
 | Written | Is |
 |---|---|
-| `test_xxx` | a host test, `lib/test_xxx.c` (`make -C lib test`); `test_rytm_ar2` is `device/`'s, `test_pages` and `test_interplay` are `mods/seedr-ar2/`'s |
+| `test_xxx` | a host test, `lib/test_xxx.c` (`make -C lib test`); `test_rytm_ar2` is `device/`'s, `test_pages` and `test_interplay` are `frame/`'s (also run on a Syntakt-shaped profile, `_st`) |
 | `NN` | an emulator test file, `tools/tests/NN-*.sh` (`sh tools/run_tests.sh NN`), listed in [`tools/README.md`](../tools/README.md) |
 | golden | the frozen vectors, `lib/golden/` (`sh tools/golden.sh`) |
 | fuzz | `lib/test_fuzz.c`, and its long runs (`tools/fuzz.sh`) |
