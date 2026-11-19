@@ -1,0 +1,27 @@
+{
+ "id": "devtest-st",
+ "version": "0.1",
+ "title": "device test (Syntakt)",
+ "category": "Test",
+ "license": "GPL-2.0-or-later",
+ "author": "trig-seedr",
+ "description": "Test build only (tools/st_s2.sh): runs device/syntakt_st.h's entries on a poked command.",
+ "device": "syntakt",
+ "os": "1.42",
+ "sources": [
+  "devtest.c"
+ ],
+ "subscribe": [
+  {
+   "event": "ev_tick",
+   "fn": "devtest_tick",
+   "order": 40
+  }
+ ],
+ "requires": [
+  "core"
+ ],
+ "cflags": [
+  "-fno-tree-loop-distribute-patterns"
+ ]
+}

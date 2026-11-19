@@ -97,8 +97,8 @@ published is Alan's call before anything leaves the branch.
 
 | Task | What | Done when |
 |---|---|---|
-| S2.1 | `device/syntakt_st.h`: read, write, snapshot and restore, the lock-room check and the change notice, as `rytm_ar2.h` does, through stock's step routines | a host test with a model of stock's memory, as `test_rytm_ar2.c` (I6–I8) |
-| S2.2 | `device/cf_syntakt_st.c`: the ColdFire build check | no undefined symbols |
+| S2.1 | `device/syntakt_st.h`: read, write, snapshot and restore, the lock-room check and the change notice, as `rytm_ar2.h` does, through stock's step routines | a host test with a model of stock's memory, as `test_rytm_ar2.c` (I6–I8). **Done 2026-11-19** ([`status/S2.md`](status/S2.md)): `device/test_syntakt_st.c` 13,243 checks; in analog-emu `tools/st_s2.sh` 10 PASS |
+| S2.2 | `device/cf_syntakt_st.c`: the ColdFire build check | no undefined symbols. **Done 2026-11-19**: 12,506 bytes of code, 4 of data |
 
 ### S3. The Syntakt mod
 
