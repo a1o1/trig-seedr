@@ -1,16 +1,18 @@
 ---
 title: Quick start
-description: "From a flashed Rytm to a first applied take in a few minutes."
+description: "From a flashed Rytm or Syntakt to a first applied take in a few minutes."
 sidebar: { order: 2 }
 ---
 
-This page takes you from a flashed Rytm to a take you keep. It assumes Trig Seedr is on the unit: if not, see
-[Flashing a unit](../flashing/), or try it first in the [emulator](../emulator/). Trig Seedr is a beta: work on a
-project you have backed up ([what beta means](../../beta/beta/)).
+This page takes you from a flashed unit to a take you keep. It is written for the Analog Rytm MKII; on the Syntakt
+the steps are the same, with the differences on [its page](../../devices/syntakt/). It assumes Trig Seedr is on the
+unit: if not, see Flashing a [Rytm MKII](../flashing/) or a [Syntakt](../flashing-syntakt/), or try it first in the
+[emulator](../emulator/). Trig Seedr is a beta: work on a project you have backed up
+([what beta means](../../beta/beta/)).
 
 ## 1. Check the version
 
-While the Rytm starts, the boot screen shows the version: **T071** for 0.7.1.
+While the unit starts, the boot screen shows the version: **TS08** for 0.8.0.
 
 ## 2. Open Trig Seedr on an empty track
 

@@ -30,7 +30,8 @@ body:
     id: unit
     attributes:
       label: Unit and OS version
-      placeholder: Analog Rytm MKII, OS 1.74
+      description: Analog Rytm MKII with OS 1.74, or Syntakt with OS 1.42.
+      placeholder: Syntakt, OS 1.42
   - type: textarea
     id: steps
     attributes:

@@ -1,7 +1,7 @@
 ---
 title: Building
-description: "Build the firmware from source against your own copy of the stock OS, and build in your own grooves."
-sidebar: { order: 5 }
+description: "Build the firmware for the Analog Rytm MKII or the Syntakt from source against your own copy of the stock OS, and build in your own grooves."
+sidebar: { order: 6 }
 ---
 
 Trig Seedr is built into a patched copy of the stock OS. Nothing from Elektron is in the repository: you supply the
@@ -30,8 +30,30 @@ sh tools/build_release.sh        # the firmware to flash: build/trig-seedr-<vers
 ```
 
 Every file the build makes under `build/` contains Elektron's firmware: keep it to yourself. To flash the result,
-see [Flashing a unit](../flashing/); to try it first, [the emulator](../emulator/). What each check covers:
+see [Flashing a Rytm MKII](../flashing/); to try it first, [the emulator](../emulator/). What each check covers:
 [How it is tested](../../about/testing/).
+
+## The Syntakt
+
+The Syntakt's build needs, next to `trig-seedr` as well:
+
+| Folder | What |
+|---|---|
+| `analog-emu-st/` | analog-emu with the Syntakt's models (a local branch, `syntakt-modified`), built with `cargo build --release` |
+| `external/synfact-dev/` | [Synfact](https://github.com/GSM1980/synfact-dev): its elekloader copy, with the Syntakt's profile, and the hook bus the minimal core is built from |
+| `external/elektron-firmware-tool/` | [elektron-firmware-tool](https://github.com/mischa85/elektron-firmware-tool): repacks the file to the size the unit takes |
+| `Official Firmwares/Syntakt OS 1.42/Syntakt OS/Syntakt_OS1.42.syx` | the stock OS 1.42 from Elektron (or set `STOCK_ST`) |
+
+```sh
+sh tools/st_params.sh            # device/st_params.h from your stock file (never committed); the scripts call it too
+sh tools/st_run_tests.sh         # the Syntakt's emulator tests
+sh tools/build_release_st.sh     # the firmware to flash: build/trig-seedr-<version>-st-os1.42.syx
+```
+
+`build_release_st.sh` runs the unit file's checks first and stops if one fails. To flash the result, the memory
+canary first, and the first checks: [Flashing a Syntakt](../flashing-syntakt/). The Syntakt's parameter table
+(`device/st_params.h`) is made from your own stock file: without it, the Rytm's builds and tests run and skip the
+Syntakt's parts.
 
 ## Your own grooves
 

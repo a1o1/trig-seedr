@@ -12,21 +12,24 @@ body:
     id: version
     attributes:
       label: trig-seedr version
-      description: As the boot screen shows it while the Rytm starts (TS07 for 0.7), and the file you flashed.
-      placeholder: "TS07, trig-seedr-0.7-os1.74.syx"
+      description: As the boot screen shows it while the unit starts (TS08 for 0.8.0), and the file you flashed.
+      placeholder: "TS08, trig-seedr-0.8.0-os1.74.syx"
     validations:
       required: true
-  - type: input
+  - type: dropdown
     id: unit
     attributes:
-      label: Unit
-      placeholder: Analog Rytm MKII
+      label: Device
+      options:
+        - Analog Rytm MKII
+        - Syntakt
     validations:
       required: true
   - type: input
     id: os
     attributes:
       label: OS version
+      description: Analog Rytm MKII 1.74, Syntakt 1.42.
       placeholder: "1.74"
     validations:
       required: true
@@ -44,7 +47,7 @@ body:
     id: checks
     attributes:
       label: What you tried
-      description: The first checks from "Flashing a unit" by number, or what you did in your own use. Note each as OK or not.
+      description: The first checks from your device's flashing page by number, or what you did in your own use. Note each as OK or not.
       placeholder: |
         1-9 OK
         10 (CVAR AAAB): take n+1 played on loop 3, not 4

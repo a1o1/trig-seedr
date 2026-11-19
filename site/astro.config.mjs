@@ -12,7 +12,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: 'Trig Seedr',
-      description: 'Pattern seeds for Elektron machines: a recipe per track that makes and shapes trigs on the machine, generated and applied with an undo. Now on the Analog Rytm MKII (OS 1.74) as a beta; the Analog Four MKII and Syntakt are planned.',
+      description: 'Pattern seeds for Elektron machines: a recipe per track that makes and shapes trigs on the machine, generated and applied with an undo. On the Analog Rytm MKII (OS 1.74) as a beta and on the Syntakt (OS 1.42), ready for testing; the Analog Four MKII and Digitone II are planned.',
       favicon: '/favicon.svg',
       customCss: ['./src/styles/custom.css'],
       components: { SiteTitle: './src/components/SiteTitle.astro' },
@@ -21,6 +21,7 @@ export default defineConfig({
       lastUpdated: false,
       sidebar: [
         { label: 'Getting started', items: [{ autogenerate: { directory: 'getting-started' } }] },
+        { label: 'Devices', items: [{ autogenerate: { directory: 'devices' } }] },
         { label: 'Beta', items: [{ autogenerate: { directory: 'beta' } }] },
         { label: 'Manual', items: [{ autogenerate: { directory: 'manual' } }] },
         { label: 'Developers', items: [{ autogenerate: { directory: 'developers' } }] },

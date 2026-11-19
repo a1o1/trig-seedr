@@ -1,16 +1,17 @@
 ---
-title: The Syntakt
-description: "Trig Seedr on the Syntakt (OS 1.42): in development, tested in an emulator only. Where it differs from the Analog Rytm MKII."
-sidebar: { order: 14 }
+title: Syntakt
+description: "Trig Seedr on the Syntakt (OS 1.42): ready for testing. Where it differs from the Analog Rytm MKII."
+sidebar: { order: 3 }
 ---
 
-:::caution[In development]
-Trig Seedr for the Syntakt is in development. It has been tested in an emulator only, running the stock Syntakt OS
-1.42. There is no Syntakt file to flash, and none of the pages here are install instructions.
+:::note[Ready for testing]
+Trig Seedr for the Syntakt (OS 1.42) is ready for testing, as a beta. Every release is tested in full in an
+emulator running the stock Syntakt OS 1.42, and it passed a first hardware pass on one unit (0.7.1, 2026-11-19).
+How to build and flash it, the way back to stock and the first checks: [Flashing a Syntakt](../../getting-started/flashing-syntakt/).
 :::
 
-The rest of the manual describes the Analog Rytm MKII. On the Syntakt, Trig Seedr has the same pages, knobs and
-rules (the recipe, generate and apply, the seed, YOLO). This page lists only what differs.
+The manual describes the Analog Rytm MKII. On the Syntakt, Trig Seedr has the same pages, knobs and rules (the
+recipe, generate and apply, the seed, YOLO). This page lists only what differs.
 
 ## Opening and closing
 
@@ -21,7 +22,7 @@ opens Trig Seedr as a third TRIG page. TRIG held + PAGE opens it from any page.
 |---|---|
 | TRIG on Trig Seedr | closes it (stock's TRIG page); a pending take is not applied |
 | SYN, FLTR, AMP, LFO, FX, GLOBAL or MENU | closes it; a pending take is not applied |
-| YES, FUNC + YES, NO, LEFT / RIGHT, UP / DOWN, knobs A–H | as on the Rytm ([Keys and messages](../keys/)) |
+| YES, FUNC + YES, NO, LEFT / RIGHT, UP / DOWN, knobs A–H | as on the Rytm ([Keys and messages](../../manual/keys/)) |
 
 ## Tracks
 
@@ -67,10 +68,19 @@ With Trig Seedr closed, stock's keys save as usual: FUNC + YES saves the pattern
 Syntakt saves a pattern only into a project that has been saved on its card (FUNC + GLOBAL). With Trig Seedr open,
 FUNC + YES applies the take, as on the Rytm.
 
-Whether the Syntakt keeps the working state, a take included, when it is switched off is not known yet: the
-emulator does not save it. Recipes are kept in memory only, as on the Rytm.
+The Syntakt keeps its working state, a take included, when it is switched off, as the Rytm does: an applied take
+is there after the next start, and a take still pending is on the track as it stood, with nothing pending. Recipes
+are kept in memory only, as on the Rytm.
 
-## Not done yet
+## Stock's pop-ups
 
-- Stock's pop-up messages: Trig Seedr draws over them while it is open.
-- A check on a Syntakt unit.
+Trig Seedr steps aside while one of stock's menus or pop-ups is on the screen (TEMPO, pattern and track select,
+FUNC menus), as on the Rytm. While FUNC is held it keeps its screen, so FUNC + YES and FUNC + knob work. Pop-ups that
+only a unit shows (USB or card messages) were not seen in the emulator.
+
+## Tested
+
+| Where | What |
+|---|---|
+| In analog-emu (OS 1.42) | every release: the Syntakt's emulator suite, every take compared with the reference renderer; the sequencer plays what Trig Seedr writes |
+| On a Syntakt with OS 1.42 | 0.7.1 (2026-11-19): the way back to stock, the canary with all 64 sample slots loaded, and the first checks 1–15, passed on one unit ([Tested on hardware](../../getting-started/flashing-syntakt/#tested-on-hardware)) |

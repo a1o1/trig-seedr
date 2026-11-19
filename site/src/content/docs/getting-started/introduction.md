@@ -5,12 +5,12 @@ sidebar: { order: 1 }
 ---
 
 Trig Seedr writes patterns for Elektron machines: pages on the machine's own screen that make and shape a track's
-trigs for you. The first version is for the Analog Rytm MKII with OS 1.74, as a mod for
-[elekloader](https://github.com/elekloader/elekloader). The Syntakt (OS 1.42) is in development: it runs in an emulator, with
-no file to flash yet ([The Syntakt](../../manual/syntakt/)). The Analog Four MKII is planned.
+trigs for you. It runs on the **Analog Rytm MKII** with OS 1.74 and the **Syntakt** with OS 1.42, as a mod for
+[elekloader](https://github.com/elekloader/elekloader); each device has its own build ([Devices](../../devices/overview/)).
+The Analog Four MKII and Digitone II are planned.
 
-Everything it writes is ordinary Rytm data (trigs, velocities, lengths, notes, micro timing, accents, conditions,
-retrigs, parameter locks), written through the OS's own routines. The patterns play, save and reload on a stock OS,
+Everything it writes is ordinary pattern data (trigs, velocities, lengths, notes, micro timing, conditions, parameter
+locks, and on the Rytm accents and retrigs), written through the OS's own routines. The patterns play, save and reload on a stock OS,
 and you can edit them by hand as usual.
 
 ## What it does
@@ -35,8 +35,9 @@ original back. With RECORD off, YES writes nothing, so looking around is always 
 
 ## Status
 
-Version 0.7 is a **beta**. Every release passes the full set of checks in
-[analog-emu](https://github.com/trigcondition/analog-emu), a whole-device emulator running the stock OS. Versions
-0.5.1, 0.6.0 and 0.7.1 passed tests on a Rytm MKII with OS 1.74. The list of
-hardware passes is in [Flashing a unit](../flashing/#tested-on-hardware). What beta means for you, and how to report
-what you find: [Beta](../../beta/beta/).
+Version 0.8 is a **beta**: on the Analog Rytm MKII, and on the Syntakt, ready for testing. Every release passes the
+full set of checks in [analog-emu](https://github.com/trigcondition/analog-emu), a whole-device emulator running the
+stock OS, on each device. Versions 0.5.1, 0.6.0 and 0.7.1 passed tests on a Rytm MKII with OS 1.74, and 0.7.1 passed
+a first hardware pass on a Syntakt with OS 1.42. The hardware passes are listed on each flashing page:
+[Rytm MKII](../flashing/#tested-on-hardware), [Syntakt](../flashing-syntakt/#tested-on-hardware). What beta means for
+you, and how to report what you find: [Beta](../../beta/beta/).
