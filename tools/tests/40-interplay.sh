@@ -1,6 +1,6 @@
 #!/bin/sh
 # Task M2.1: interplay of the sources with PLACE, DYNAMICS and the TAKE knobs on the device, each take
-# against tools/seedref (the host tests' breadth: mods/seedr-ar2/test_interplay.c).
+# against tools/seedref (the host tests' breadth: frame/test_interplay.c).
 #   1. 16 steps (kept2, A01 BD): the rows hidden while they cannot change the take (PHRS on a page,
 #      CVAR and QUAL while the trig positions draw no random numbers, ROLE at BIAS 0, AMOD at ACC 0)
 #      and shown again; SOURCE = TRACK with ROT, SYNC, QUAL, SHAPE STRONG and ACC TOP by the knobs.

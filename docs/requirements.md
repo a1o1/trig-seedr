@@ -13,7 +13,7 @@ This page replaces 0.3's requirements (D1–D21: the GENERATOR, ROTATE and GROOV
 
 | Written | Is |
 |---|---|
-| `test_xxx` | a host test, `lib/test_xxx.c` (`make -C lib test`); `test_rytm_ar2` is `device/`'s, `test_pages` and `test_interplay` are `mods/seedr-ar2/`'s |
+| `test_xxx` | a host test, `lib/test_xxx.c` (`make -C lib test`); `test_rytm_ar2` is `device/`'s, `test_pages` and `test_interplay` are `frame/`'s (also run on a Syntakt-shaped profile, `_st`) |
 | `NN` | an emulator test file, `tools/tests/NN-*.sh` (`sh tools/run_tests.sh NN`), listed in [`tools/README.md`](../tools/README.md) |
 | golden | the frozen vectors, `lib/golden/` (`sh tools/golden.sh`) |
 | fuzz | `lib/test_fuzz.c`, and its long runs (`tools/fuzz.sh`) |
@@ -58,9 +58,9 @@ What each level covers and what is not tested: [`testing.md`](testing.md).
 | A4 | NO restores the original byte for byte, lock store included | I7 | 01, 13, 11, `test_rytm_ar2` |
 | A5 | FUNC + YES applies the take and drops the snapshot; it is the only way a take stays | §9, A4 | 01, 13 |
 | A6 | Changing track or pattern, closing trig-seedr or turning grid recording off with a take pending restores the original (NOT APPLIED) | §9 | 13; hw 6 |
-| A7 | A pattern save during a pending take stores the take as it stands | §9 | — (stock's save; not checked separately) |
+| A7 | A pattern save during a pending take stores the take as it stands | §9 | 03 (power off with a take pending; SAVE PATTERN closes trig-seedr first, so the take is not applied) |
 | A8 | A take that cannot be written (a lock with no row left, a refused recipe) writes nothing and says why | I8 | 06, 12, 41, `test_rytm_ar2` |
-| A9 | YES writes nothing on the FX track (NOT ON THE FX TRACK) or on a track in stock's Euclidean mode (EUCLID IS ON: TURN IT OFF) | §10 | — (no emulator test yet) |
+| A9 | YES writes nothing on the FX track (NOT ON THE FX TRACK) or on a track in stock's Euclidean mode (EUCLID IS ON: TURN IT OFF) | §10 | 44 |
 
 ## E. Engine
 
@@ -147,6 +147,43 @@ What each level covers and what is not tested: [`testing.md`](testing.md).
 | VW2 | VIEW shows the track's steps and the fields of the step under its cursor, read only | §8, F10 | 30, 10 |
 | TL1 | TOOLS ROT ALL rotates every track (Euclidean-mode tracks skipped) with its own YES, under generate and apply | V7 | 05, 13 |
 | TL2 | TOOLS YOLO rolls a recipe for the track in scope from musical ranges, keeps the meter, the lanes' parameters and the shared MAP settings; NO restores the track and the recipe | V7, 0.7 | `test_yolo`, 43; hw 15 |
+
+## On the Syntakt (in development)
+
+trig-seedr for the Syntakt (OS 1.42) is in development and is tested in an emulator only
+([`plan-syntakt.md`](plan-syntakt.md)). The requirements above are written for the Rytm; this table says how each
+applies to the Syntakt and which test covers it there. `stNN` is `tools/tests-st/NN-*.sh` (`sh
+tools/st_run_tests.sh`); `s3`, `s3b` are `tools/st_s3.sh`, `tools/st_s3b.sh`; `test_syntakt_st` is the device layer's
+host test; "Syntakt profile" is a `lib/` or interplay test built with `-DPROP_DEVICE_ST`.
+
+| # | On the Syntakt | Tests there |
+|---|---|---|
+| G1 | OS 1.42, as an elekloader mod on a minimal hook-bus core; not a release, and no boot-screen version yet | every Syntakt emulator test |
+| G2 | the same `lib/` | Syntakt profile |
+| G3 | plays (st15), pattern save and reload, project load after a power cycle (st03); the working state across a power off is not tested (the emulator does not save it) | st03, st15 |
+| G4, G5 | as on the Rytm; every take against `seedref --device st` | st01, st13, st14, st41, st43, st44, `test_syntakt_st` |
+| G6 | as on the Rytm; `device/st_params.h` is made from your own stock file's parameter table (names, ids, ranges) by `tools/st_params.sh`, never committed | — |
+| G7 | fits the 64 KiB area (836 bytes spare); no render-time test | — |
+| K1 | as on the Rytm; the closing keys are SYN, FLTR, AMP, LFO, FX, GLOBAL and MENU | s3, st13 |
+| K2 | as on the Rytm | s3 |
+| K3–K9 | as on the Rytm | `test_pages` (Rytm build only), s3, st13 |
+| A1–A6 | as on the Rytm | st01, st13, st14, st41 |
+| A7 | with seedr open, FUNC + YES applies; stock's Save Ptn runs with seedr closed, when nothing is pending: not tested separately | — |
+| A8 | a refused recipe writes nothing; the lock-row case does not apply (the Syntakt has no row pool) | st14, st41, `test_syntakt_st` |
+| A9 | as on the Rytm | st44 |
+| E1–E7, E9 | as on the Rytm | Syntakt profile; st41 |
+| E8 | the golden vectors are the Rytm's; the Syntakt has none | — |
+| TK, RH, PL, NT | as on the Rytm | Syntakt profile; st14, st41 |
+| DY1–DY3 | as on the Rytm | Syntakt profile; st14, st41 |
+| DY4, DY5 | velocity only: the Syntakt has no accent flag (ACC, AMOD hidden) | Syntakt profile |
+| LK1, LK2 | the lanes follow the track's machine: its SYN controls, then the shared pages; a lane the machine lacks is refused (SETTING OUT OF RANGE) | st14, s3b |
+| LK3 | does not apply: no lock-row limit | — |
+| TG1, TM1, TM2 | as on the Rytm | st14, st41 |
+| TG2 | does not apply: the Syntakt has no retrigs (RTRG, RATE, RCUR hidden) | — |
+| VW1 | as on the Rytm | — (no Syntakt check of the preview yet) |
+| VW2 | no retrig row | s3b |
+| TL1 | whole steps with their locks, moved by the device layer | s3b, `test_syntakt_st` |
+| TL2 | the track's role from its machine | st43 |
 
 ## Not in version 1
 

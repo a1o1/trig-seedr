@@ -6,7 +6,7 @@
  * original, the pattern's trigs) and compares it with what the last render used. Only a
  * difference renders again, so a knob turn, a YES or NO, a trig recorded with stock's keys, or a
  * change on a track MASK or COPY reads each renders once, and an idle screen costs a compare.
- * The render has its own buffers: the take seedr.c writes is never touched. */
+ * The render has its own buffers: the take frame.c writes is never touched. */
 #include <stdint.h>
 #include "preview.h"
 

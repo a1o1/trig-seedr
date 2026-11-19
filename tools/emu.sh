@@ -109,7 +109,7 @@ emu_build() {
     FW=$W/$_build_v.syx MAP=$W/$_build_v.syx.map.json
     _build_m=$W/mod-$_build_v
     emu_lock "$_build_m"
-    if emu_stale "$FW" "$R/mods/seedr-ar2" "$R/lib" "$R/device" || [ "$_build_core/stamp" -nt "$FW" ] ||
+    if emu_stale "$FW" "$R/mods/seedr-ar2" "$R/frame" "$R/lib" "$R/device" || [ "$_build_core/stamp" -nt "$FW" ] ||
        [ "$*" != "$(cat "$_build_m/cflags" 2>/dev/null)" ]; then
         rm -rf "$_build_m"; mkdir -p "$_build_m"; echo "$*" > "$_build_m/cflags"
         if emu_elebuild "$R/mods/seedr-ar2" "$_build_m" "$@" > "$_build_m/build.log" 2>&1 &&
@@ -394,7 +394,7 @@ emu_sknob() {
 }
 
 # emu_rec 0|1: grid recording off / on (RECORD pressed only when it is not so already). Generating
-# needs it (seedr.c: RECORD TO GENERATE); turning it off with a take pending does not apply the take.
+# needs it (frame/frame.c: RECORD TO GENERATE); turning it off with a take pending does not apply the take.
 emu_rec() {
     [ "$(emu_py peek "$EMU_SNAP" 0x417e320c 1)" = "$1" ] || emu_keys RECORD
     [ "$(emu_py peek "$EMU_SNAP" 0x417e320c 1)" = "$1" ] || emu_die "grid recording did not turn $1"
@@ -407,7 +407,7 @@ emu_keep() { emu_keys F+YES; }
 emu_msg() {
     _msg_p=$(emu_get msg)
     [ "$_msg_p" = 0 ] && return 0
-    emu_py peek "$EMU_SNAP" "$(printf '0x%x' $((_msg_p & 0xffffffff)))" 1 24 | python3 -c \
+    emu_py peek "$EMU_SNAP" "$(printf '0x%x' $((_msg_p & 0xffffffff)))" 1 40 | python3 -c \
         "import sys; b=bytes(int(x) for x in sys.stdin.read().split()); print(b.split(b'\\0')[0].decode())"
 }
 
@@ -479,7 +479,7 @@ emu_cc() {
     _cc_n=$1; shift
     emu_lock "$W/$_cc_n"
     if [ ! -x "$W/$_cc_n" ] || [ -n "$(find "$@" -newer "$W/$_cc_n" 2>/dev/null | head -1)" ] ||
-       [ -n "$(find "$R/lib" "$R/device" "$R/mods/seedr-ar2" -name '*.h' -newer "$W/$_cc_n" | head -1)" ]; then
+       [ -n "$(find "$R/lib" "$R/device" "$R/frame" "$R/mods/seedr-ar2" -name '*.h' -newer "$W/$_cc_n" | head -1)" ]; then
         cc -std=c99 -O2 -Wall -o "$W/$_cc_n" "$@" || { emu_unlock "$W/$_cc_n"; emu_die "cc $_cc_n"; }
     fi
     emu_unlock "$W/$_cc_n"

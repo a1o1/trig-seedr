@@ -1,14 +1,13 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 /* The preview strip (preview.c) and VIEW (view.c): task F10 (docs/plan-v1.md section 6), called
- * from seedr.c's gr_draw. The pixel helpers are the ones seedr.c uses, for the core's bitmap. */
+ * from the frame's gr_draw (frame.c). The pixel helpers are the ones the frame uses, for the core's bitmap. */
 #ifndef SEEDR_PREVIEW_H
 #define SEEDR_PREVIEW_H
 
 #include <stdint.h>
-#include "analog-rytm-mk2/screen.h"
-#include "../../lib/seed.h"
+#include "../lib/seed.h"
 
-/* What a YES on this track would render (seedr.c take()): the recipe from the original. */
+/* What a YES on this track would render (frame.c take()): the recipe from the original. */
 struct pv_in {
     const struct seed_dev *device;    /* for the context (the pattern's trigs, for MASK and COPY) */
     int track;
@@ -47,10 +46,20 @@ static inline void pv_box(uint8_t *p, int x0, int r0, int x1, int r1, int fill)
                 pv_dot(p, x, r);
 }
 
-/* text whose top is on row `top`; align CORE_ALIGN_LEFT starts at x, CORE_ALIGN_RIGHT ends at x */
+/* ---- text, through the device (frame.c, frame.h): the main font ---- */
+
+#define SF_LEFT   0                     /* x is where the text starts */
+#define SF_RIGHT  2                     /* x is where it ends */
+#define SF_INVERT 0x10                  /* the text's box inverted */
+
+/* text whose top is on row `top`; align SF_LEFT or SF_RIGHT, | SF_INVERT */
+void sf_text(void *bmp, int x, int top, const char *s, int align);
+/* the text's width in pixels */
+int sf_text_width(const char *s);
+
 static inline void pv_text(void *bmp, int x, int top, const char *s, int align)
 {
-    core_text_draw(bmp, CORE_FONT_MAIN, x, 64 - core_font_height(CORE_FONT_MAIN) - top, align, s);
+    sf_text(bmp, x, top, s, align);
 }
 
 #endif

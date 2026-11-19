@@ -34,7 +34,7 @@ them.
 | YOLO | `lib/test_yolo.c`: every roll at WILD 0–100 on five track roles and five lengths renders without a refusal, repeats exactly, keeps the meter and the lock lanes' parameters and stays in its musical ranges; `tools/tests/43-yolo.sh` compares the emulator's rolled recipes and takes with `seedref yolo=ROLL:WILD` | 31,000 checks per `make test`; 29 emulator checks | I2, I6, I7 |
 | Reference comparison | `tools/seedref`, the same engine built for the computer, renders every take the emulator writes; the two must agree field by field | every emulator check that generates | I2 |
 | Golden vectors | 129 recipes over every layer with their frozen results (`lib/golden/`); a change to any result fails until its reason is written down | every run | I2, design V11 |
-| Interplay | `mods/seedr-ar2/test_interplay.c`: recipes the pages can reach, from every source on 13–64 steps; every hidden knob, turned, must leave the take byte-identical, and each source must keep the trig counts it promises through ROT and SYNC | about 533,000 checks in every `make test`; a 60,000-recipe run made 10 million | I3, I5, I6 |
+| Interplay | `frame/test_interplay.c`: recipes the pages can reach, from every source on 13–64 steps; every hidden knob, turned, must leave the take byte-identical, and each source must keep the trig counts it promises through ROT and SYNC | about 533,000 checks in every `make test`; a 60,000-recipe run made 10 million | I3, I5, I6 |
 | Emulator | `tools/run_tests.sh` boots the patched OS in [analog-emu](https://github.com/trigcondition/analog-emu) and drives it through the Rytm's own keys and knobs: generate, NO, apply, save, reload, power cycle, the lock-row limit, every page | 30 test files, 477 checks; the full run takes about 80 minutes on the Mac (42-perf alone 25) | I1, I2, I7–I9 |
 | Emulator fuzz sample | `tools/tests/41-fuzz-sample.sh`: recipes from the fuzzer replayed on the emulated Rytm | 6 recipes per run (more with `FUZZ_SAMPLES`) | I2, I7–I9 |
 | Hardware | `docs/flashing.md`'s checks on a Rytm MKII with OS 1.74; every pass is listed there (Tested on hardware) | one unit (0.5.1, 0.6.0) | I7, I9 |
@@ -79,6 +79,24 @@ The fuzzer and the interplay test found faults that the earlier tests did not:
 - **A:B's CVAL showed `/10`** where the engine uses 8.
 
 Details of these three: [`status/M2.1.md`](status/M2.1.md).
+
+## The Syntakt (in development)
+
+trig-seedr for the Syntakt (OS 1.42) is in development and is tested in an emulator only; it is not part of a
+release. Its tests are kept apart from the Rytm's release counts above. Numbers are from 2026-11-19, on the branch
+of the Syntakt work ([`plan-syntakt.md`](plan-syntakt.md), [`status/syntakt-milestone.md`](status/syntakt-milestone.md)).
+
+| Level | What | Size | Invariants |
+|---|---|---|---|
+| Device layer | `device/test_syntakt_st.c`: random tracks, takes and rotations written through a model of the Syntakt's step and lock routines; `device/test_st_params.c`: the parameter table | 15,244 and 256,668 checks | I6–I8 |
+| Host tests on a Syntakt profile | every `lib/` test that uses `props.h`, and the interplay test, built a second time with the Syntakt's capabilities (`-DPROP_DEVICE_ST`) | interplay 560,288 checks | I1–I6, I10 |
+| Emulator | `tools/st_run_tests.sh` (`tools/tests-st/`): the mod on the stock Syntakt OS 1.42 in analog-emu, every take against `tools/seedref --device st`: generate, NO, apply, the NOT APPLIED rules, every field and both lock lanes, save and reload, playback, the fuzz sample, YOLO, the refusals | 8 files, 102 checks; about 29 minutes | I1, I2, I7–I9 |
+| Emulator, pages and machines | `tools/st_s3.sh` (opening, every page, the knobs) and `tools/st_s3b.sh` (LOCK per machine, ROTATE ALL, the modified mark) | 18 and 28 checks | I7 |
+| Hardware | none | | |
+
+Not tested on the Syntakt: a unit; the working state across a power cycle (the emulator does not save it: the
+tests save the project and load it after the power cycle instead); velocities and micro timing as played (the
+playback test checks one track's onsets).
 
 ## What is not tested
 

@@ -32,11 +32,33 @@ static inline uint32_t prop_next(struct prop_rng *g)
 static inline int prop_int(struct prop_rng *g, int lo, int hi) { return lo + (int)(prop_next(g) % (uint32_t)(hi - lo + 1)); }
 static inline int prop_chance(struct prop_rng *g, int pct) { return prop_int(g, 0, 99) < pct; }
 
-/* ---- the Rytm's capabilities, as tools/seedref.c (device/rytm_params.h) ---- */
+/* ---- the device the tests run on: the Rytm's capabilities, as tools/seedref.c (device/rytm_params.h);
+ * with PROP_DEVICE_ST a Syntakt-shaped profile (the Makefiles build each test a second time with it,
+ * as test_<name>_st; docs/plan-syntakt.md task S1.2) ---- */
 
+#ifndef PROP_DEVICE_ST
 static const struct seed_param prop_params[RT_NPARAMS] = RT_PARAMS;
 static const struct seed_caps prop_caps = { 13, 64, RT_VOICE_FIELDS, -23, 23, SEED_LANES, RT_NPARAMS, prop_params,
                                             { RT_P_SMP, RT_P_FRQ } };
+#else
+#include "../device/st_params.h"
+/* 12 tracks and the FX track with device/st_params.h's fields (S0.5): note, velocity, length, micro timing
+ * -23..+23, condition and locks; no retrig, accent or slide. The lockable parameters: track 1's list with SP
+ * TWINSHOT (type 44), the longest a track has (its 8 SYN controls, the filter, base-width, amp and LFO pages),
+ * as st_track_params builds it for the device (stock's ranges, all 0 or more: TUNE 40..88). Built at start-up,
+ * since st_track_params runs, as on the device. */
+#define PROP_ST_FIELDS ST_VOICE_FIELDS
+static struct seed_param prop_params[ST_TRACK_PARAMS_MAX];
+static struct seed_caps prop_caps = { 13, 64, PROP_ST_FIELDS, ST_UTIME_LO, ST_UTIME_HI, SEED_LANES, 0, prop_params,
+                                      { 0, 0 } };
+__attribute__((constructor)) static void prop_st_caps(void)
+{
+    static const struct st_machine m[ST_NMACHINES] = ST_MACHINES;
+    uint16_t ids[ST_TRACK_PARAMS_MAX];
+    prop_caps.nparams = (uint8_t)st_track_params(st_machine_of(m, ST_NMACHINES, 44), 0, prop_params, ids,
+                                                 prop_caps.lane_parm);
+}
+#endif
 /* the capabilities the generators and contexts use; a test may point it at another device's
  * (test_fuzz.c) */
 static const struct seed_caps *prop_cap = &prop_caps;

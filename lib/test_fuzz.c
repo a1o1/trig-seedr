@@ -11,6 +11,9 @@
  *                                    seconds (tools/fuzz.sh runs it with ASan and UBSan)
  *   FUZZ_CASE=0xHEX ./test_fuzz      one case again, printed (the case number a failure reports)
  *   ./test_fuzz --sample N SEED      N recipes for the emulator (A01 BD, the Rytm), one line each
+ *   ./test_fuzz --sample-st N SEED TYPE TRACK
+ *                                    N recipes for the Syntakt (tools/tests-st/41-fuzz-sample.sh): lanes over
+ *                                    the whole list of TRACK with the machine TYPE, in each parameter's range
  *                                    in tools/seedref's KEY=VALUE form
  *
  * A failure prints its invariant and its case number; FUZZ_CASE replays it. Host only. */
@@ -19,6 +22,15 @@
 #include <stdlib.h>
 #include <time.h>
 #include "props.h"
+/* the Syntakt's tables, made from your own stock file (tools/st_params.sh); --sample-st needs them */
+#if !defined(PROP_DEVICE_ST) && __has_include("../device/st_params.h")
+#include "../device/st_params.h"
+#endif
+#if defined(PROP_DEVICE_ST) || __has_include("../device/st_params.h")
+#define HAVE_ST_PARAMS 1
+#else
+#define HAVE_ST_PARAMS 0
+#endif
 
 static int fails, checks;
 static long nfail[16];
@@ -700,6 +712,38 @@ static void sample(int n, uint32_t seed)
     }
 }
 
+#if HAVE_ST_PARAMS
+/* N recipes for a Syntakt track (tools/tests-st/41-fuzz-sample.sh; task P1): the track's own list for the
+ * machine TYPE, as st_track_params builds it for the device (SD4), so both lanes run over its SYN controls and
+ * pages and take values in each parameter's range; the rest as sample()'s. A lane on a parameter the other
+ * lane has, which the engine refuses, stays in the sample: the test checks the refusal writes nothing. */
+static void sample_st(int n, uint32_t seed, int type, int track)
+{
+    static const struct st_machine m[ST_NMACHINES] = ST_MACHINES;
+    static struct seed_param params[ST_TRACK_PARAMS_MAX];
+    static struct seed_caps caps;
+    uint16_t ids[ST_TRACK_PARAMS_MAX];
+    struct prop_rng g = { seed | 1u };
+    struct seed_recipe r;
+    caps.tracks = ST_TRACKS;
+    caps.steps = SEED_STEPS;
+    caps.fields = track == ST_FX_TRACK ? ST_FX_FIELDS : ST_VOICE_FIELDS;
+    caps.utime_lo = ST_UTIME_LO;
+    caps.utime_hi = ST_UTIME_HI;
+    caps.lanes = SEED_LANES;
+    caps.params = params;
+    caps.nparams = (uint8_t)st_track_params(st_machine_of(m, ST_NMACHINES, type), track, params, ids, caps.lane_parm);
+    prop_cap = &caps;
+    while (n-- > 0) {
+        prop_recipe(&r, &g, prop_int(&g, 40, 90));
+        r.seed %= 10000u;
+        printf("map_x=%d map_y=%d map_chaos=%d ", prop_int(&g, 0, 255), prop_int(&g, 0, 255),
+               prop_chance(&g, 50) ? 0 : prop_int(&g, 0, 255));
+        print_recipe(stdout, &r);
+    }
+}
+#endif
+
 int main(int argc, char **argv)
 {
     const char *secs = getenv("FUZZ_SECONDS"), *one = getenv("FUZZ_CASE"), *sd = getenv("FUZZ_SEED");
@@ -710,6 +754,15 @@ int main(int argc, char **argv)
 
     if (argc == 4 && !strcmp(argv[1], "--sample")) {
         sample(atoi(argv[2]), (uint32_t)strtoul(argv[3], 0, 0));
+        return 0;
+    }
+    if (argc == 6 && !strcmp(argv[1], "--sample-st")) {
+#if HAVE_ST_PARAMS
+        sample_st(atoi(argv[2]), (uint32_t)strtoul(argv[3], 0, 0), atoi(argv[4]), atoi(argv[5]));
+#else
+        fprintf(stderr, "--sample-st: no device/st_params.h (sh tools/st_params.sh)\n");
+        return 1;
+#endif
         return 0;
     }
     if (one) {

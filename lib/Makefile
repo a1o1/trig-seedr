@@ -1,5 +1,6 @@
 # lib: host tests, and a ColdFire build check (no undefined symbols: a mod links no libgcc or libc).
-#   make test       build and run every test_*.c, each linked with every module
+#   make test       build and run every test_*.c, each linked with every module; those that use props.h
+#                   run a second time on a Syntakt-shaped profile (-DPROP_DEVICE_ST, test_<name>_st)
 #   make coldfire   compile every module with elekloader's Rytm flags and check `nm -u` is empty
 # A new module (*.c) or test (test_*.c) is picked up without editing this file.
 CC ?= cc
@@ -13,9 +14,18 @@ CFLAGS_CF = -mcpu=54455 -O2 -ffreestanding -fno-builtin -nostdlib -Wall -Wextra 
 SRC := $(sort $(filter-out test_%.c,$(wildcard *.c)))
 HDR := $(wildcard *.h)
 TESTS := $(patsubst %.c,%,$(sort $(wildcard test_*.c)))
+# the Syntakt profile needs device/st_params.h, made from your own stock Syntakt file (tools/st_params.sh);
+# without it the Syntakt runs are skipped
+ST_PARAMS := $(shell sh ../tools/st_params.sh)
+TESTS_ST := $(if $(ST_PARAMS),$(patsubst %.c,%_st,$(sort $(shell grep -l '"props.h"' test_*.c))))
 
-test: $(TESTS)
+test: $(TESTS) $(TESTS_ST)
 	@set -e; for t in $(TESTS); do ./$$t; done
+	@set -e; for t in $(TESTS_ST); do echo "$$t (Syntakt profile):"; ./$$t; done
+	@[ -n "$(ST_PARAMS)" ] || echo "Syntakt profile: skipped (no device/st_params.h; tools/st_params.sh)"
+
+test_%_st: test_%.c $(SRC) $(HDR)
+	$(CC) $(CFLAGS_HOST) -DPROP_DEVICE_ST $< $(SRC) -o $@
 
 test_%: test_%.c $(SRC) $(HDR)
 	$(CC) $(CFLAGS_HOST) $< $(SRC) -o $@
@@ -27,6 +37,6 @@ coldfire: $(SRC) $(HDR)
 	@u=$$($(CROSS)nm -u lib-cf.o); if [ -n "$$u" ]; then echo "undefined: $$u"; exit 1; else echo "no undefined symbols"; fi
 
 clean:
-	rm -f $(TESTS) *-cf.o lib-cf.o
+	rm -f $(TESTS) $(TESTS_ST) *-cf.o lib-cf.o
 
 .PHONY: test coldfire clean

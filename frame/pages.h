@@ -1,18 +1,18 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 /* pages: the page framework's tables (docs/design-v1.md section 5). Every page's knobs are rows
- * of one table, pg_rows in pages.c; seedr.c draws them and passes turns through pg_turn. Owner:
+ * of one table, pg_rows in pages.c; frame.c draws them and passes turns through pg_turn. Owner:
  * task 0.3. A workstream edits only its own rows (docs/plan-v1.md section 4).
  *
  * A row is shown when its feature is built (`have`, a seed_have_* flag), the device and track have
  * its field (`field`, SEED_F_*), and its condition holds (`when`: another setting's value is one
  * of a set, as RHYTHM's knobs by SRC). A page is shown when one of its rows is. Device-neutral,
- * freestanding: seedr.c draws, this file only computes values and text.
+ * freestanding: frame.c draws, this file only computes values and text.
  */
 #ifndef SEEDR_PAGES_H
 #define SEEDR_PAGES_H
 
 #include <stdint.h>
-#include "../../lib/seed.h"
+#include "../lib/seed.h"
 
 enum pg_page { PG_TAKE, PG_RHYTHM, PG_PLACE, PG_DYN, PG_NOTE, PG_LOCK, PG_TRIG, PG_TIME, PG_VIEW, PG_TOOLS, PG_N };
 
@@ -67,6 +67,7 @@ enum pg_fmt {
 struct pg_choice {
     const char *name;
     const uint8_t *have;
+    uint16_t need;                    /* SEED_F_* the track must have for the choice to show; 0: none */
 };
 
 struct pg_row {

@@ -17,7 +17,7 @@ Development is on the Mac. Since version 0.4 the Mac is the reference: everythin
 | `Manuals/` | reference manuals | no |
 | `.toolchains/` | the Linux toolchain 0.3 was built with (section 8) | no |
 
-Files that exist only locally and must stay untracked: `trig-seedr/build/`, `mods/*/out/`, `mods/seedr-ar2/grooves-live.h`, every `.syx`, `.snap` and `.img`.
+Files that exist only locally and must stay untracked: `trig-seedr/build/`, `mods/*/out/`, `mods/seedr-ar2/grooves-live.h`, `device/st_params.h` (made by `tools/st_params.sh` from your own stock Syntakt file), every `.syx`, `.snap` and `.img`.
 
 ## 2. The Mac (macOS on Apple silicon): the reference
 
@@ -41,10 +41,12 @@ Files that exist only locally and must stay untracked: `trig-seedr/build/`, `mod
 | `STOCK` | the stock OS file | default under `Official Firmwares/` |
 
 `WORKSPACE` defaults to the folder above the checkout, and the test scripts also find it from a git worktree's path
-(`.claude/worktrees/<name>/`). Set it explicitly for a checkout elsewhere.
+(`.claude/worktrees/<name>/`). Set it explicitly for a checkout elsewhere. Use two `export` lines: the shell expands
+`$WORKSPACE` in a line before that line sets it, so on one line `B` would come out empty.
 
 ```sh
-export WORKSPACE=~/dev/github/elektron B=$WORKSPACE/analog-emu/target/release ELEKLOADER_CROSS=m68k-elf-
+export WORKSPACE=~/dev/github/elektron
+export B=$WORKSPACE/analog-emu/target/release ELEKLOADER_CROSS=m68k-elf-
 ```
 
 ## 4. Rules

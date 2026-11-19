@@ -20,8 +20,12 @@ sidebar: { order: 13 }
 | FUNC + YES | apply: keep the take (the only way a take stays) |
 | NO | with a take pending: back to the original; otherwise: close Trig Seedr |
 | PAGE, the TRIG keys, the transport | stock's: PAGE still picks which 16 steps the TRIG keys show |
+| YES + SCENE (stock's save pattern) | does not save while Trig Seedr is open: [known quirk](../concepts/#generate-and-apply). Close Trig Seedr first |
 
 What each key does to a take, step by step: [Generate and apply](../concepts/#generate-and-apply).
+
+On the Syntakt (in development), the keys are the same; the keys that close Trig Seedr are SYN, FLTR, AMP, LFO, FX,
+GLOBAL and MENU ([The Syntakt](../syntakt/#opening-and-closing)).
 
 ## Messages
 
@@ -35,7 +39,7 @@ A message replaces the preview strip for 2 seconds. When YES could not write, no
 | NOT APPLIED | the take was pending when you changed track or pattern, closed Trig Seedr or turned RECORD off: the original is back |
 | NOT ON THE FX TRACK | Trig Seedr does not write the FX track (also shown in place of the strip) |
 | EUCLID IS ON: TURN IT OFF | the track is in stock's Euclidean mode; turn EUC off on the EUCLIDEAN page (also shown in place of the strip) |
-| NO LOCK ROWS LEFT | the take needs a parameter lock row the pattern does not have (72 per pattern) |
+| NO LOCK ROWS LEFT | the take needs a parameter lock row the pattern does not have (72 per pattern). The Rytm only: the Syntakt has no lock-row limit |
 | SETTING OUT OF RANGE | the recipe has a setting the engine refuses, such as both lock lanes on one parameter |
 | NOT AVAILABLE YET | the recipe uses a feature this build does not have |
 | NO TRACK DATA | the track could not be read |

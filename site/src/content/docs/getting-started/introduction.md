@@ -6,7 +6,8 @@ sidebar: { order: 1 }
 
 Trig Seedr writes patterns for Elektron machines: pages on the machine's own screen that make and shape a track's
 trigs for you. The first version is for the Analog Rytm MKII with OS 1.74, as a mod for
-[elekloader](https://github.com/elekloader/elekloader); the Analog Four MKII and the Syntakt are planned next.
+[elekloader](https://github.com/elekloader/elekloader). The Syntakt (OS 1.42) is in development: it runs in an emulator, with
+no file to flash yet ([The Syntakt](../../manual/syntakt/)). The Analog Four MKII is planned.
 
 Everything it writes is ordinary Rytm data (trigs, velocities, lengths, notes, micro timing, accents, conditions,
 retrigs, parameter locks), written through the OS's own routines. The patterns play, save and reload on a stock OS,

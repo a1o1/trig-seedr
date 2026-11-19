@@ -9,21 +9,26 @@
  *   3. PHRS keeps EUCLID's cycle along the track;
  *   4. the PR_SENSE rules, one by one;
  *   5. A:B's CVAL reads as trig.c uses it.
- * Built by the Makefile with the library's flags as they are (all built). */
+ * Built by the Makefile with the library's flags as they are (all built), and a second time on the
+ * Syntakt-shaped profile of lib/props.h (-DPROP_DEVICE_ST, test_interplay_st; task S1.2). */
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "pages.h"
-#include "../../lib/props.h"
+#include "../lib/props.h"
 
 static int checks, failed;
 #define CHECK(cond, ...) do { checks++; if (!(cond)) { failed++; if (failed <= 40) { printf("FAIL %s:%d: ", __FILE__, \
     __LINE__); printf(__VA_ARGS__); printf("\n"); } } } while (0)
 
 #define NTRACKS 13
+#ifndef PROP_DEVICE_ST
 static const struct seed_param params[2] = { { "SMPL", 19, 0, 127 }, { "FRQ", 8, 0, 127 } };
-static const struct seed_caps caps = { NTRACKS, 64, 0x1ff, -23, 23, 2, 2, params, { 0, 1 } };
+static const struct seed_caps icaps = { NTRACKS, 64, 0x1ff, -23, 23, 2, 2, params, { 0, 1 } };
+#else
+#define icaps prop_caps                 /* the Syntakt-shaped profile (lib/props.h, task S1.2) */
+#endif
 
 static struct seed_recipe r;
 static struct seed_shared sh;
@@ -47,9 +52,9 @@ static void page_ctx(struct pg_ctx *c, int lane)
     c->shared = &sh;
     c->tool = &tool;
     c->cursor = &cursor;
-    c->caps = &caps;
+    c->caps = &icaps;
     c->lane = lane;
-    c->fields = caps.fields;
+    c->fields = icaps.fields;
     c->length = orig.length;
     c->ngrooves = 0;
     c->track_name = names;
@@ -72,13 +77,13 @@ static void limits(const struct pg_ctx *c, const struct pg_row *w, int *lo, int 
     *lo = w->lo;
     *hi = w->hi;
     if (w->fmt == PF_TRACK)
-        *hi = caps.tracks - 1;
+        *hi = icaps.tracks - 1;
     if (w->fmt == PF_PARM)
-        *hi = caps.nparams - 1;
+        *hi = icaps.nparams - 1;
     if (w->fmt == PF_GROOVE)
         *hi = c->ngrooves;
     if (w->flags & PR_PARM) {
-        const struct seed_param *p = &caps.params[r.lane[c->lane].parm];
+        const struct seed_param *p = &icaps.params[r.lane[c->lane].parm];
         *lo = p->lo;
         *hi = p->hi;
     }
@@ -113,7 +118,7 @@ static void set_random(const struct pg_ctx *c, const struct pg_row *w, int diffe
         default: *(int16_t *)p = (int16_t)prop_int(&g, lo, hi); break;
         }
         /* PARM never reaches the other lane's parameter on the page (pages.c pg_turn) */
-        if (w->fmt == PF_PARM && caps.lanes > 1 && *(int16_t *)p == r.lane[1 - c->lane].parm) {
+        if (w->fmt == PF_PARM && icaps.lanes > 1 && *(int16_t *)p == r.lane[1 - c->lane].parm) {
             memcpy(p, was, n);              /* not that one; with no other value it stays as it was */
             continue;
         }
@@ -125,7 +130,7 @@ static void set_random(const struct pg_ctx *c, const struct pg_row *w, int diffe
 static void random_track(struct seed_track *t, int len)
 {
     prop_track(t, &g, len, prop_int(&g, 0, 70));
-    t->fields = caps.fields;
+    t->fields = icaps.fields;
     for (int i = 0; i < SEED_STEPS; i++)
         t->s[i].lane[1] = prop_chance(&g, 80) ? SEED_NO_LOCK : (int16_t)prop_int(&g, 0, 127);
 }
@@ -149,7 +154,7 @@ static void random_case(void)
     int i, t, lane;
     random_track(&orig, lens[prop_int(&g, 0, 4)]);
     memset(&ctx, 0, sizeof ctx);
-    ctx.caps = &caps;
+    ctx.caps = &icaps;
     ctx.track = prop_int(&g, 0, NTRACKS - 2);
     ctx.tracks = NTRACKS;
     for (t = 0; t < NTRACKS; t++) {
@@ -160,7 +165,7 @@ static void random_case(void)
         random_track(&other, olens[prop_int(&g, 0, 5)]);
         add_trigs(t, &other);
     }
-    seed_recipe_defaults(&r, &caps);
+    seed_recipe_defaults(&r, &icaps);
     memset(&sh, 0, sizeof sh);
     r.src = (int16_t)prop_int(&g, 0, SEED_SRC_N - 1);
     for (lane = 0; lane < 2; lane++) {
@@ -379,7 +384,7 @@ static void test_phrs_euclid(void)
     }
     /* the letters still dress the pages: ABAB with a velocity range, pages 1 and 2 differ, 1 and 3
      * are dressed alike where both have a pulse on the same step */
-    seed_recipe_defaults(&r, &caps);
+    seed_recipe_defaults(&r, &icaps);
     random_track(&orig, 64);
     add_trigs(ctx.track, &orig);
     r.src = SEED_SRC_EUCLID;
@@ -416,7 +421,7 @@ static void test_sense(void)
 {
     struct pg_ctx c;
     int s;
-    seed_recipe_defaults(&r, &caps);
+    seed_recipe_defaults(&r, &icaps);
     memset(&sh, 0, sizeof sh);
     orig.length = 16;
     page_ctx(&c, 0);
@@ -444,7 +449,10 @@ static void test_sense(void)
     r.acc = 0;
     CHECK(!find(&c, PG_DYN, "AMOD"), "AMOD shown at ACC 0");
     r.acc = 1;
-    CHECK(find(&c, PG_DYN, "AMOD") != 0, "AMOD hidden at ACC 1");
+    if (icaps.fields & SEED_F_ACCENT)
+        CHECK(find(&c, PG_DYN, "AMOD") != 0, "AMOD hidden at ACC 1");
+    else                                /* a device with no accent (the Syntakt profile): no ACC, no AMOD */
+        CHECK(!find(&c, PG_DYN, "AMOD") && !find(&c, PG_DYN, "ACC"), "no accent: ACC or AMOD shown");
 }
 
 /* ---- 5. A:B's CVAL ---- */
@@ -454,7 +462,7 @@ static void test_cycle_text(void)
     struct pg_ctx c;
     const struct pg_row *w;
     char b[16];
-    seed_recipe_defaults(&r, &caps);
+    seed_recipe_defaults(&r, &icaps);
     page_ctx(&c, 0);
     r.cond = 50;
     r.ctyp = SEED_CTYP_AB;
@@ -476,7 +484,7 @@ static void test_parm_skip(void)
     int lane, d, i;
     for (lane = 0; lane < 2; lane++)
         for (d = -1; d <= 1; d += 2) {
-            seed_recipe_defaults(&r, &caps);
+            seed_recipe_defaults(&r, &icaps);
             page_ctx(&c, lane);
             w = pg_row_at(&c, PG_LOCK, 0);
             CHECK(w && w->fmt == PF_PARM, "LOCK's knob A is PARM");

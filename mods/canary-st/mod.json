@@ -1,0 +1,9 @@
+{
+ "id": "canary-st", "version": "0.1", "title": "memory canary (Syntakt)", "category": "Test",
+ "license": "GPL-2.0-or-later", "author": "trig-seedr",
+ "description": "Test build for a unit (docs/flashing-st.md): fills 0x478b0000-0x47bf0000 with a pattern and checks it, drawing FILL, OK n or BAD and an address in the bottom right corner. Build with ST_AREA=47bf0000-47c00000.",
+ "device": "syntakt", "os": "1.42", "sources": ["canary.c"],
+ "subscribe": [{"event": "ev_tick", "fn": "canary_tick", "order": 40}, {"event": "ev_draw", "fn": "canary_draw", "order": 90}],
+ "cflags": ["-Os", "-fno-tree-loop-distribute-patterns"],
+ "requires": ["core"]
+}

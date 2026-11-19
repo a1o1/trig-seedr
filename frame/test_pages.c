@@ -1,7 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 /* Host tests for the page tables (pages.c): which rows and pages show, what turns do, the value
  * text. Built twice by the Makefile: with the library's seed_have_* flags as they are, and with
- * SEEDR_SHOW_ALL (every feature shown, as the screenshot build). */
+ * SEEDR_SHOW_ALL (every feature shown, as the screenshot build); and with PAGES_DEVICE_ST on the Syntakt's
+ * capabilities (device/st_params.h: track 1's list with SP TWINSHOT, no retrig, accent or slide; task P1). */
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
@@ -15,6 +16,7 @@ static struct seed_recipe r;
 static struct seed_shared sh;
 static struct seed_tool tool;
 static int cursor;
+#ifndef PAGES_DEVICE_ST
 static const struct seed_param params[2] = { { "SMPL", 19, 0, 127 }, { "TUNE", 8, -24, 24 } };
 static struct seed_caps caps = {
     13, 64, 0x1ff, -23, 23, 2, 2, params, { 0, 1 }
@@ -24,6 +26,24 @@ static const char *names(int t)
     static const char *const n[13] = { "BD", "SD", "RS", "CP", "BT", "LT", "MT", "HT", "CH", "OH", "CY", "CB", "FX" };
     return t >= 0 && t < 13 ? n[t] : "?";
 }
+#else
+#include "../device/st_params.h"
+static struct seed_param params[ST_TRACK_PARAMS_MAX];
+static struct seed_caps caps = {
+    ST_TRACKS, 64, ST_VOICE_FIELDS, ST_UTIME_LO, ST_UTIME_HI, SEED_LANES, 0, params, { 0, 0 }
+};
+__attribute__((constructor)) static void st_caps(void)
+{
+    static const struct st_machine m[ST_NMACHINES] = ST_MACHINES;
+    uint16_t ids[ST_TRACK_PARAMS_MAX];
+    caps.nparams = (uint8_t)st_track_params(st_machine_of(m, ST_NMACHINES, 44), 0, params, ids, caps.lane_parm);
+}
+static const char *names(int t)
+{
+    static const char *const n[13] = { "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12", "FX" };
+    return t >= 0 && t < 13 ? n[t] : "?";
+}
+#endif
 
 static void ctx(struct pg_ctx *c)
 {
@@ -219,7 +239,8 @@ static void test_ranges(void)
     /* RATE and RCUR only while RTRG is above 0, CTYP and CVAL while COND is, TIME, GVEL and SHFT
      * with a groove (0.7: knobs that cannot change the take are hidden) */
     CHECK(!row(&c, PG_TRIG, "RATE") && !row(&c, PG_TRIG, "RCUR") && !row(&c, PG_TRIG, "CTYP") &&
-          !row(&c, PG_TRIG, "CVAL") && row(&c, PG_TRIG, "COND") && row(&c, PG_TRIG, "RTRG"), "TRIG at 0: only COND, RTRG");
+          !row(&c, PG_TRIG, "CVAL") && row(&c, PG_TRIG, "COND") &&
+          !row(&c, PG_TRIG, "RTRG") == !(caps.fields & SEED_F_RETRIG), "TRIG at 0: only COND, RTRG (where the device has it)");
     CHECK(!row(&c, PG_TIME, "TIME") && !row(&c, PG_TIME, "GVEL") && !row(&c, PG_TIME, "SHFT") &&
           row(&c, PG_TIME, "QUANT"), "TIME without a groove: no TIME, GVEL, SHFT");
     r.grv = 1;
@@ -229,7 +250,10 @@ static void test_ranges(void)
     r.cond = 50;
     w = row(&c, PG_TRIG, "RATE");
     r.rate.lo = 9; r.rate.hi = 12;
-    CHECK(!strcmp(text(&c, w, 0), "1/16-32"), "RATE: %s", text(&c, w, 0));
+    if (caps.fields & SEED_F_RETRIG)
+        CHECK(w && !strcmp(text(&c, w, 0), "1/16-32"), "RATE: %s", w ? text(&c, w, 0) : "hidden");
+    else
+        CHECK(!w, "RATE shows on a device without retrigs, RTRG at 50");
     w = row(&c, PG_TRIG, "CVAL");
     CHECK(!strcmp(text(&c, w, 0), "50-100"), "CVAL X%%: %s", text(&c, w, 0));
     r.ctyp = SEED_CTYP_AB;
@@ -252,7 +276,8 @@ static void test_ranges(void)
         for (j = 0; j < 100; j++)
             pg_turn(&c, w, -1, 1);
     }
-    CHECK(r.lane[1].val.lo == -24, "lane 2 TUNE low end -24: %d", r.lane[1].val.lo);
+    CHECK(r.lane[1].val.lo == caps.params[1].lo, "lane 2 %s low end %d: %d", caps.params[1].name, caps.params[1].lo,
+          r.lane[1].val.lo);
     CHECK(r.lane[0].val.lo == 1, "lane 1 untouched: %d", r.lane[0].val.lo);
     c.lane = 0;
 }
@@ -422,6 +447,79 @@ static void test_text(void)
     CHECK(!strcmp(b, "-32768"), "num -32768: %s", b);
 }
 
+/* FLD offers only the fields the track has: a Syntakt track has no retrig and no accent, so a turn
+ * never lands on RTRG or ACC there (S5's finding); a track with every field gets every choice */
+static void test_fld_fields(void)
+{
+    struct pg_ctx c;
+    const struct pg_row *w;
+    int i, seen[SEED_FLD_LANE2 + 1];
+    ctx(&c);
+    fresh();
+    c.fields = SEED_F_NOTE | SEED_F_VEL | SEED_F_LEN | SEED_F_UTIME | SEED_F_COND | SEED_F_LOCKS;
+    w = row(&c, PG_PLACE, "FLD");
+    CHECK(w != 0, "PLACE FLD not shown");
+    if (!w)
+        return;
+    memset(seen, 0, sizeof seen);
+    for (i = 0; i < 20; i++) {
+        pg_turn(&c, w, 1, 0);
+        seen[r.fld] = 1;
+    }
+    CHECK(!seen[SEED_FLD_RTRG] && !seen[SEED_FLD_ACC], "FLD offers RTRG or ACC without the fields");
+    CHECK(seen[SEED_FLD_COND] && seen[SEED_FLD_LANE2], "FLD skips the fields the track has");
+    for (i = 0; i < 20; i++)
+        pg_turn(&c, w, -1, 0);
+    CHECK(r.fld == SEED_FLD_OFF, "FLD back to OFF: %d", r.fld);
+    c.fields = (uint16_t)~0u;
+    memset(seen, 0, sizeof seen);
+    for (i = 0; i < 20; i++) {
+        pg_turn(&c, w, 1, 0);
+        seen[r.fld] = 1;
+    }
+    CHECK(seen[SEED_FLD_RTRG] && seen[SEED_FLD_ACC], "FLD hides RTRG or ACC on a track that has them");
+}
+
+#ifdef PAGES_DEVICE_ST
+/* the Syntakt (task P1): no row that needs retrig, accent or slide shows, on any page, whatever the recipe's
+ * other values; LOCK's PARM turns only through the track's list, both lanes */
+static void test_st_fields(void)
+{
+    struct pg_ctx c;
+    int i, l, p, k;
+    ctx(&c);
+    fresh();
+    CHECK(caps.nparams > 8 && caps.nparams <= ST_TRACK_PARAMS_MAX, "Syntakt track 1: %d parameters", caps.nparams);
+    for (i = 0; i < pg_nrows; i++) {
+        const struct pg_row *w = &pg_rows[i];
+        if (w->field & (SEED_F_RETRIG | SEED_F_ACCENT | SEED_F_SLIDE))
+            CHECK(!pg_row_shown(&c, w), "%s shows on the Syntakt", w->label);
+    }
+    for (p = 0; p < PG_N; p++)
+        for (k = 0; k < 8; k++) {
+            const struct pg_row *w = pg_row_at(&c, p, k);
+            CHECK(!w || !(w->field & (SEED_F_RETRIG | SEED_F_ACCENT | SEED_F_SLIDE)), "%s %c: %s needs a field the Syntakt lacks",
+                  pg_names[p], 'A' + k, w ? w->label : "");
+        }
+    for (l = 0; l < SEED_LANES; l++) {
+        const struct pg_row *w = 0;
+        c.lane = l;
+        for (k = 0; k < 8 && !w; k++) {
+            const struct pg_row *x = pg_row_at(&c, PG_LOCK, k);
+            if (x && x->fmt == PF_PARM)
+                w = x;
+        }
+        CHECK(w != 0, "LOCK lane %d: no PARM", l + 1);
+        if (!w)
+            continue;
+        for (i = 0; i < 2 * ST_TRACK_PARAMS_MAX; i++) {
+            pg_turn(&c, w, i < ST_TRACK_PARAMS_MAX ? 1 : -1, 0);
+            CHECK(r.lane[l].parm >= 0 && r.lane[l].parm < caps.nparams, "LOCK lane %d PARM %d outside the list", l + 1, r.lane[l].parm);
+        }
+    }
+}
+#endif
+
 int main(void)
 {
     test_one_row_a_knob();
@@ -431,6 +529,12 @@ int main(void)
     test_pages();
     test_reachable();
     test_text();
+    test_fld_fields();
+#ifdef PAGES_DEVICE_ST
+    test_st_fields();
+    printf("test_pages (Syntakt): %d checks, %d failed\n", checks, failed);
+    return failed != 0;
+#endif
 #ifdef SEEDR_SHOW_ALL
     printf("test_pages (all shown): %d checks, %d failed\n", checks, failed);
 #else
