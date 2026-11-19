@@ -18,7 +18,7 @@ you have backed up. For the Syntakt, see [Flashing a Syntakt](https://a1o1.githu
 
 ```sh
 sh tools/run_tests.sh           # every file should pass
-sh tools/build_release.sh       # -> build/trig-seedr-0.7.1-os1.74.syx, OS version field T071
+sh tools/build_release.sh       # -> build/trig-seedr-0.8.0-os1.74.syx, OS version field TS08
 ```
 
 `build_release.sh` builds core-ar2 and seedr, patches them into your stock OS and has elekloader verify the result
@@ -31,7 +31,7 @@ As for any OS update:
 
 1. Connect the Rytm over USB and open Elektron Transfer.
 2. Select the Rytm and **Connect**.
-3. Drag `trig-seedr-0.7.1-os1.74.syx` onto **Drop files here**.
+3. Drag `trig-seedr-0.8.0-os1.74.syx` onto **Drop files here**.
 4. Press **YES** on the Rytm. Don't turn it off until the update is done and it has restarted.
 
 ## First checks on the unit
@@ -49,9 +49,9 @@ what has run on a real unit.
 | 0.6.0 | 2026-11-16 | Analog Rytm MKII | 1.74 | played in use: works; UX notes became 0.7's range knobs, YES after a revert and the pending dot |
 | 0.5.1 | 2026-11-16 | Analog Rytm MKII | 1.74 | first pass: every feature worked as expected; its notes became 0.5.1's generate and apply |
 
-0.7.0 has not had a hardware pass; use 0.7.1, which fixes a YOLO fault. Checks 13 to 15 below are new in 0.7.
+0.8.0's Rytm build has passed the emulator suites but not yet a hardware pass: 0.8.0 reorganises the code into a frame shared with the Syntakt, with the same golden vectors and the same full emulator suite. 0.7.1 is the last Rytm build with a hardware pass. 0.7.0 has not had one. Checks 13 to 15 below are new in 0.7.
 
-1. The boot screen shows the version (**T071** for 0.7.1, **TS07** for 0.7.0; a minor release shows TSxy, a patch release Txyz) while the Rytm starts (OS 1.74 has no menu that shows it;
+1. The boot screen shows the version (**TS08** for 0.8.0, **T071** for 0.7.1, **TS07** for 0.7.0; a minor release shows TSxy, a patch release Txyz) while the Rytm starts (OS 1.74 has no menu that shows it;
    GLOBAL > SYSTEM > OS UPGRADE shows only WAITING FOR SYSEX).
 2. The Rytm plays as before: load a project, play a pattern, turn some knobs.
 3. **TRIG**, **TRIG** (EUCLIDEAN), **TRIG**: trig-seedr's page. **TRIG** again: back to stock's TRIG page.
