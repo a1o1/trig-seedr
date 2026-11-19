@@ -23,7 +23,7 @@ test_%: test_%.c $(LIB) $(HDR)
 coldfire: $(CF) $(HDR)
 	@set -e; for f in $(CF); do $(CROSS)gcc $(CFLAGS_CF) -c $$f -o $${f%.c}.o; done
 	$(CROSS)size -t $(CF:.c=.o)
-	@u=$$($(CROSS)nm -u $(CF:.c=.o)); if [ -n "$$u" ]; then echo "undefined: $$u"; exit 1; else echo "no undefined symbols"; fi
+	@u=$$($(CROSS)nm -u $(CF:.c=.o) | grep -v -e ':$$' -e '^$$'); if [ -n "$$u" ]; then echo "undefined: $$u"; exit 1; else echo "no undefined symbols"; fi
 
 clean:
 	rm -f $(TESTS) $(CF:.c=.o)
