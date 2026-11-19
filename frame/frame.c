@@ -136,6 +136,9 @@ static struct seed_recipe *recipe_of(int n)
             seed_recipe_defaults(r, dev->caps);
         if (!pg_src_built(r->src))
             r->src = SEED_SRC_TRACK;    /* an empty track and no generator built yet */
+#ifdef SD_LANE_DEFAULTS
+        sd_lane_defaults(n, r);         /* the device's lock ranges (lib/'s 1..8 is the Rytm's sample slots) */
+#endif
         recipe_set |= 1u << n;
         turned |= (uint16_t)(1u << n);
     }
@@ -220,6 +223,12 @@ static int take(void)
         return 0;
     }
     r = recipe_of(n);
+#ifdef SD_LANE_CHECK
+    if (sd_lanes_lacking(n, r)) {       /* a lane on a parameter the track's machine lacks (Syntakt SD4) */
+        say(error_text(SEED_E_ARG));
+        return 0;
+    }
+#endif
     /* YES again on the take being heard, or after applying it: the next seed. A take that was put
      * back (NO, NOT APPLIED) comes back as it was (Alan, M2.5) */
     if (!(turned & bit) && ((auditioning == A_TAKE && aud_mask == bit) || (kept & bit)))
@@ -716,6 +725,10 @@ static void draw_strip(void *bmp, uint8_t *p, int n, const struct seed_recipe *r
         why = "NOT ON THE FX TRACK";
     else if (sd_euclid())
         why = "EUCLID IS ON: TURN IT OFF";
+#ifdef SD_LANE_CHECK
+    else if (r && sd_lanes_lacking(n, r))
+        why = error_text(SEED_E_ARG);
+#endif
     else {
         in.device = dev;
         in.track = n;
