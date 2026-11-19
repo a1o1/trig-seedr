@@ -43,6 +43,7 @@ prepare() {
     [ "$(emu_get open)" = 0 ] || emu_keys NO
     emu_rec 0
     emu_keys "TRK+T$((EMU_TRACK + 1))"
+    st_seen
     EMU_POKES="$EMU_POKES $(emu_addr turned):2=65535"
     emu_recipe $EMU_TRACK "$@"
     emu_poke shared.map_x "$(DEFAULT=128 arg map_x "$@")"

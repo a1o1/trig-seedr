@@ -33,8 +33,9 @@
  * The Syntakt (docs/plan-syntakt.md S4): --device st anywhere in the arguments gives the Syntakt OS 1.42's
  * capabilities (device/st_params.h), per track as mods/seedr-st's device layer gives them: the track's
  * fields (the FX track has no NOTE or VEL) and its lockable parameters (lane1.parm / lane2.parm index that
- * list), with machine=TYPE the track's machine (default: not known, the shared pages), and YOLO's role by
- * the track's place. --device st --ids [track=N] [machine=TYPE] prints the list as "index name stock-id".
+ * list: the machine's SYN controls first), with machine=TYPE the track's machine (default: not known, the
+ * shared pages); a new recipe's lanes on their parameter's whole range (mods/seedr-st sd_lane_defaults); YOLO's
+ * role the machine's, or by the track's place when it is not known. --device st --ids [track=N] [machine=TYPE] prints the list as "index name stock-id".
  * cond is lib/'s code (the Rytm's), as the layer reads the Syntakt's (tools/st_peek.py dump --seed).
  *
  * Output, one line per field, one value per step below the length: length; trig (x or .); flags
@@ -105,7 +106,7 @@ static struct seed_caps caps = {
 };
 
 /* the Syntakt's capabilities for one track (mods/seedr-st: device/syntakt_st.h st_seed_select) */
-static int syntakt;
+static int syntakt, st_role = -1;
 static struct seed_param st_params[ST_TRACK_PARAMS_MAX];
 static uint16_t st_ids[ST_TRACK_PARAMS_MAX];
 static void syntakt_caps(int track, int machine)
@@ -118,6 +119,18 @@ static void syntakt_caps(int track, int machine)
     caps.utime_hi = ST_UTIME_HI;
     caps.nparams = (uint8_t)st_track_params(m, track, st_params, st_ids, caps.lane_parm);
     caps.params = st_params;
+    st_role = m && track != ST_FX_TRACK ? m->role : -1;
+}
+
+/* a new recipe's lanes on their parameter's whole range (mods/seedr-st sd_lane_defaults) */
+static void syntakt_lane_defaults(struct seed_recipe *r)
+{
+    int i;
+    for (i = 0; i < SEED_LANES; i++)
+        if (r->lane[i].parm >= 0 && r->lane[i].parm < caps.nparams) {
+            r->lane[i].val.lo = st_params[r->lane[i].parm].lo;
+            r->lane[i].val.hi = st_params[r->lane[i].parm].hi;
+        }
 }
 
 /* YOLO's role of a Syntakt track by its place (mods/seedr-st sd_track_role, the machine not known) */
@@ -128,6 +141,8 @@ static int syntakt_role(int t)
         SEED_ROLE_PERC, SEED_ROLE_PERC, SEED_ROLE_PERC, SEED_ROLE_PERC, SEED_ROLE_PERC, SEED_ROLE_HAT,
         SEED_ROLE_METER
     };
+    if (st_role >= 0)
+        return st_role;
     return t >= 0 && t < ST_TRACKS ? role[t] : SEED_ROLE_METER;
 }
 
@@ -345,6 +360,8 @@ int main(int argc, char **argv)
         seed_recipe_init(&r, &orig, NULL, &caps);
     else
         seed_recipe_defaults(&r, &caps);
+    if (syntakt)
+        syntakt_lane_defaults(&r);
     memset(&c, 0, sizeof c);
     c.caps = &caps;
     c.tracks = caps.tracks;

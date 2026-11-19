@@ -3,7 +3,7 @@
 # tools/emu.sh and tools/emu_st.sh's helpers, on seedr for the Syntakt OS 1.42 (mods/seedr-st on the hook-bus
 # core, tools/st_build.sh) in ../analog-emu-st (status/S0.3.md; ST_B overrides). What differs from the Rytm:
 #   emu_dump      tools/st_peek.py dump --seed (lib/'s condition codes), lane 1 by ST_SLOT (a lock slot)
-#   seedref       tools/seedref --device st
+#   seedref       tools/seedref --device st, with the track's machine as seedr read it (st_machine)
 #   emu_rec       grid recording as the Syntakt keeps it (st_peek.py rec)
 #   st_mem        a track's record or lock store as hex, for byte-for-byte checks
 #   st_slot       the lock slot of a lane's parameter on a track
@@ -38,10 +38,26 @@ emu_dump() {
     else st_peek dump "$EMU_SNAP" "${1:-0}" "${2:-0}" --seed; fi
 }
 
+# st_machine TRACK: the track's machine type as seedr last read it (st_machine_seen), -1 none or not read yet
+st_machine() {
+    _m_a=$(emu_py sym "$MAP" st_machine_seen 2>/dev/null) || { echo -1; return; }
+    emu_py peek "$EMU_SNAP" "$(printf '0x%08x' $((_m_a + $1)))" 1 1 -s
+}
+
+# seedref ARG...: --device st; with machine= the track's machine as seedr read it (track= in the arguments,
+# else track 0), unless an argument names one
 seedref() {
     # shellcheck disable=SC2046
     emu_cc seedref "$T/seedref.c" $(ls "$R"/lib/*.c | grep -v '/test_')
-    "$W/seedref" --device st "$@"
+    _sr_t=0 _sr_m=
+    for _sr_a in "$@"; do
+        case $_sr_a in track=*) _sr_t=${_sr_a#track=} ;; machine=*) _sr_m=given ;; esac
+    done
+    if [ -z "$_sr_m" ] && [ -n "$EMU_SNAP" ] && [ -n "$MAP" ]; then
+        "$W/seedref" --device st machine="$(st_machine "$_sr_t")" "$@"
+    else
+        "$W/seedref" --device st "$@"
+    fi
 }
 
 emu_rec() {
@@ -92,3 +108,29 @@ print('0x%08x' % s.record(sys.argv[1], int(sys.argv[2]), 0))" "$EMU_SNAP" "$1"
 st_tracks() {
     for _tr_t in 0 1 2 3 4 5 6 7 8 9 10 11 12; do st_mem rec $_tr_t; st_mem locks $_tr_t; done | shasum | cut -d' ' -f1
 }
+
+# emu_recipe TRACK KEY=VALUE...: emu.sh's, with the track (and so its machine's list and lane ranges) given to
+# seedref. seedr reads a track's machine when it first asks for the track (st_machine_sync): open and close it
+# on the track first (st_seen), or the lanes' indexes are moved to the machine's list.
+emu_recipe() {
+    _rec_t=$1; shift
+    _rec_f=$(seedref --recipe track="$_rec_t" "$@") || emu_die "recipe: $*"
+    _rec_ifs=$IFS; IFS='
+'
+    for _rec_l in $_rec_f; do
+        IFS=$_rec_ifs
+        emu_poke "recipe[$_rec_t].${_rec_l% *}" "${_rec_l##* }"
+    done
+    IFS=$_rec_ifs
+    emu_poke recipe_set $(($(emu_get recipe_set) | (1 << _rec_t)))
+}
+
+# st_seen: seedr opened and closed on the current track, so it has read the track's machine
+st_seen() {
+    emu_open
+    [ "$(emu_get auditioning)" = 0 ] || emu_die "st_seen: a take pending"
+    emu_no
+}
+
+# st_parm TRACK NAME: the index of a parameter in the track's list (its machine's as seedr read it)
+st_parm() { seedref --ids track="$1" | awk -v n="$2" '$2 == n { print $1; exit }'; }
