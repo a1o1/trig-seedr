@@ -140,11 +140,11 @@ from `tools/st_canary.sh` and `tools/build_release_st.sh`, prepared 2026-11-19, 
 
 | Step | Alan does | Done when |
 |---|---|---|
-| S6.1 | Practise the way back on stock: the STARTUP menu (FUNC at power-on), TRIG 4 is OS UPGRADE, a 5-pin DIN MIDI interface and the stock file at hand | the menu and TRIG 4 seen on the unit |
-| S6.2 | Flash the stock file round-tripped by elektron-firmware-tool (`-r`, byte-identical to stock) | it flashes and boots as stock |
-| S6.3 | Flash `build/emu-st/canary-unit.syx`; a session with all 64 sample slots loaded, projects loaded and saved, a power cycle | the box says OK and a growing count throughout; BAD stops S6 until SD2's area moves |
-| S6.4 | Flash `build/trig-seedr-<version>-st-os1.42.syx`; `flashing-st.md`'s 15 first checks | every check passes, noted in its *Tested on hardware* table |
-| S6.5 | A beta for the Syntakt, on the Rytm's rules for a beta; `flashing-st.md` goes on the site | after S6.4 |
+| S6.1 | Practise the way back on stock: the STARTUP menu (FUNC at power-on), TRIG 4 is OS UPGRADE, a 5-pin DIN MIDI interface and the stock file at hand | the menu and TRIG 4 seen on the unit **Done 2026-11-19: passed** on one unit (Alan; the 0.7.1-labelled build) |
+| S6.2 | Flash the stock file round-tripped by elektron-firmware-tool (`-r`, byte-identical to stock) | it flashes and boots as stock **Done 2026-11-19: passed** on one unit (Alan; the 0.7.1-labelled build) |
+| S6.3 | Flash `build/emu-st/canary-unit.syx`; a session with all 64 sample slots loaded, projects loaded and saved, a power cycle | the box says OK and a growing count throughout; BAD stops S6 until SD2's area moves **Done 2026-11-19: passed** on one unit (Alan; the 0.7.1-labelled build) |
+| S6.4 | Flash `build/trig-seedr-<version>-st-os1.42.syx`; `flashing-st.md`'s 15 first checks | every check passes, noted in its *Tested on hardware* table **Done 2026-11-19: passed** on one unit (Alan; the 0.7.1-labelled build) |
+| S6.5 | A beta for the Syntakt, on the Rytm's rules for a beta; `flashing-st.md` goes on the site | after S6.4 **In progress with 0.8.0:** the Syntakt ready for testing; `flashing-st.md` on the site; more units and testers next |
 
 ### U. Unit readiness
 

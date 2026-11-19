@@ -1,7 +1,7 @@
 # How trig-seedr is tested
 
 trig-seedr is installed by flashing a modified operating system onto an Analog Rytm MKII. This page lists what is
-tested before a release, how, and what is not tested. Numbers are from version 0.7.1 (2026-11-17).
+tested before a release, how, and what is not tested. Numbers are from version 0.8.0 (2026-11-19).
 How to run each check is in [`tools/README.md`](../tools/README.md) and [`dev-environment.md`](dev-environment.md);
 [`requirements.md`](requirements.md) names the tests behind each requirement.
 
@@ -31,13 +31,13 @@ them.
 | Property tests | `lib/props.h`: random tracks and recipes checked against the invariants inside each module's tests | thousands of random cases per module | I1–I6 |
 | Fuzzing | `lib/test_fuzz.c`: random originals, patterns and recipes over every source, layer and value source, on three device profiles, 6 % with knobs set outside their ranges | 4,000 cases in every `make test`; long runs with `tools/fuzz.sh` (below) | I1–I6, I10, value ranges |
 | Device-layer fuzzing | `device/test_rytm_ar2.c`: random patterns, lengths, lane parameters, row limits and takes written through the device layer into a model of stock's memory; checks that a refused write changes nothing, other tracks and steps past the length are untouched, each trig carries its fields, lanes and origin's locks, the 72-row limit holds, and the restore is byte-identical | 3,000 cases in every `make -C device test` (`DEV_FUZZ` for more; 200,000 found nothing) | I6–I8 |
-| YOLO | `lib/test_yolo.c`: every roll at WILD 0–100 on five track roles and five lengths renders without a refusal, repeats exactly, keeps the meter and the lock lanes' parameters and stays in its musical ranges; `tools/tests/43-yolo.sh` compares the emulator's rolled recipes and takes with `seedref yolo=ROLL:WILD` | 31,000 checks per `make test`; 29 emulator checks | I2, I6, I7 |
+| YOLO | `lib/test_yolo.c`: every roll at WILD 0–100 on five track roles and five lengths renders without a refusal, repeats exactly, keeps the meter and the lock lanes' parameters and stays in its musical ranges; `tools/tests/43-yolo.sh` compares the emulator's rolled recipes and takes with `seedref yolo=ROLL:WILD` | 31,000 checks per `make test`; 26 emulator checks | I2, I6, I7 |
 | Reference comparison | `tools/seedref`, the same engine built for the computer, renders every take the emulator writes; the two must agree field by field | every emulator check that generates | I2 |
 | Golden vectors | 129 recipes over every layer with their frozen results (`lib/golden/`); a change to any result fails until its reason is written down | every run | I2, design V11 |
 | Interplay | `frame/test_interplay.c`: recipes the pages can reach, from every source on 13–64 steps; every hidden knob, turned, must leave the take byte-identical, and each source must keep the trig counts it promises through ROT and SYNC | about 533,000 checks in every `make test`; a 60,000-recipe run made 10 million | I3, I5, I6 |
-| Emulator | `tools/run_tests.sh` boots the patched OS in [analog-emu](https://github.com/trigcondition/analog-emu) and drives it through the Rytm's own keys and knobs: generate, NO, apply, save, reload, power cycle, the lock-row limit, every page | 30 test files, 477 checks; the full run takes about 80 minutes on the Mac (42-perf alone 25) | I1, I2, I7–I9 |
+| Emulator | `tools/run_tests.sh` boots the patched OS in [analog-emu](https://github.com/trigcondition/analog-emu) and drives it through the Rytm's own keys and knobs: generate, NO, apply, save, reload, power cycle, the lock-row limit, every page | 31 test files, 498 checks at 0.8.0 (lead's final run); the full run takes about 85 minutes on the Mac (42-perf alone 25) | I1, I2, I7–I9 |
 | Emulator fuzz sample | `tools/tests/41-fuzz-sample.sh`: recipes from the fuzzer replayed on the emulated Rytm | 6 recipes per run (more with `FUZZ_SAMPLES`) | I2, I7–I9 |
-| Hardware | `docs/flashing.md`'s checks on a Rytm MKII with OS 1.74; every pass is listed there (Tested on hardware) | one unit (0.5.1, 0.6.0) | I7, I9 |
+| Hardware | `docs/flashing.md`'s checks on a Rytm MKII with OS 1.74; every pass is listed there (Tested on hardware) | one unit (0.5.1, 0.6.0, 0.7.1); 0.8.0's Rytm build: emulator only so far | I7, I9 |
 
 Each test level catches a different kind of mistake. The host tests and the fuzzer test the engine's logic on millions
 of cases in minutes. The emulator runs the real stock firmware with the mod in it, so it tests what the engine cannot
@@ -80,23 +80,27 @@ The fuzzer and the interplay test found faults that the earlier tests did not:
 
 Details of these three: [`status/M2.1.md`](status/M2.1.md).
 
-## The Syntakt (in development)
+## The Syntakt (ready for testing)
 
-trig-seedr for the Syntakt (OS 1.42) is in development and is tested in an emulator only; it is not part of a
-release. Its tests are kept apart from the Rytm's release counts above. Numbers are from 2026-11-19, on the branch
-of the Syntakt work ([`plan-syntakt.md`](plan-syntakt.md), [`status/syntakt-milestone.md`](status/syntakt-milestone.md)).
+trig-seedr for the Syntakt (OS 1.42) is ready for testing from 0.8.0: the emulator checks below, and a first pass
+on one unit. Its counts are kept apart from the Rytm's above. Numbers are from 0.8.0 (2026-11-19;
+[`plan-syntakt.md`](plan-syntakt.md), [`status/syntakt-milestone.md`](status/syntakt-milestone.md)).
 
 | Level | What | Size | Invariants |
 |---|---|---|---|
 | Device layer | `device/test_syntakt_st.c`: random tracks, takes and rotations written through a model of the Syntakt's step and lock routines; `device/test_st_params.c`: the parameter table | 15,244 and 256,668 checks | I6–I8 |
 | Host tests on a Syntakt profile | every `lib/` test that uses `props.h`, and the interplay test, built a second time with the Syntakt's capabilities (`-DPROP_DEVICE_ST`) | interplay 560,288 checks | I1–I6, I10 |
-| Emulator | `tools/st_run_tests.sh` (`tools/tests-st/`): the mod on the stock Syntakt OS 1.42 in analog-emu, every take against `tools/seedref --device st`: generate, NO, apply, the NOT APPLIED rules, every field and both lock lanes, save and reload, playback, the fuzz sample, YOLO, the refusals | 8 files, 102 checks; about 29 minutes | I1, I2, I7–I9 |
-| Emulator, pages and machines | `tools/st_s3.sh` (opening, every page, the knobs) and `tools/st_s3b.sh` (LOCK per machine, ROTATE ALL, the modified mark) | 18 and 28 checks | I7 |
-| Hardware | none | | |
+| Emulator | `tools/st_run_tests.sh` (`tools/tests-st/`): the mod on the stock Syntakt OS 1.42 in analog-emu, every take against `tools/seedref --device st`: generate, NO, apply, the NOT APPLIED rules, every field and both lock lanes, save and reload, playback, the fuzz sample, YOLO, the refusals | 8 files, 112 checks; about 30 minutes | I1, I2, I7–I9 |
+| Emulator, pages and machines | `tools/st_s3.sh` (opening, every page, the knobs, stepping aside for stock's popups) and `tools/st_s3b.sh` (LOCK per machine, ROTATE ALL, the modified mark) | 30 and 28 checks | I7 |
+| Host page tests | `frame/test_pages` built on the Syntakt's capabilities (`test_pages_st`) | 3,977 checks | |
+| The unit file | `tools/st_unit.sh`: the file rebuilt from stock by elektron-firmware-tool, every other section equal to stock's, within the official file's size, an in-place margin of at least 4,096 bytes, Syntakt tests 01 and 13 on that exact file | 9 checks | I9 |
+| Memory | `tools/st_u1.sh` (the area the mod uses stays untouched through a session, in analog-emu) and `tools/st_canary.sh` (the canary build for a unit) | 6 and 5 checks | |
+| Hardware | `docs/flashing-st.md`'s first flashes (the way back to stock, the stock file rebuilt by the tool, the memory canary) and its 15 first checks, on a Syntakt with OS 1.42 | one unit, 2026-11-19 (the 0.7.1-labelled build of 0.8.0's code): passed | I7, I9 |
 
-Not tested on the Syntakt: a unit; the working state across a power cycle (the emulator does not save it: the
-tests save the project and load it after the power cycle instead); velocities and micro timing as played (the
-playback test checks one track's onsets).
+Not tested on the Syntakt: more than one unit; the canary with all 64 sample slots loaded in the emulator (it cannot
+load samples; the unit pass covers it); velocities and micro timing as heard (the playback test checks one track's
+onsets); popups only a unit shows. The power cycle (I9) and a power off with a take pending (A7) are checked in
+analog-emu since its model of the Syntakt's supercap signal (`tools/tests-st/03-save.sh`) and passed on the unit.
 
 ## What is not tested
 
