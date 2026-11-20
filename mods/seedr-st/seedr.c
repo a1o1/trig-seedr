@@ -16,7 +16,10 @@
 #include "../../frame/frame.h"
 /* the groove tables: tools/groove2h.py, kept with the Rytm's mod. grooves-live.h (from your own
  * Ableton Live grooves) is kept out of the repository; without it the swing-only grooves-swing.h */
-#if __has_include("../seedr-ar2/grooves-live.h")
+/* The Syntakt builds with the swing grooves only (0.9.0): with the Live tables the unit file does not fit (its
+ * in-place margin falls to 598 bytes, against 4,096; docs/status/T4.md). ST_LIVE_GROOVES brings them back, for
+ * when the mod is smaller. */
+#if defined(ST_LIVE_GROOVES) && __has_include("../seedr-ar2/grooves-live.h")
 #include "../seedr-ar2/grooves-live.h"
 #else
 #include "../seedr-ar2/grooves-swing.h"

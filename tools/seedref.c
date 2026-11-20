@@ -174,12 +174,23 @@ static void syntakt_lane_defaults(struct seed_recipe *r) { (void)r; }
 static int syntakt_role(int t) { (void)t; return SEED_ROLE_METER; }
 #endif
 
-/* the groove tables the mod is built with (mods/seedr-ar2/seedr.c): grooves-live.h when it is
- * there (local only), else grooves-swing.h */
+/* the groove tables each mod is built with: the Rytm's (mods/seedr-ar2/seedr.c) grooves-live.h when it is there
+ * (local only), else grooves-swing.h; the Syntakt's (mods/seedr-st/seedr.c) grooves-swing.h, since 0.9.0 */
 #if __has_include("../mods/seedr-ar2/grooves-live.h")
 #include "../mods/seedr-ar2/grooves-live.h"
+static const struct seed_groove *const grooves_ar = grooves;
+static const int ngrooves_ar = N_GROOVES;
+#undef N_GROOVES
+#define grooves grooves_swing
+#include "../mods/seedr-ar2/grooves-swing.h"
+#undef grooves
+static const int ngrooves_swing = N_GROOVES;
 #else
 #include "../mods/seedr-ar2/grooves-swing.h"
+static const struct seed_groove *const grooves_ar = grooves;
+static const int ngrooves_ar = N_GROOVES;
+#define grooves_swing grooves
+static const int ngrooves_swing = N_GROOVES;
 #endif
 
 static struct seed_work work;
@@ -395,8 +406,8 @@ int main(int argc, char **argv)
     memset(&c, 0, sizeof c);
     c.caps = &caps;
     c.tracks = caps.tracks;
-    c.grooves = grooves;
-    c.ngrooves = N_GROOVES;
+    c.grooves = syntakt ? grooves_swing : grooves_ar;
+    c.ngrooves = syntakt ? ngrooves_swing : ngrooves_ar;
 
     if (argc >= 2 && !strcmp(argv[1], "--keys")) {         /* the defaults (track= and machine= taken above) */
         printf("seed %u\n", (unsigned)r.seed);
@@ -465,7 +476,7 @@ int main(int argc, char **argv)
             in.role = syntakt_role(c.track);
             in.fields = caps.fields;
         }
-        in.ngrooves = N_GROOVES;
+        in.ngrooves = syntakt ? ngrooves_swing : ngrooves_ar;
         for (in.any = 0, i = 0; i < orig.length; i++)
             in.any |= orig.s[i].flags & SEED_TRIG;
         seed_yolo(&r, &from, yroll, ywild, &in);
