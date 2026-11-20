@@ -148,6 +148,20 @@ What each level covers and what is not tested: [`testing.md`](testing.md).
 | TL1 | TOOLS ROT ALL rotates every track (Euclidean-mode tracks skipped) with its own YES, under generate and apply | V7 | 05, 13 |
 | TL2 | TOOLS YOLO rolls a recipe for the track in scope from musical ranges, keeps the meter, the lanes' parameters and the shared MAP settings; NO restores the track and the recipe | V7, 0.7 | `test_yolo`, 43; hw 15 |
 
+### TURING (0.9)
+
+| # | Requirement | From | Tests |
+|---|---|---|---|
+| TU1 | Offline TURING (SRC = TURG, TURG values) obeys I1–I6 and I10 as every source does | design-turing T1, L2 | `test_src_turing`, `test_props`, fuzz, golden, 46, st46 |
+| TU2 | At its locking end (DJVU 50, CRPT 0, SHFT 100) the loop repeats exactly: the track is LOOP steps repeated | T2, L4 | `test_src_turing`, 46 |
+| TU3 | DJVU, CRPT and SHFT follow design-turing §2: DJVU's three zones, CRPT's values then bits, SHFT's register | §2, TD3 | `test_src_turing`, golden |
+| TU4 | STRT TRACK starts from the original's first LOOP steps | L5 | `test_src_turing`, 46 |
+| TU5 | SCALE fits every note NOTE writes to the scale on ROOT (the nearest, the lower on a tie); OFF changes nothing | T4, L9, TD4 | `test_scale`, golden (every old vector the same), 46, st46 |
+| TU6 | The live page: YES starts (RECORD on), each step the playhead passes is rewritten from the machine, never the current or next step; the track equals `seedref live=` for the same steps | L6, L8, L13 | `test_src_turing`, 45, 47, st45, st47 |
+| TU7 | Live: FUNC + YES keeps the track as it stands; NO, closing, another track or pattern, RECORD off restore the original byte for byte (I7) | T3, L6 | 47, st47 |
+| TU8 | Live: FUNC + UP remembers the loop and FUNC + DOWN brings it back; the FX track and Euclidean mode are refused | L7 | 47, st47 |
+| TU9 | Live writes touch only the track in scope, below its length | T3 | 45, 47, st45, st47 |
+
 ## On the Syntakt
 
 trig-seedr for the Syntakt (OS 1.42) is ready for testing: it is tested in full in an emulator, and 0.7.1 passed a
@@ -189,7 +203,7 @@ host test; "Syntakt profile" is a `lib/` or interplay test built with `-DPROP_DE
 ## Not in version 1
 
 From design §12: the Analog Four MKII and Syntakt ports; note pools (chords, scales) and chord sequencing; more than
-two lock lanes and LFO-shaped lock curves; recipes saved with the project. After 1.0: a TURING page (plan §8).
+two lock lanes and LFO-shaped lock curves; recipes saved with the project. TURING came in 0.9 (above).
 
 ## From 0.3's requirements
 
