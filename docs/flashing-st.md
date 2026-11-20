@@ -56,7 +56,7 @@ flash stock: the OS may use that memory after all, which is what the canary is t
 The Analog Rytm MKII's checks ([Flashing a Rytm MKII](https://a1o1.github.io/trig-seedr/getting-started/flashing/)),
 with the Syntakt's keys.
 
-1. The boot screen shows the OS version field (**TS08** for 0.8.0, **T071** for 0.7.1).
+1. The boot screen shows the OS version field (**TS09** for 0.9.0, **TS08** for 0.8.0, **T071** for 0.7.1).
 2. The Syntakt plays as before: load a project, play a pattern, turn some knobs.
 3. **TRIG** (Trig Parameters), **TRIG** (Euclidean), **TRIG**: trig-seedr's page. **TRIG** again: back to stock's
    Trig Parameters. **TRIG held + PAGE** opens it from any page.
@@ -80,6 +80,29 @@ with the Syntakt's keys.
     only closes Trig Seedr.
 15. The canary's check, once more, with trig-seedr: load all 64 sample slots and use Trig Seedr; nothing changes
     or crashes.
+
+### TURING (0.9.0)
+
+16. **TURG, the source:** on an empty track, RECORD on, RHYTHM SRC = TURG, FLAV DJVU, LOOP 8, AMT 25: YES writes a
+    take whose 8-step loop drifts pass by pass down the track. AMT 50: the loop repeats exactly. AMT 100: the same
+    steps in a shuffled order.
+17. FLAV CRPT: AMT 0 repeats exactly; AMT 40 keeps the rhythm while values (with NOTE's NSRC = TURG, the notes)
+    drift; AMT 100 flips trigs too. FLAV SHFT: AMT 100 repeats, AMT 0 inverts each pass (it repeats every two),
+    AMT 50 is a coin flip.
+18. **STRT = TRACK** on a track with trigs: the first pass is the track's own first LOOP steps, and later passes
+    drift from them.
+19. **SCALE and ROOT** (NOTE, knob H): NSRC = TURG, a NOTE range of −12…+12, SCALE MAJ: every note is in C major.
+    FUNC + the SCALE knob turns ROOT (C … B) while a scale is on; the cell shows it (`C# MAJ`). *Unchecked on a Syntakt so far: the emulator cannot hold FUNC there.* With ROOT C#, the notes are in C# major. SCALE OFF: the notes are as before.
+20. **The live page:** RIGHT from TOOLS reaches TURING. RECORD on, PLAY, YES: the strip shows LIVE and the step;
+    the steps change as the playhead passes them, heard on the next loop. Turning AMT while it runs changes how much.
+21. FUNC + YES keeps the track as it stands and stops (APPLIED). Start again, then NO: the original is back.
+22. Start, FUNC + UP (REMEMBERED), let it drift, FUNC + DOWN (RECALLED): the remembered loop is back.
+23. With the live page running: close Trig Seedr (TRIG), change track, or turn RECORD off: the original is back
+    (NOT APPLIED).
+24. On the FX track YES says NOT ON THE FX TRACK and nothing is written.
+25. **Note what you hear:** the live page at slow and fast tempos (up to 300 BPM if you can), on drums and on a
+    melodic track, with each flavour; whether the screen and keys stay responsive; a pattern change while it runs;
+    a track at another speed. These have not been tried on a unit.
 
 Please note what you saw, good or bad, in a
 [hardware report](https://github.com/a1o1/trig-seedr/issues/new?template=hardware-report.yml): the device and its OS,

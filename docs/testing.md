@@ -1,7 +1,7 @@
 # How trig-seedr is tested
 
 trig-seedr is installed by flashing a modified operating system onto an Analog Rytm MKII. This page lists what is
-tested before a release, how, and what is not tested. Numbers are from version 0.8.0 (2026-11-19).
+tested before a release, how, and what is not tested. Numbers are from version 0.8.0 (2026-11-19), and for TURING from the 0.9.0 candidate (2026-11-23; the counts marked "(lead's final run)" are confirmed by the lead's final gate).
 How to run each check is in [`tools/README.md`](../tools/README.md) and [`dev-environment.md`](dev-environment.md);
 [`requirements.md`](requirements.md) names the tests behind each requirement.
 
@@ -33,11 +33,12 @@ them.
 | Device-layer fuzzing | `device/test_rytm_ar2.c`: random patterns, lengths, lane parameters, row limits and takes written through the device layer into a model of stock's memory; checks that a refused write changes nothing, other tracks and steps past the length are untouched, each trig carries its fields, lanes and origin's locks, the 72-row limit holds, and the restore is byte-identical | 3,000 cases in every `make -C device test` (`DEV_FUZZ` for more; 200,000 found nothing) | I6–I8 |
 | YOLO | `lib/test_yolo.c`: every roll at WILD 0–100 on five track roles and five lengths renders without a refusal, repeats exactly, keeps the meter and the lock lanes' parameters and stays in its musical ranges; `tools/tests/43-yolo.sh` compares the emulator's rolled recipes and takes with `seedref yolo=ROLL:WILD` | 31,000 checks per `make test`; 26 emulator checks | I2, I6, I7 |
 | Reference comparison | `tools/seedref`, the same engine built for the computer, renders every take the emulator writes; the two must agree field by field | every emulator check that generates | I2 |
-| Golden vectors | 129 recipes over every layer with their frozen results (`lib/golden/`); a change to any result fails until its reason is written down | every run | I2, design V11 |
+| Golden vectors | 145 recipes over every layer, TURING and SCALE included (129 before 0.9; those are unchanged), with their frozen results (`lib/golden/`); a change to any result fails until its reason is written down | every run | I2, design V11 |
 | Interplay | `frame/test_interplay.c`: recipes the pages can reach, from every source on 13–64 steps; every hidden knob, turned, must leave the take byte-identical, and each source must keep the trig counts it promises through ROT and SYNC | about 533,000 checks in every `make test`; a 60,000-recipe run made 10 million | I3, I5, I6 |
 | Emulator | `tools/run_tests.sh` boots the patched OS in [analog-emu](https://github.com/trigcondition/analog-emu) and drives it through the Rytm's own keys and knobs: generate, NO, apply, save, reload, power cycle, the lock-row limit, every page | 31 test files, 499 checks at 0.8.0 (the release gate, 2026-11-20; with `grooves-live.h`, whose groove-velocity checks a build without it skips); the full run takes about 85 minutes on the Mac (42-perf alone 25) | I1, I2, I7–I9 |
 | Emulator fuzz sample | `tools/tests/41-fuzz-sample.sh`: recipes from the fuzzer replayed on the emulated Rytm | 6 recipes per run (more with `FUZZ_SAMPLES`) | I2, I7–I9 |
 | Hardware | `docs/flashing.md`'s checks on a Rytm MKII with OS 1.74; every pass is listed there (Tested on hardware) | one unit (0.5.1, 0.6.0, 0.7.1); 0.8.0's Rytm build: emulator only so far | I7, I9 |
+| TURING (0.9) | host: `lib/test_src_turing.c` (each flavour's rules, the locking ends repeat exactly, STRT TRACK, DJVU's three zones, CRPT's two stages, SHFT's doubled loop; the live run equals the offline run, a live step changes only its step) and `lib/test_scale.c` (every scale against a table); props and the fuzzer draw TURING, TURG and SCALE. Emulator, Rytm: `tools/tests/45-live.sh` (rewrites behind the playhead, a test mod), `46-turing.sh` (the TURG source, TURG values, SCALE and ROOT against `seedref`), `47-live-page.sh` (the live page against `seedref live=`); Syntakt: `tools/tests-st/45`, `46`, `47`, the same | `test_src_turing` 225,650 and `test_scale` 55,176 checks; Rytm 45: 21, 46: 17, 47: 21; Syntakt 45: 16, 46: 17, 47: 29 (lead's final run) | I1–I7, design-turing T1–T4 |
 
 Each test level catches a different kind of mistake. The host tests and the fuzzer test the engine's logic on millions
 of cases in minutes. The emulator runs the real stock firmware with the mod in it, so it tests what the engine cannot

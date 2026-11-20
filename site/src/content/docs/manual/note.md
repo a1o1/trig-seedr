@@ -94,7 +94,7 @@ SHAPE = NOISE, with N as its ZOOM).
 ## TURG and SCALE
 
 **NSRC = TURG** takes each trig's note from the RHYTHM page's Turing machine (SRC = TURG there): the value the
-machine holds for that step, spread over NOTE's range. As the loop changes, the melody changes with it.
+machine holds for that step, spread over NOTE's range. As the loop changes, the melody changes with it. See [TURING](../turing/).
 
 **SCALE** fits every note NOTE writes to a scale on **ROOT** (FUNC + the SCALE knob turns ROOT, C … B, while a
 scale is on): the nearest note of the scale, the lower one on a tie. OFF leaves notes as they are. SCALE works with

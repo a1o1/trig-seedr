@@ -175,4 +175,4 @@ LOOP 8 you hear eight passes, each drawn from the one before.
 - **STRT = TRACK** starts from the track's own first LOOP steps, so the machine evolves your pattern.
 - The machine is seeded as every source is: the same SEED gives the same take, VARY works as on RAND.
 - With SRC set to another source, a value source TURG still uses the machine as set here.
-- The live TURING page, which changes the loop while the pattern plays, comes with its own page.
+- The live [TURING page](../turing/) changes the loop while the pattern plays.
