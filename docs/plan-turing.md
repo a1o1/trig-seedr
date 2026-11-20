@@ -7,7 +7,7 @@ pass on a unit.
 
 | Task | What | Depends | Done when |
 |---|---|---|---|
-| T0a | Rytm: the step position live (core-ar2's `ev_seq_step` or a polled playhead) and a rewrite behind the playhead in analog-emu, from a test mod | — | a script shows steps rewritten behind the playhead while PLAY runs, heard on the next loop, nothing else changed |
+| T0a | Rytm: the step position live (core-ar2's `ev_seq_step` or a polled playhead) and a rewrite behind the playhead in analog-emu, from a test mod | — | a script shows steps rewritten behind the playhead while PLAY runs, heard on the next loop, nothing else changed. **Done 2026-11-20** ([`status/T0a.md`](status/T0a.md)): `rt_playhead` (polled), `rt_seed_write_one`, `tools/tests/45-live.sh` 21 checks; about 2 ms a rewritten step |
 | T0b | Syntakt: the playhead (step position per track) on OS 1.42, polled from the tick | — | firmware notes; a script reads it in analog-emu-st while PLAY runs |
 | T1 | The engine: `lib/src_turing.c`, `lib/scale.c`, the recipe fields (L10), `seedref`, golden vectors for the new recipes, props and fuzz | — | host tests on both profiles, golden: every old vector the same, new ones frozen |
 | T2 | Offline UI on both devices: RHYTHM SRC TURG, NOTE SCALE / ROOT, VSRC TURG; emulator tests against seedref (Rytm `tools/tests/`, Syntakt `tools/tests-st/`) | T1 | the takes equal seedref's, field by field |
