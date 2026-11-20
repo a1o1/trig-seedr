@@ -3,6 +3,7 @@
  * ends repeat the loop exactly), STRT = TRACK starting from the original, DJVU's three AMT zones,
  * CRPT's two stages (no bit flips up to AMT 50), SHFT at 0 doubling the loop by inversion, TURG
  * values, the live step function against the offline run, and refusals. */
+#include <string.h>
 #include "tests.h"
 #include "props.h"
 
@@ -223,6 +224,64 @@ static void test_turg(void)
     CHECK(seed_render(&out, &orig, &r, &c, &work) == SEED_OK);
 }
 
+/* The live page (T3): its start is the offline run; rendering a given run is rendering the recipe;
+ * a live step changes only its step; a locked loop changes nothing; replaying the same steps from
+ * the same start gives the same run */
+static void test_live(void)
+{
+    static const int lock[SEED_TURF_N] = { 50, 0, 100 };
+    struct seed_turing m, m2;
+    struct seed_take k;
+    struct seed_tur live, live2;
+    struct seed_track a, b;
+    uint32_t count, count2;
+    int f, s, i, j;
+    for (f = 0; f < SEED_TURF_N; f++)
+        for (s = 1; s <= 8; s++) {
+            base(f, 2 + s % 15, (s * 29) % 101, 32);
+            r.seed = (uint32_t)s;
+            CHECK(run((uint32_t)s) == SEED_OK);
+            seed_take_init(&k, (uint32_t)s, 0, 0, 0);
+            k.length = 32;
+            CHECK(seed_turing_live_start(&m, &live, &orig, &r, &k, &count) == SEED_OK);
+            CHECK(count == 32);
+            for (i = 0; i < SEED_STEPS; i++)
+                CHECK(live.bit[i] == tur.bit[i] && live.val[i] == tur.val[i]);
+            /* the render of the run is the render of the recipe */
+            CHECK(seed_render(&a, &orig, &r, &c, &work) == SEED_OK);
+            CHECK(seed_render_tur(&b, &orig, &r, &c, &work, &live) == SEED_OK);
+            CHECK(memcmp(&a, &b, sizeof a) == 0);
+            /* steps played in playhead order from step 5, three loops and more */
+            live2 = live;
+            m2 = m;
+            count2 = count;
+            for (j = 0; j < 100; j++) {
+                struct seed_tur before = live;
+                int st = (5 + j) % 32, x;
+                seed_turing_live_step(&m, &live, &k, &count, st);
+                for (x = 0; x < SEED_STEPS; x++)
+                    if (x != st)
+                        CHECK(live.bit[x] == before.bit[x] && live.val[x] == before.val[x]);
+            }
+            CHECK(count == 132);
+            for (j = 0; j < 100; j++)
+                seed_turing_live_step(&m2, &live2, &k, &count2, (5 + j) % 32);
+            CHECK(memcmp(&live, &live2, sizeof live) == 0);
+        }
+    /* a locked loop: every live step gives what the step held a loop earlier */
+    for (f = 0; f < SEED_TURF_N; f++) {
+        base(f, 8, lock[f], 32);
+        seed_take_init(&k, 3, 0, 0, 0);
+        k.length = 32;
+        CHECK(seed_turing_live_start(&m, &live, &orig, &r, &k, &count) == SEED_OK);
+        live2 = live;
+        for (j = 0; j < 64; j++)
+            seed_turing_live_step(&m, &live, &k, &count, j % 32);
+        for (i = 0; i < 32; i++)
+            CHECK(live.bit[i] == live2.bit[i] && live.val[i] == live2.val[i]);
+    }
+}
+
 /* the seed matters; the same seed gives the same run */
 static void test_seeds(void)
 {
@@ -266,6 +325,7 @@ int main(void)
     test_crpt();
     test_shft();
     test_step();
+    test_live();
     test_turg();
     test_seeds();
     test_refused();

@@ -228,12 +228,19 @@ static int dress(struct seed_track *t, const struct seed_recipe *r, const struct
  * candidate's numbers differ from candidate 0's only in RHYTHM and PLACE (seed_rng.c) and no
  * later layer moves a trig, so each candidate runs to the end of PLACE and is scored there; the
  * later layers then run once, on the winner. */
+/* the live page's run (seed_render_tur), used in place of the recipe's own */
+static const struct seed_tur *fixed_tur;
+
 /* TURING (0.9): the take's run, once per candidate, before anything reads it (k->tur) */
 static int turing(struct seed_take *k, const struct seed_track *orig, const struct seed_recipe *r, struct seed_tur *tur)
 {
     int rc;
     if (!seed_turing_used(r))
         return SEED_OK;
+    if (fixed_tur) {
+        k->tur = fixed_tur;
+        return SEED_OK;
+    }
     if (!seed_have_turing)
         return SEED_E_NA;
     rc = seed_turing_run(tur, orig, r, k);
@@ -384,4 +391,14 @@ int seed_render(struct seed_track *out, const struct seed_track *orig, const str
         }
     }
     return SEED_OK;
+}
+
+int seed_render_tur(struct seed_track *out, const struct seed_track *orig, const struct seed_recipe *r,
+                    const struct seed_ctx *c, struct seed_work *w, const struct seed_tur *tur)
+{
+    int rc;
+    fixed_tur = tur;
+    rc = seed_render(out, orig, r, c, w);
+    fixed_tur = 0;
+    return rc;
 }

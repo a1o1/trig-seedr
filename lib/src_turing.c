@@ -163,3 +163,38 @@ int seed_src_turing(struct seed_track *t, const struct seed_recipe *r, const str
             t->s[i].flags |= SEED_TRIG;
     return SEED_OK;
 }
+
+/* The live page (TURING, 0.9, design L6; task T3). A live run starts where the offline source
+ * ends: the machine runs over the track's steps as seed_turing_run does (counts 0 .. length - 1),
+ * so the first write is the offline take. Each step the playhead then passes plays one more
+ * count; the machine is anchored to the sequencer, the cell at step % LOOP (L13), so a cell keeps
+ * its place in the bar as the Labyrinth's write head does. Counts above 4095 move the take's seed
+ * on by count >> 12, as the step's draws read 12 bits of the count. */
+int seed_turing_live_start(struct seed_turing *m, struct seed_tur *out, const struct seed_track *orig,
+                           const struct seed_recipe *r, const struct seed_take *k, uint32_t *count)
+{
+    int i, rc = seed_turing_init(m, r, orig, k), len = clamp(orig->length, 1, SEED_STEPS);
+    if (rc < 0)
+        return rc;
+    for (i = 0; i < SEED_STEPS; i++) {
+        out->bit[i] = 0;
+        out->val[i] = 32768u;
+    }
+    for (i = 0; i < len; i++)
+        out->bit[i] = (uint8_t)seed_turing_step(m, k, i, &out->val[i]);
+    *count = (uint32_t)len;
+    return SEED_OK;
+}
+
+void seed_turing_live_step(struct seed_turing *m, struct seed_tur *out, const struct seed_take *k,
+                           uint32_t *count, int step)
+{
+    struct seed_take kk = *k;
+    int L = clamp(m->loop, 1, SEED_TUR_LOOP);
+    if (step < 0 || step >= SEED_STEPS)
+        return;
+    kk.seed = k->seed + (*count >> 12);
+    m->pos = (int16_t)(step % L);
+    out->bit[step] = (uint8_t)seed_turing_step(m, &kk, (int)(*count & 0xfffu), &out->val[step]);
+    (*count)++;
+}

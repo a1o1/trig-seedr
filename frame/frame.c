@@ -51,7 +51,7 @@ void *memcpy(void *dst, const void *src, unsigned long n)
 
 #define SEED_MAX 9999                   /* SEED's range (pages.c) */
 
-enum { A_NONE, A_TAKE, A_TOOL };
+enum { A_NONE, A_TAKE, A_TOOL, A_LIVE };
 
 static void *ui_ctrl;                   /* the view controller, from ev_tick (sd_trig_subpage) */
 
@@ -157,6 +157,11 @@ static void page_ctx(struct pg_ctx *c, int n)
     c->length = clampi(sd_track_length(n), 1, SEED_STEPS);
     c->ngrooves = N_GROOVES;
     c->track_name = sd_track_name;
+#ifdef SD_LIVE
+    c->live = 1;
+#else
+    c->live = 0;
+#endif
 }
 
 /* ---- actions ---- */
@@ -372,13 +377,197 @@ static void not_applied(void)
 static void apply(void)
 {
     yolo_track = -1;                            /* the rolled recipe stays with its take */
-    if (auditioning == A_TAKE)
+    if (auditioning == A_TAKE || auditioning == A_LIVE)
         kept |= (uint16_t)aud_mask;
     if (auditioning)
         say("APPLIED");
     auditioning = A_NONE;
     dev->drop();
 }
+
+#ifdef SD_LIVE
+/* ---- TURING, the live page (0.9, T3; docs/design-turing.md L6, L7, L13) ----
+ * A live run is a pending take that keeps changing (TD2's fast path). YES on TURING renders the
+ * track's recipe with SOURCE = TURING (PHRS, CVAR off and QUAL 1: the machine is the variation) and
+ * keeps the machine (seed_turing_live_start): the first write is that offline take. Then each tick,
+ * every step the playhead has passed since the last tick plays one more step of the machine
+ * (seed_turing_live_step, the cell at step % LOOP) and is written alone (sd_write_one), from one
+ * render of the run (seed_render_tur), so a live step is what the offline take would write for the
+ * same run. FUNC + YES keeps the track as it stands; NO, and every rule that puts a pending take
+ * back (closing, another track or pattern, RECORD off), puts the original back. FLAV, LOOP, AMT and
+ * BIAS are read from the recipe every tick, so they turn while it runs. FUNC + UP remembers the
+ * cells, FUNC + DOWN brings them back (the Labyrinth's BUFFER). */
+static struct seed_turing live_m, live_mem;
+static struct seed_tur live_tur;
+static struct seed_take live_k;
+static struct seed_recipe live_r;
+static uint32_t live_count;
+static int live_prev = -1, live_from = -1, live_mem_set, live_len;
+
+/* the recipe the run renders: the track's own, with SOURCE = TURING, one phrase, no CVAR, no QUAL */
+static void live_recipe(int n)
+{
+    live_r = *recipe_of(n);
+    live_r.src = SEED_SRC_TURING;
+    live_r.phrs = SEED_PHRS_OFF;
+    live_r.cvar = SEED_CVAR_OFF;
+    live_r.qual = 1;
+}
+
+static void live_ctx(struct seed_ctx *ctx, int n)
+{
+    dev->context(ctx, n);
+    ctx->shared = shared;
+    ctx->grooves = grooves;
+    ctx->ngrooves = N_GROOVES;
+}
+
+/* YES on TURING: start the machine, or, while it runs, write every step from the cells as they are */
+static void live_run(void)
+{
+    int n = sd_current(0), rc, i, L;
+    uint16_t bit = (uint16_t)(1u << n);
+    int16_t parm[SEED_LANES];
+    struct seed_ctx ctx;
+    if (n == SD_FX_TRACK) {
+        say("NOT ON THE FX TRACK");
+        return;
+    }
+    if (!sd_grid_recording()) {
+        say("RECORD TO GENERATE");
+        return;
+    }
+    if (sd_euclid()) {
+        say("EUCLID IS ON: TURN IT OFF");
+        return;
+    }
+#ifdef SD_LANE_CHECK
+    if (sd_lanes_lacking(n, recipe_of(n))) {
+        say(error_text(SEED_E_ARG));
+        return;
+    }
+#endif
+    live_recipe(n);
+    lane_parms(&live_r, parm);
+    if (auditioning == A_LIVE && aud_mask == bit) {
+        /* running: the cells as they are, on every step (no step of the machine is played) */
+        L = live_m.loop < 1 ? 1 : live_m.loop;
+        for (i = 0; i < live_len; i++) {
+            live_tur.bit[i] = live_m.bit[i % L];
+            live_tur.val[i] = live_m.val[i % L];
+        }
+        live_ctx(&ctx, n);
+        rc = seed_render_tur(&f_take_out, &f_orig, &live_r, &ctx, &f_work, &live_tur);
+        if (rc >= 0)
+            rc = dev->write(n, parm, &f_take_out);
+        say(rc < 0 ? error_text(rc) : "RESTARTED");
+        return;
+    }
+    if (!audition(A_LIVE, bit))
+        return;
+    rc = dev->read(n, parm, &f_orig);
+    live_len = clampi(f_orig.length, 1, SEED_STEPS);
+    if (rc >= 0) {
+        seed_take_init(&live_k, live_r.seed, (uint32_t)n, live_r.vary, 0);
+        live_k.length = live_len;
+        rc = seed_turing_live_start(&live_m, &live_tur, &f_orig, &live_r, &live_k, &live_count);
+    }
+    if (rc >= 0) {
+        live_ctx(&ctx, n);
+        rc = seed_render_tur(&f_take_out, &f_orig, &live_r, &ctx, &f_work, &live_tur);
+    }
+    if (rc >= 0)
+        rc = dev->write(n, parm, &f_take_out);
+    if (rc < 0) {
+        dev->drop();
+        auditioning = A_NONE;
+        say(error_text(rc));
+        return;
+    }
+    live_prev = -1;
+    live_from = -1;
+    turned &= (uint16_t)~bit;
+    kept &= (uint16_t)~bit;
+    last = *recipe_of(n);
+    have_last = 1;
+    say("LIVE");
+    sd_edited();
+}
+
+/* each tick while live: the steps the playhead has passed, played and written behind it */
+static void live_tick(void)
+{
+    int n = aud_track, p, len, i, s, cnt, rc;
+    int16_t parm[SEED_LANES];
+    int done[SEED_STEPS];
+    struct seed_ctx ctx;
+    const struct seed_recipe *r = recipe_of(n);
+    live_m.flav = r->tur_flav;                  /* the knobs, as they are now */
+    live_m.loop = (int16_t)(r->tur_flav == SEED_TURF_SHFT && r->tur_loop < 2 ? 2 : r->tur_loop);
+    live_m.amt = r->tur_amt;
+    live_m.bias = r->tur_bias;
+    p = sd_playhead(n, &len);
+    if (p < 0 || len < 2) {                     /* stopped, or a one-step track: nothing passes */
+        live_prev = -1;
+        return;
+    }
+    if (live_prev < 0 || live_prev >= len) {
+        live_prev = p;
+        return;
+    }
+    cnt = (p - live_prev + len) % len;          /* the steps from the last playhead up to this one */
+    if (!cnt)
+        return;
+    if (cnt > live_len)
+        cnt = live_len;
+    for (i = 0; i < cnt; i++) {
+        s = (live_prev + i) % len;
+        if (s >= live_len)
+            continue;
+        if (live_from < 0)
+            live_from = s;
+        seed_turing_live_step(&live_m, &live_tur, &live_k, &live_count, s);
+    }
+    live_recipe(n);
+    lane_parms(&live_r, parm);
+    live_ctx(&ctx, n);
+    rc = seed_render_tur(&f_take_out, &f_orig, &live_r, &ctx, &f_work, &live_tur);
+    for (i = 0; i < SEED_STEPS; i++)
+        done[i] = 0;
+    for (i = 0; rc >= 0 && i < cnt; i++) {
+        s = (live_prev + i) % len;
+        if (s < live_len && !done[s]) {
+            done[s] = 1;
+            sd_write_one(n, parm, &f_take_out, s);
+        }
+    }
+    live_prev = p;
+    scr_dirty = 1;
+}
+
+/* FUNC + UP / DOWN on TURING while it runs: remember the cells, bring them back */
+static void live_memory(int recall)
+{
+    if (auditioning != A_LIVE) {
+        say("YES TO START");
+        return;
+    }
+    if (!recall) {
+        live_mem = live_m;
+        live_mem_set = 1;
+        say("REMEMBERED");
+    } else if (live_mem_set) {
+        int i;
+        for (i = 0; i < SEED_TUR_LOOP; i++) {
+            live_m.bit[i] = live_mem.bit[i];
+            live_m.val[i] = live_mem.val[i];
+        }
+        say("RECALLED");
+    } else {
+        say("NOTHING REMEMBERED");
+    }
+}
+#endif
 
 /* knob k (0..7) turned one value step d on the page in view; FUNC held: the low end */
 static void turn(int k, int d)
@@ -457,6 +646,12 @@ int gr_key(void *brain, void *ev)
         }
         return 1;
     case SD_K_UP: case SD_K_DOWN:
+#ifdef SD_LIVE
+        if (down && page == PG_TURING && func_held) {
+            live_memory(k == SD_K_DOWN);
+            return 1;
+        }
+#endif
         if (down && page == PG_LOCK)
             lane = clampi(lane + (k == SD_K_UP ? -1 : 1), 0, dev->caps->lanes - 1);
         return 1;
@@ -468,6 +663,10 @@ int gr_key(void *brain, void *ev)
                 yolo_run();
             else if (page == PG_TOOLS)
                 tool_run();
+#ifdef SD_LIVE
+            else if (page == PG_TURING)
+                live_run();
+#endif
             else
                 take();
         }
@@ -531,9 +730,13 @@ void gr_tick(void *ctrl)
     if (auditioning) {
         unsigned pat;
         int n = sd_current(&pat);
-        if (pat != aud_pat || (auditioning == A_TAKE && n != aud_track) || !sd_grid_recording())
+        if (pat != aud_pat || ((auditioning == A_TAKE || auditioning == A_LIVE) && n != aud_track) || !sd_grid_recording())
             not_applied();                      /* another track or pattern, or RECORD off */
     }
+#ifdef SD_LIVE
+    if (auditioning == A_LIVE)
+        live_tick();
+#endif
     if (open && scr_changed())
         sd_request_frame(ctrl);                 /* stock draws a frame, and seedr's screen over it */
 }
@@ -745,6 +948,56 @@ static void draw_strip(void *bmp, uint8_t *p, int n, const struct seed_recipe *r
         text_at(bmp, 1, STRIP_TOP + 3, why, 0);
 }
 
+#ifdef SD_LIVE
+/* TURING's screen below the knobs (rows 33..46): the loop's cells, a box when the cell's trig is on
+ * and a bar for its value; the cell the playhead is on, outlined; the strip says what runs */
+static void draw_live(void *bmp, uint8_t *p, int n, const struct seed_recipe *r)
+{
+    struct seed_turing pv;
+    const struct seed_turing *m = &pv;
+    struct seed_take k;
+    int L, w, c, len = 0, ph = -1, running = auditioning == A_LIVE && n == aud_track;
+    char *o;
+    if (running) {
+        m = &live_m;
+    } else {
+        seed_take_init(&k, r->seed, (uint32_t)n, r->vary, 0);
+        k.length = clampi(f_shown.length, 1, SEED_STEPS);
+        if (seed_turing_init(&pv, r, &f_shown, &k) < 0)
+            return;
+    }
+    L = clampi(m->loop, 1, SEED_TUR_LOOP);
+    w = 128 / L;
+    if (running)
+        ph = sd_playhead(n, &len);
+    for (c = 0; c < L; c++) {
+        int x0 = c * w, x1 = x0 + w - 2, h = (int)((uint32_t)m->val[c] * 8u / 65535u);
+        if (m->bit[c])
+            box(p, x0 + 1, 34, x1 - 1, 36, 1);
+        box(p, x0 + 1, 45 - h, x1 - 1, 45, 1);
+        if (ph >= 0 && ph % L == c)
+            box(p, x0, 33, x1, 46, 0);
+    }
+    if (msg && (int)(msg_until - ticks) > 0) {
+        text_at(bmp, 1, STRIP_TOP + 3, msg, 0);
+        return;
+    }
+    if (n == SD_FX_TRACK) {
+        text_at(bmp, 1, STRIP_TOP + 3, "NOT ON THE FX TRACK", 0);
+        return;
+    }
+    o = pg_put(status, running ? "LIVE" : "YES: START");
+    if (running && ph >= 0) {
+        o = pg_put(o, "  S");
+        o = pg_num(o, ph + 1);
+        o = pg_put(o, "/");
+        o = pg_num(o, len);
+    }
+    *o = 0;
+    text_at(bmp, 1, STRIP_TOP + 3, status, 0);
+}
+#endif
+
 /* ---- redrawing (task M2.3) ----
  * Stock draws a frame when its view is marked dirty (the controller's +0x20) and for reasons of
  * its own; seedr draws its whole screen over every frame stock draws. Until M2.3 gr_tick marked
@@ -888,6 +1141,12 @@ static void draw_all(void *bmp)
         if (ok)
             view_draw(bmp, p, &f_shown, &cursor, dev->caps, parm);
         draw_footer(bmp, p);                    /* VIEW draws the steps itself: no strip */
+#ifdef SD_LIVE
+    } else if (page == PG_TURING) {
+        draw_cells(bmp, &c);
+        if (ok)
+            draw_live(bmp, p, n, c.r);
+#endif
     } else {
         draw_cells(bmp, &c);
         if (ok)

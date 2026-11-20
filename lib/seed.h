@@ -519,6 +519,18 @@ int seed_turing_init(struct seed_turing *m, const struct seed_recipe *r, const s
 int seed_turing_step(struct seed_turing *m, const struct seed_take *k, int count, uint16_t *val);
 int seed_turing_run(struct seed_tur *out, const struct seed_track *orig, const struct seed_recipe *r,
                     const struct seed_take *k);
+/* The live page (T3, design L6, L13): seed_turing_live_start runs the machine over orig's length as
+ * seed_turing_run does, keeps the machine, and sets *count to the next count; seed_turing_live_step
+ * plays the step the playhead has just passed: the cell at step % LOOP, its bit and value into
+ * out at `step`, then *count + 1 (take seed + count >> 12 past 4095 counts). seed_render_tur
+ * renders as seed_render, with `tur` in place of the recipe's own run, so a live step is written
+ * as the offline take would write that run. */
+int seed_turing_live_start(struct seed_turing *m, struct seed_tur *out, const struct seed_track *orig,
+                           const struct seed_recipe *r, const struct seed_take *k, uint32_t *count);
+void seed_turing_live_step(struct seed_turing *m, struct seed_tur *out, const struct seed_take *k,
+                           uint32_t *count, int step);
+int seed_render_tur(struct seed_track *out, const struct seed_track *orig, const struct seed_recipe *r,
+                    const struct seed_ctx *c, struct seed_work *w, const struct seed_tur *tur);
 /* 1 when the recipe uses TURING: SOURCE = TURING or any value source TURG */
 int seed_turing_used(const struct seed_recipe *r);
 

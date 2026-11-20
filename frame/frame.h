@@ -21,6 +21,8 @@
  *   SD_KNOB_COUNTS         counts of a turn that make one value step
  *   SD_KNOB_WAKE           turn events that only wake a knob asleep
  *   sd_leave_keys[]        keys that leave stock's TRIG page: seedr closes on them
+ *   SD_LIVE                (optional) the device gives the playhead: TURING's live page (0.9, T3), with
+ *                          sd_playhead and sd_write_one below; without it the page is not shown
  *
  * and the functions declared below (static: one translation unit).
  */
@@ -68,5 +70,13 @@ static uint8_t *sd_pixels(void *bmp);
 static void sd_text_draw(void *bmp, int x, int y, int align, const char *s);
 static int sd_text_width(const char *s);
 static int sd_font_height(void);
+#ifdef SD_LIVE
+/* the step track t plays now, 0 .. *len - 1, and the length it wraps at; -1 while stopped. Steps
+ * before it in the loop have played and may be rewritten (docs/status/T0a.md) */
+static int sd_playhead(int t, int *len);
+/* write step i of take on track t alone, as the device's write writes it (the audition's snapshot
+ * is the source of its locks); every other step is left alone */
+static int sd_write_one(int t, const int16_t *parm, const struct seed_track *take, int i);
+#endif
 
 #endif

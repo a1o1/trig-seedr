@@ -289,7 +289,7 @@ emu_struct() {
 
 emu_pages() {
     case $EMU_PROFILE in
-    v1) echo TAKE RHYTHM PLACE DYNAMICS NOTE LOCK TRIG TIME VIEW TOOLS ;;
+    v1) echo TAKE RHYTHM PLACE DYNAMICS NOTE LOCK TRIG TIME VIEW TOOLS TURING ;;
     esac
 }
 

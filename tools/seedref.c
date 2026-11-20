@@ -28,6 +28,9 @@
  *   all=1          also print origin and lane2 (the golden vectors)
  *   yolo=ROLL:WILD TOOLS YOLO (lib/yolo.c): the recipe rolled from the one the other keys make, for
  *                  the track in scope (its role: device/rytm_params.h), as the mod rolls it
+ *   live=FROM:N    TURING's live page (0.9, T3): the run started as the mod starts it (SOURCE =
+ *                  TURING, PHRS and CVAR off, QUAL 1), then N steps played from step FROM in the
+ *                  playhead's order, the track rendered from that run (seed_render_tur)
  * The capabilities are the Rytm's (device/rytm_params.h); grooves (grv=N) are the mod's tables.
  *
  * The Syntakt (docs/plan-syntakt.md S4): --device st anywhere in the arguments gives the Syntakt OS 1.42's
@@ -341,7 +344,7 @@ int main(int argc, char **argv)
     struct seed_recipe r;
     struct seed_ctx c;
     const char *orig_path = NULL;
-    int i, rc, all = 0, init = 0, length = 0, yroll = -1, ywild = 0, track = 0, machine = -1, ids = 0;
+    int i, rc, all = 0, init = 0, length = 0, yroll = -1, ywild = 0, track = 0, machine = -1, ids = 0, lfrom = -1, ln = 0;
     for (i = 1; i < argc; i++) {
         if (!strncmp(argv[i], "orig=", 5)) orig_path = argv[i] + 5;
         else if (!strcmp(argv[i], "init=1")) init = 1;
@@ -428,6 +431,11 @@ int main(int argc, char **argv)
                 die("not yolo=ROLL:WILD", eq);
             continue;
         }
+        if (!strcmp(name, "live")) {
+            if (sscanf(eq, "%d:%d", &lfrom, &ln) != 2 || lfrom < 0 || ln < 0)
+                die("not live=FROM:N", eq);
+            continue;
+        }
         if (!strcmp(name, "seed")) r.seed = (uint32_t)strtoul(eq, NULL, 0);
         else if (!strcmp(name, "track")) c.track = atoi(eq);
         else if (!strcmp(name, "all")) all = atoi(eq);
@@ -484,7 +492,25 @@ int main(int argc, char **argv)
             if (others[i].s[s].flags & SEED_TRIG)
                 c.trig[i][s >> 3] |= (uint8_t)(1u << (s & 7));
     }
-    rc = seed_render(&out, &orig, &r, &c, &work);
+    if (lfrom >= 0) {
+        static struct seed_tur lt;
+        struct seed_turing m;
+        struct seed_take k;
+        uint32_t count;
+        int len = orig.length < 1 ? 1 : orig.length > SEED_STEPS ? SEED_STEPS : orig.length, j;
+        r.src = SEED_SRC_TURING;
+        r.phrs = SEED_PHRS_OFF;
+        r.cvar = SEED_CVAR_OFF;
+        r.qual = 1;
+        seed_take_init(&k, r.seed, (uint32_t)c.track, r.vary, 0);
+        k.length = len;
+        rc = seed_turing_live_start(&m, &lt, &orig, &r, &k, &count);
+        for (j = 0; rc >= 0 && j < ln; j++)
+            seed_turing_live_step(&m, &lt, &k, &count, (lfrom + j) % len);
+        if (rc >= 0)
+            rc = seed_render_tur(&out, &orig, &r, &c, &work, &lt);
+    } else
+        rc = seed_render(&out, &orig, &r, &c, &work);
     if (rc != SEED_OK) {
         fprintf(stderr, "result %d\n", rc);
         return 3;
