@@ -189,6 +189,25 @@ static inline int rt_current(unsigned *obj, unsigned *pattern)
 }
 
 #ifndef RT_HOST
+/* The playhead (TURING's live page, docs/status/T0a.md): core-ar2's sequencer getters (0.11,
+ * elekloader/sdk/include/analog-rytm-mk2/seq.h), read from the UI task. rt_playhead: the step
+ * track t plays now (0 .. length - 1; core's "step starting now", one behind the step the clock has
+ * already made), and the length it wraps at; -1 while stopped. Steps before it in the loop have
+ * played and are not made again until the next loop, so they may be rewritten (rt_seed_write_one). */
+int core_transport(void);
+int core_track_step(int track);
+int core_track_length(int track);
+static inline int rt_playhead(int track, int *length)
+{
+    int n = core_track_length(track), s;
+    if (length)
+        *length = n;
+    if (!core_transport() || n <= 0)
+        return -1;
+    s = core_track_step(track);
+    return s >= 0 && s < n ? s : -1;
+}
+
 /* Grid recording (RECORD lit, not live recording): 1 while on. A byte OS 1.74 keeps at a fixed
  * address, set from the recording state each time its routine at 0x40036270 runs (measured in
  * analog-emu: boot 0, RECORD 1, playing with RECORD 1, RECORD off 0, RECORD + PLAY 0). */
@@ -444,22 +463,25 @@ static inline int rt_seed_steps(const struct seed_track *t, unsigned obj)
  * stored row (type RT_LOCK_TYPE, this track): it exists, or the new ones fit as stock counts them
  * (rt_lock_room; two sound indexes of one type cost it once, a fine parameter 2). Every track,
  * the FX track included, keeps its locks in these rows. */
-static inline int rt_seed_room_src(int track, unsigned obj, const int16_t *parm, const struct seed_track *t,
-                                   const struct rt_snap *src)
+/* the same for steps i0 .. i1 - 1 of t only (rt_seed_write_one: one step) */
+static inline int rt_seed_room_range(int track, unsigned obj, const int16_t *parm, const struct seed_track *t,
+                                     const struct rt_snap *src, int i0, int i1)
 {
     const uint8_t *l = rt_locks(obj);
     uint8_t counted[RT_SOUND_LOCKS];
     int n = rt_seed_steps(t, obj), i, j, k, cost = 0, used = 0, have;
     if (!l)
         return SEED_E_NA;
-    for (i = 0; i < n; i++)
+    if (i1 > n)
+        i1 = n;
+    for (i = i0; i < i1; i++)
         if (t->s[i].origin >= n || t->s[i].origin < SEED_NO_ORIGIN)
             return SEED_E_ARG;
     for (j = 0; j < SEED_LANES; j++) {
         int p = parm ? parm[j] : -1;
         if (rt_seed_lane_k(track, parm, j) < 0)
             continue;
-        for (i = 0; i < n; i++)
+        for (i = i0; i < i1; i++)
             if (t->s[i].lane[j] != SEED_NO_LOCK &&
                 (t->s[i].lane[j] < rt_seed_params()[p].lo || t->s[i].lane[j] > rt_seed_params()[p].hi))
                 return SEED_E_ARG;
@@ -467,7 +489,7 @@ static inline int rt_seed_room_src(int track, unsigned obj, const int16_t *parm,
     for (k = 0; k < RT_SOUND_LOCKS; k++) {
         int need = 0;
         counted[k] = 0;
-        for (i = 0; i < n && !need; i++) {
+        for (i = i0; i < i1 && !need; i++) {
             int16_t v = rt_seed_target_lock(src, track, parm, &t->s[i], i, k);
             need = v >= 0 && v != rt_lock_at(l, i, k);
         }
@@ -487,6 +509,12 @@ static inline int rt_seed_room_src(int track, unsigned obj, const int16_t *parm,
         cost += l[RT_LOCK_FINE + k] ? 2 : 1;
     }
     return cost && used + cost > RT_ROWS_MAX ? SEED_E_ROOM : SEED_OK;
+}
+
+static inline int rt_seed_room_src(int track, unsigned obj, const int16_t *parm, const struct seed_track *t,
+                                   const struct rt_snap *src)
+{
+    return rt_seed_room_range(track, obj, parm, t, src, 0, SEED_STEPS);
 }
 
 static inline int rt_seed_room(int track, const int16_t *parm, const struct seed_track *t)
@@ -576,6 +604,35 @@ static inline int rt_seed_write(int track, const int16_t *parm, const struct see
     if (e == SEED_OK) {
         for (i = 0; i < n; i++)
             changed += rt_seed_write_step(obj, track, parm, &t->s[i], i, src);
+        if (changed)
+            rt_changed(obj);
+    }
+    rt_seed_source_done(track);
+    st->written = changed;
+    return e;
+}
+
+/* write_one (TURING's live page, docs/status/T0a.md): step i of t only, as write writes it (room for
+ * that step's locks first, nothing written when it does not fit; its locks from the snapshot's
+ * origin), with one change notice when it changed. Every other step is left alone, so it may run
+ * while the pattern plays, on steps the playhead has passed. */
+static inline int rt_seed_write_one(int track, const int16_t *parm, const struct seed_track *t, int i)
+{
+    struct rt_seed_state *st = rt_seed_state();
+    unsigned obj = rt_seed_obj(track);
+    struct rt_snap *src;
+    int e, changed = 0;
+
+    st->written = 0;
+    if (!obj || !rt_record(obj) || !rt_locks(obj) || !(src = rt_seed_source(track, obj)))
+        return SEED_E_NA;
+    if (i < 0 || i >= rt_seed_steps(t, obj)) {
+        rt_seed_source_done(track);
+        return SEED_E_ARG;
+    }
+    e = rt_seed_room_range(track, obj, parm, t, src, i, i + 1);
+    if (e == SEED_OK) {
+        changed = rt_seed_write_step(obj, track, parm, &t->s[i], i, src);
         if (changed)
             rt_changed(obj);
     }
