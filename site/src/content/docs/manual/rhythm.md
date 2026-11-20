@@ -166,6 +166,8 @@ time round. Each step of the loop holds a trig (on or off) and a value; the valu
 lanes through their value source TURG, so pitch, dynamics and locks change with the rhythm. On a 64-step track with
 LOOP 8 you hear eight passes, each drawn from the one before.
 
+![RHYTHM with SRC = TURG: CRPT, a loop of 8, AMT 60](../../../assets/screens/turg.png)
+
 | FLAV | AMT 0 | AMT 50 | AMT 100 |
 |---|---|---|---|
 | DJVU | every pass new | the loop repeats exactly | the loop's steps play in a shuffled order |

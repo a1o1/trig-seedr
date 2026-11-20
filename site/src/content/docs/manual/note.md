@@ -99,3 +99,5 @@ machine holds for that step, spread over NOTE's range. As the loop changes, the 
 **SCALE** fits every note NOTE writes to a scale on **ROOT** (FUNC + the SCALE knob turns ROOT, C … B, while a
 scale is on): the nearest note of the scale, the lower one on a tie. OFF leaves notes as they are. SCALE works with
 every value source, and changes nothing while NOTE is DEF.
+
+![NOTE with the machine's notes (NSRC = TURG) in A minor](../../../assets/screens/scale.png)

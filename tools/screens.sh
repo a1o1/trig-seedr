@@ -2,7 +2,8 @@
 # tools/screens.sh: the screenshots the README and the site's manual show (docs/screens/*.png): the ten
 # pages (<page>.png), TOOLS with a YOLO roll pending (yolo.png), and four for the manual: RHYTHM with
 # SRC = RAND (random.png), the same take pending, the dot in the title bar (pending.png), SRC = EUCLID
-# (euclid.png), and YES with RECORD off (record.png).
+# (euclid.png), YES with RECORD off (record.png), and TURING (0.9): RHYTHM with SRC = TURG (turg.png), NOTE with
+# notes from the machine through SCALE (scale.png), and the live page while the pattern plays (turing.png).
 #     sh tools/screens.sh             writes them to build/emu/screens/ to look at
 #     sh tools/screens.sh --install   also copies them into docs/screens/
 # One rich example, so every page shows real values and the strip's bars (velocity) vary: A01 BD made
@@ -62,8 +63,26 @@ emu_shot euclid
 emu_rec 0
 emu_run -s 100M --press YES@+100M               # shot well inside the 2-second message
 emu_shot record
+# TURING (0.9): CRPT at AMT 60 over a loop of 8, notes and velocity from the machine, SCALE MIN on A
+emu_rec 1
+emu_recipe 0 src=turing tur_flav=crpt tur_loop=8 tur_amt=60 tur_bias=60 note=-12:12 note.src=turg \
+    vel=40:127 vel.src=turg scale=min root=9 seed=5
+emu_page RHYTHM
+emu_run -s 600M
+emu_shot turg
+emu_page NOTE
+emu_run -s 600M
+emu_shot scale
+# the live page: YES starts a run, PLAY, a few loops in
+emu_page TURING
+emu_keys YES
+emu_keys PLAY
+emu_run -s 2400M
+emu_shot turing
+emu_keys STOP
+emu_no
 echo "screens: $D"
 if [ "$1" = --install ]; then
-    for p in take rhythm place dynamics note lock trig time view tools yolo random pending euclid record; do cp "$D/$p.png" "$R/docs/screens/$p.png"; done
+    for p in take rhythm place dynamics note lock trig time view tools yolo random pending euclid record turg scale turing; do cp "$D/$p.png" "$R/docs/screens/$p.png"; done
     echo "copied into docs/screens/"
 fi
