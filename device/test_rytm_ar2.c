@@ -776,6 +776,47 @@ static void test_fuzz(int cases)
     }
 }
 
+/* rt_seed_write_one (TURING's live page, docs/status/T0a.md): writing step i of a take alone is the
+ * same as the full write of the original with only step i taken from it; every other step, track and
+ * lock store unchanged; a refusal writes nothing (I8) */
+static uint8_t rec1[RT_TRACKS][RT_RECORD_SIZE], lks1[RT_TRACKS][RT_LOCKS_SIZE], rows1[sizeof rows];
+static struct seed_track c;
+static void test_write_one(int cases)
+{
+    const struct seed_dev *d = rt_seed_device();
+    int k;
+    for (k = 0; k < cases; k++) {
+        int t, n, i, e1, e2;
+        int16_t parm[SEED_LANES] = { RT_P_SMP, RT_P_FRQ };
+        fixture_n(5000u + (uint32_t)k);
+        rng = 0x85ebca6bu * (uint32_t)(k + 1);
+        t = rnd(RT_TRACKS - 1);
+        if (d->read(t, parm, &a) != SEED_OK)
+            continue;
+        n = a.length;
+        b = a;
+        random_take(&b, n);
+        i = rnd(n);
+        save();
+        e1 = rt_seed_write_one(t, parm, &b, i);
+        memcpy(rec1, rec, sizeof rec);
+        memcpy(lks1, lks, sizeof lks);
+        memcpy(rows1, rows, sizeof rows);
+        if (e1 != SEED_OK) {
+            CHECK(same() && !memcmp(rows0, rows, sizeof rows));
+            continue;
+        }
+        memcpy(rec, rec0, sizeof rec);
+        memcpy(lks, lks0, sizeof lks);
+        memcpy(rows, rows0, sizeof rows);
+        c = a;
+        c.s[i] = b.s[i];
+        e2 = d->write(t, parm, &c);
+        CHECK(e2 == SEED_OK);
+        CHECK(!memcmp(rec1, rec, sizeof rec) && !memcmp(lks1, lks, sizeof lks) && !memcmp(rows1, rows, sizeof rows));
+    }
+}
+
 int main(void)
 {
     test_caps();
@@ -791,6 +832,7 @@ int main(void)
     test_snapshot();
     test_context();
     test_fuzz(getenv("DEV_FUZZ") ? atoi(getenv("DEV_FUZZ")) : 3000);
+    test_write_one(2000);
     printf("test_rytm_ar2: %d checks, %d failed\n", checks, fails);
     return fails != 0;
 }
