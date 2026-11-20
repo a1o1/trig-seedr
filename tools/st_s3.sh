@@ -53,7 +53,7 @@ emu_shot open
 
 # 2. every page: RIGHT from TAKE until TAKE again
 SEEN=
-for _i in 1 2 3 4 5 6 7 8 9 10 11; do
+for _i in 1 2 3 4 5 6 7 8 9 10 11 12; do
     _p=$(emu_get page)
     _n=$(echo $(emu_pages) | cut -d' ' -f$((_p + 1)))
     case " $SEEN " in *" $_n "*) break ;; esac
@@ -62,9 +62,9 @@ for _i in 1 2 3 4 5 6 7 8 9 10 11; do
     emu_keys RIGHT
 done
 emu_check "RIGHT steps through the pages the Syntakt shows" \
-    " TAKE RHYTHM PLACE DYNAMICS NOTE LOCK TRIG TIME VIEW TOOLS" "$SEEN"
+    " TAKE RHYTHM PLACE DYNAMICS NOTE LOCK TRIG TIME VIEW TOOLS TURING" "$SEEN"
 emu_keys LEFT
-emu_check "LEFT from TAKE: TOOLS" 9 "$(emu_get page)"
+emu_check "LEFT from TAKE: TURING (0.9, the live page)" 10 "$(emu_get page)"
 emu_page TAKE
 
 # 3. knobs; YES with grid recording off

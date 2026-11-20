@@ -12,6 +12,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "../../device/syntakt_st.h"
+#define SD_LIVE 1                       /* TURING's live page (0.9, T3): sd_playhead, sd_write_one below */
 #include "../../frame/frame.h"
 /* the groove tables: tools/groove2h.py, kept with the Rytm's mod. grooves-live.h (from your own
  * Ableton Live grooves) is kept out of the repository; without it the swing-only grooves-swing.h */
@@ -372,6 +373,33 @@ static void sd_lane_defaults(int n, struct seed_recipe *r)
             r->lane[i].val.lo = l->p[r->lane[i].parm].lo;
             r->lane[i].val.hi = l->p[r->lane[i].parm].hi;
         }
+}
+
+/* TURING's live page (0.9, T3): the playhead polled from the tick (device/syntakt_st.h st_playhead,
+ * docs/status/T0b.md). st_playhead gives the step played last; the frame wants the step playing now,
+ * with the steps before it played, so the step after it. A one-step track never moves its step, so
+ * nothing passes there and the live page writes nothing on it (T0b's open point). */
+static int sd_playhead(int t, int *len)
+{
+    int n = sd_track_length(t), s = st_playhead(t);
+    if (len)
+        *len = n;
+    if (s < 0 || n < 1 || n > SEED_STEPS || s >= n)
+        return -1;
+    return (s + 1) % n;
+}
+
+/* step i alone, through the device's masked write (st_seed_write_steps) */
+static int sd_write_one(int t, const int16_t *parm, const struct seed_track *take, int i)
+{
+    uint8_t mask[SEED_STEPS / 8];
+    int k;
+    if (i < 0 || i >= SEED_STEPS)
+        return SEED_E_ARG;
+    for (k = 0; k < SEED_STEPS / 8; k++)
+        mask[k] = 0;
+    mask[i >> 3] = (uint8_t)(1u << (i & 7));
+    return st_seed_write_steps(t, parm, take, mask);
 }
 
 #include "../../frame/frame.c"
