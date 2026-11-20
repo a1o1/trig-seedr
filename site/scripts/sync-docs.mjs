@@ -51,12 +51,12 @@ console.log('docs/screens -> src/assets/screens');
 
 // 3. the knob reference: every row of every table headed "| Knob | Name | Values | Default | Shown |" on the
 // manual's pages, in on-screen order, so each knob's values, default and condition are written once (on its page)
-const manual = ['take', 'rhythm', 'place', 'dynamics', 'note', 'lock', 'trig', 'time', 'view', 'tools'];
+const manual = ['take', 'rhythm', 'place', 'dynamics', 'note', 'lock', 'trig', 'time', 'view', 'tools', 'turing'];
 const head = /^\|\s*Knob\s*\|\s*Name\s*\|\s*Values\s*\|\s*Default\s*\|\s*Shown\s*\|/;
 let ref = `---
 title: Knob reference
 description: Every knob of every page, with its values, its default and when it is shown.
-sidebar: { order: 12 }
+sidebar: { order: 13 }
 editUrl: false
 ---
 

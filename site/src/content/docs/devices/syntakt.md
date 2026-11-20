@@ -57,6 +57,12 @@ The lanes follow the track's machine:
 The Syntakt keeps every lockable parameter of every step, with no shared pool of lock rows. NO LOCK ROWS LEFT does
 not occur on the Syntakt.
 
+## TURING (0.9)
+
+The TURG source and the live page as on the Rytm ([TURING](../../manual/turing/)). The live page reads the
+Syntakt's playhead each screen refresh; a step takes about 0.3 ms to write. FUNC + the SCALE knob (ROOT) has not been
+tried on a Syntakt yet: the emulator cannot hold FUNC there.
+
 ## TOOLS
 
 ROTATE ALL moves whole steps with their locks, on every track within its length. A track in stock's Euclidean mode

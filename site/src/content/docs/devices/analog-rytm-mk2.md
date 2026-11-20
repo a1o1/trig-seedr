@@ -16,6 +16,7 @@ The Analog Rytm MKII with OS 1.74 is the device the manual describes: every page
 | Tracks | the 12 voice tracks; the FX track is refused (NOT ON THE FX TRACK) |
 | LOCK | two lanes over one list of parameters for every track; lane 1 starts on the sample slot |
 | Lock limit | 72 lock rows per pattern: a take that needs more is refused (NO LOCK ROWS LEFT) |
+| TURING (0.9) | the TURG source and the live page ([TURING](../../manual/turing/)); a live step takes about 2 ms to write |
 
 Known quirks: YES + SCENE does not save while Trig Seedr is open
 ([Generate and apply](../../manual/concepts/#generate-and-apply)).

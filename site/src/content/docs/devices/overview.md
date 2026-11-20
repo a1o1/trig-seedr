@@ -24,6 +24,7 @@ tested in full in an emulator on each device; the hardware passes are listed on 
 | LOCK's parameters | one list for every track | the track's machine's SYN controls, then the shared pages |
 | Lock limit | 72 lock rows per pattern (NO LOCK ROWS LEFT) | no pattern-wide pool: each step has its own lock slots (no NO LOCK ROWS LEFT) |
 | Opening | TRIG, TRIG, TRIG (a third TRIG page), or TRIG held + PAGE | the same |
+| TURING (0.9) | the TURG source and the live page | the same |
 
 ## Planned
 

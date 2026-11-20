@@ -5,7 +5,7 @@ sidebar: { order: 1 }
 ---
 
 This page explains the ideas every page of Trig Seedr shares. The pages themselves follow in on-screen order,
-from [TAKE](../take/) to [TOOLS](../tools/); every knob is listed in the [knob reference](../knobs/), every key and message in [Keys and messages](../keys/).
+from [TAKE](../take/) to [TURING](../turing/); every knob is listed in the [knob reference](../knobs/), every key and message in [Keys and messages](../keys/).
 
 ## Opening and the screen
 
@@ -22,8 +22,8 @@ opens on the page you left; the first time, on TAKE.
 | Body | up to eight knobs, A–H, in two rows of four: a label and its value |
 | Strip | the [preview](#the-preview-strip): the take YES would write. Messages replace it for 2 seconds |
 
-**LEFT / RIGHT** step through the pages: TAKE, RHYTHM, PLACE, DYNAMICS, NOTE, LOCK, TRIG, TIME, VIEW, TOOLS, and
-round again. **PAGE**, the TRIG keys and the transport keep their stock jobs: PAGE still picks which 16 steps the
+**LEFT / RIGHT** step through the pages: TAKE, RHYTHM, PLACE, DYNAMICS, NOTE, LOCK, TRIG, TIME, VIEW, TOOLS, TURING,
+and round again. **PAGE**, the TRIG keys and the transport keep their stock jobs: PAGE still picks which 16 steps the
 TRIG keys show, so you can see and edit every page of a take while Trig Seedr is open.
 
 ## Recipe and take
@@ -103,6 +103,8 @@ take stays only when you apply it.
 - **A take that cannot be written** (for example a lock the pattern has no room for) writes nothing and the strip
   says why for 2 seconds. See [messages](../keys/#messages).
 - **TOOLS** (ROT ALL and YOLO) follow the same rules, with small differences listed on [TOOLS](../tools/).
+- **TURING's live page** is a take that keeps changing while the pattern plays: the same rules, listed on
+  [TURING](../turing/#the-live-page).
 
 **Known quirk: YES + SCENE does not save while Trig Seedr is open.** Trig Seedr takes the YES as its own (with
 RECORD on, that YES generates), and SCENE closes Trig Seedr, so a pending take is not applied (NOT APPLIED). The
