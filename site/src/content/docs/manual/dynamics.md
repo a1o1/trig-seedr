@@ -18,6 +18,7 @@ Syntakt has no accent flag: there, ACC and AMOD are hidden ([Syntakt](../../devi
 | E | ACC | 0–100 % | 0 % | always |
 | F | AMOD | RAND, TOP | RAND | while ACC is above 0 |
 | G | HUM | 0–100 | 0 | always |
+| H | VSRC | RANGE, TURG | RANGE | always |
 
 ## Velocity: VEL, SHAPE, AMT, HUM
 
@@ -48,6 +49,9 @@ VEL is a range knob: the knob sets the high end, FUNC + knob the low end ([Range
 STRONG to NOTBAR and RANK follow TAKE's [METR and BEAT](../take/#metr-and-beat-the-meter); RANK always uses the
 METER order, whatever RHYTHM's ROLE says. NOISE works as NOTE's [noise contour](../note/#noise-a-contour-over-the-steps),
 with N as its ZOOM.
+
+**VSRC = TURG** takes each trig's velocity from the RHYTHM page's Turing machine, spread over VEL's range, so
+accents move with the machine's loop.
 
 ## The accent flag: ACC and AMOD
 

@@ -39,6 +39,20 @@ static const struct pg_choice c_shape[SEED_SHAPE_N] = {
 };
 static const struct pg_choice c_amod[SEED_AMOD_N] = { { "RAND", 0, 0 }, { "TOP", &seed_have_rank, 0 } };
 static const struct pg_choice c_lmod[SEED_LMOD_N] = { { "RANGE", 0, 0 }, { "LEGATO", &seed_have_list, 0 } };
+static const struct pg_choice c_turf[SEED_TURF_N] = { { "DJVU", 0, 0 }, { "CRPT", 0, 0 }, { "SHFT", 0, 0 } };
+static const struct pg_choice c_turs[SEED_TURS_N] = { { "SEED", 0, 0 }, { "TRACK", 0, 0 } };
+static const struct pg_choice c_scale[SEED_SCALE_N] = {
+    { "OFF", 0, 0 }, { "CHR", 0, 0 }, { "MAJ", 0, 0 }, { "MIN", 0, 0 }, { "DOR", 0, 0 }, { "PHR", 0, 0 },
+    { "LYD", 0, 0 }, { "MIX", 0, 0 }, { "LOC", 0, 0 }, { "HMIN", 0, 0 }, { "MMIN", 0, 0 }, { "PMAJ", 0, 0 },
+    { "PMIN", 0, 0 }, { "WHOLE", 0, 0 }, { "DIM", 0, 0 }, { "HIRA", 0, 0 }, { "7SUS4", 0, 0 }, { "MAJ7", 0, 0 },
+    { "MIN7", 0, 0 }
+};
+/* VEL's source on DYNAMICS: RANGE or TURG (0.9). DYNAMICS has no knobs left for LIST's or NOISE's own, so
+ * those two are not offered there (pg_never) */
+static const uint8_t pg_never = 0;
+static const struct pg_choice c_vsrc_vel[SEED_VSRC_N] = {
+    { "RANGE", 0, 0 }, { "LIST", &pg_never, 0 }, { "NOISE", &pg_never, 0 }, { "TURG", &seed_have_turing, 0 }
+};
 static const struct pg_choice c_vsrc[SEED_VSRC_N] = {
     { "RANGE", 0, 0 }, { "LIST", &seed_have_list, 0 }, { "NOISE", &seed_have_noise, 0 }, { "TURG", &seed_have_turing, 0 }
 };
@@ -92,6 +106,13 @@ const struct pg_row pg_rows[] = {
     { PG_RHYTHM, 5, "CHAOS", SHR(map_chaos), PK_INT, PF_NUM, 0, 255, 0, 0, &seed_have_map, 0, WHEN(src, PG_V(SEED_SRC_MAP)), 0 },
     /* COPY (F4) */
     { PG_RHYTHM, 1, "TRK", REC(copy_trk), PK_INT, PF_TRACK, 0, SEED_TRACKS - 1, 0, 0, &seed_have_copy, 0, WHEN(src, PG_V(SEED_SRC_COPY)), 0 },
+    /* TURING (0.9, T2; design-turing.md): the machine. TURG value sources with another SOURCE read these too
+     * (as SHAPE = MAP reads MAP's knobs) */
+    { PG_RHYTHM, 1, "FLAV", REC(tur_flav), PK_CHOICE, PF_NUM, 0, SEED_TURF_N - 1, 0, 0, &seed_have_turing, 0, WHEN(src, PG_V(SEED_SRC_TURING)), c_turf },
+    { PG_RHYTHM, 2, "LOOP", REC(tur_loop), PK_INT, PF_NUM, 1, SEED_TUR_LOOP, 0, 0, &seed_have_turing, 0, WHEN(src, PG_V(SEED_SRC_TURING)), 0 },
+    { PG_RHYTHM, 3, "AMT", REC(tur_amt), PK_INT, PF_NUM, 0, 100, 0, 0, &seed_have_turing, 0, WHEN(src, PG_V(SEED_SRC_TURING)), 0 },
+    { PG_RHYTHM, 4, "BIAS", REC(tur_bias), PK_INT, PF_PCT, 0, 100, 0, 0, &seed_have_turing, 0, WHEN(src, PG_V(SEED_SRC_TURING)), 0 },
+    { PG_RHYTHM, 5, "STRT", REC(tur_strt), PK_CHOICE, PF_NUM, 0, SEED_TURS_N - 1, 0, 0, &seed_have_turing, 0, WHEN(src, PG_V(SEED_SRC_TURING)), c_turs },
 
     /* PLACE (ROT, SKIP, FLD..FMOD: 0.2; SYNC: F5; MASK, MTRK: F4) */
     { PG_PLACE, 0, "ROT", REC(rot), PK_INT, PF_SIGNED, -63, 63, 0, 0, &seed_have_place, 0, ALWAYS, 0 },
@@ -113,6 +134,8 @@ const struct pg_row pg_rows[] = {
     /* AMOD: shown while ACC is above 0 (M2.1) */
     { PG_DYN, 5, "AMOD", REC(amod), PK_CHOICE, PF_NUM, 0, SEED_AMOD_N - 1, 0, PR_MULTI | PR_SENSE, &seed_have_dyn, SEED_F_ACCENT, ALWAYS, c_amod },
     { PG_DYN, 6, "HUM", REC(hum), PK_INT, PF_NUM, 0, 100, 0, 0, &seed_have_dyn, SEED_F_VEL, ALWAYS, 0 },
+    /* VEL's source (0.9, T2): RANGE or TURG, the machine's values over VEL's range */
+    { PG_DYN, 7, "VSRC", REC(vel.src), PK_CHOICE, PF_NUM, 0, SEED_VSRC_N - 1, 0, PR_MULTI, &seed_have_dyn, SEED_F_VEL, ALWAYS, c_vsrc_vel },
 
     /* NOTE (0.2; LMOD = LEGATO, LIST: F6; NOISE: F7) */
     { PG_NOTE, 0, "LEN", REC(len), PK_RANGE, PF_LEN, 0, 127, 14, PR_DEF, &seed_have_values, SEED_F_LEN, ALWAYS, 0 },
@@ -125,6 +148,8 @@ const struct pg_row pg_rows[] = {
       WHEN(note.src, PG_V(SEED_VSRC_LIST)), 0 },
     { PG_NOTE, 6, "ZOOM", REC(note.zoom), PK_INT, PF_NUM, 1, 64, 0, 0, &seed_have_noise, SEED_F_NOTE,
       WHEN(note.src, PG_V(SEED_VSRC_NOISE)), 0 },
+    /* SCALE and ROOT (0.9, T2; design-turing.md L9): the knob SCALE, FUNC + knob ROOT */
+    { PG_NOTE, 7, "SCALE", REC(scale), PK_SCALE, PF_NUM, 0, SEED_SCALE_N - 1, 0, 0, &seed_have_scale, SEED_F_NOTE, ALWAYS, c_scale },
 
     /* LOCK, the lane in view (UP / DOWN) (0.2; LIST: F6; NOISE: F7) */
     { PG_LOCK, 0, "PARM", LANE(parm), PK_INT, PF_PARM, 0, 0, 0, PR_LANES, &seed_have_values, SEED_F_LOCKS, ALWAYS, 0 },
@@ -391,6 +416,20 @@ int pg_turn(const struct pg_ctx *c, const struct pg_row *w, int d, int lo_end)
         *a = gs[clampi(i + d, 0, 3)];
         return *a != was;
     }
+    case PK_SCALE:
+        a = at(c, w);
+        if (lo_end) {                           /* ROOT, wrapping C..B, only while a scale is on */
+            if (*a == SEED_SCALE_OFF)
+                return 0;
+            a[1] = (int16_t)((a[1] + d + 12) % 12);
+            return 1;
+        }
+        for (v = *a + d; v >= lo && v <= hi; v += d)
+            if (choice_ok(c, w, v)) {
+                *a = (int16_t)v;
+                return 1;
+            }
+        return 0;
     case PK_CHOICE:
         a = at(c, w);
         for (v = *a + d; v >= lo && v <= hi; v += d)
@@ -552,6 +591,18 @@ char *pg_text(const struct pg_ctx *c, const struct pg_row *w, char *o, int part)
         int lo, hi, v = *at(c, w);
         limits(c, w, &lo, &hi);
         o = pg_put(o, v >= lo && v <= hi ? w->names[v].name : "?");
+        break;
+    }
+    case PK_SCALE: {                            /* OFF, or ROOT and SCALE: "C# HMIN" */
+        static const char *const root[12] = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
+        int lo, hi;
+        const int16_t *a = at(c, w);
+        limits(c, w, &lo, &hi);
+        if (a[0] > lo && a[0] <= hi && a[1] >= 0 && a[1] < 12) {
+            o = pg_put(o, root[a[1]]);
+            *o++ = ' ';
+        }
+        o = pg_put(o, a[0] >= lo && a[0] <= hi ? w->names[a[0]].name : "?");
         break;
     }
     case PK_RANGE: {

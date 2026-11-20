@@ -396,8 +396,8 @@ static void turn(int k, int d)
         yolo_used = -1;                         /* ROLL turned: YES plays the roll it shows */
     if (w->fmt == PF_GROOVE) {
         say(c.r->grv > 0 && c.r->grv <= N_GROOVES ? grooves[c.r->grv - 1].name : "NO GROOVE");
-    } else if (w->kind == PK_RANGE) {
-        /* a range too wide for its cell shows here in full */
+    } else if (w->kind == PK_RANGE || w->kind == PK_SCALE) {
+        /* a range (or a scale with its root) too wide for its cell shows here in full */
         char *o = pg_put(status, w->label);
         *o++ = ' ';
         pg_text(&c, w, o, 0);

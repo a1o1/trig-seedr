@@ -17,7 +17,7 @@ the trigs it gives. **SRC** (knob A) picks the source, and the other knobs are t
 
 | Knob | Name | Values | Default | Shown |
 |---|---|---|---|---|
-| A | SRC | TRACK, RAND, EUCLID, MAP, COPY | TRACK on a track with trigs, RAND on an empty one | always |
+| A | SRC | TRACK, RAND, EUCLID, MAP, COPY, TURG | TRACK on a track with trigs, RAND on an empty one | always |
 
 A new recipe starts on TRACK when the track has trigs and on RAND when it is empty. Each source's settings are kept
 while another source is chosen.
@@ -150,3 +150,29 @@ conditions are not copied, and the later pages fill the new trigs' fields.
 - COPY draws no random numbers: SEED and VARY change only the later pages.
 - COPY reads the other track as it is now; the strip follows it when you change that track. A take already written
   does not change when the other track changes later; YES renders it again.
+
+## TURG
+
+| Knob | Name | Values | Default | Shown | Does |
+|---|---|---|---|---|---|
+| B | FLAV | DJVU, CRPT, SHFT | DJVU | with SRC = TURG | how the loop changes from one pass to the next |
+| C | LOOP | 1–16 | 8 | with SRC = TURG | the loop's length in steps (SHFT: at least 2) |
+| D | AMT | 0–100 | 25 | with SRC = TURG | how much the loop changes each pass; what it does depends on FLAV |
+| E | BIAS | 0–100 % | 50 % | with SRC = TURG | the chance a new step of the loop gets a trig |
+| F | STRT | SEED, TRACK | SEED | with SRC = TURG | the first pass: random steps from the seed, or the track's own first LOOP steps |
+
+TURG is a Turing machine: a loop of LOOP steps that plays again and again down the track, changing a little each
+time round. Each step of the loop holds a trig (on or off) and a value; the value can drive NOTE, VEL and LOCK's
+lanes through their value source TURG, so pitch, dynamics and locks change with the rhythm. On a 64-step track with
+LOOP 8 you hear eight passes, each drawn from the one before.
+
+| FLAV | AMT 0 | AMT 50 | AMT 100 |
+|---|---|---|---|
+| DJVU | every pass new | the loop repeats exactly | the loop's steps play in a shuffled order |
+| CRPT | the loop repeats exactly | values change (up to 25 % a pass), trigs stay | values change more and trigs flip, up to half a pass |
+| SHFT | the loop inverts each pass, so it repeats every two | a coin flip for each step | the loop repeats exactly |
+
+- **STRT = TRACK** starts from the track's own first LOOP steps, so the machine evolves your pattern.
+- The machine is seeded as every source is: the same SEED gives the same take, VARY works as on RAND.
+- With SRC set to another source, a value source TURG still uses the machine as set here.
+- The live TURING page, which changes the loop while the pattern plays, comes with its own page.

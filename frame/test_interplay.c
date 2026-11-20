@@ -63,7 +63,7 @@ static void page_ctx(struct pg_ctx *c, int lane)
 /* where a row's value lives, and how many bytes */
 static uint8_t *at(const struct pg_ctx *c, const struct pg_row *w, size_t *n)
 {
-    *n = w->kind == PK_RANGE ? 2 * sizeof(int16_t) : w->kind == PK_SEED ? sizeof(uint32_t) : sizeof(int16_t);
+    *n = w->kind == PK_RANGE || w->kind == PK_SCALE ? 2 * sizeof(int16_t) : w->kind == PK_SEED ? sizeof(uint32_t) : sizeof(int16_t);
     switch (w->base) {
     case PB_RECIPE: return (uint8_t *)&r + w->off;
     case PB_LANE:   return (uint8_t *)&r.lane[c->lane] + w->off;
@@ -104,6 +104,7 @@ static void set_random(const struct pg_ctx *c, const struct pg_row *w, int diffe
         switch (w->kind) {
         case PK_SEED: *(uint32_t *)p = (uint32_t)prop_int(&g, 0, 9999); break;
         case PK_GRID: { static const int16_t gs[4] = { 1, 2, 4, 8 }; *(int16_t *)p = gs[prop_int(&g, 0, 3)]; break; }
+        case PK_SCALE: ((int16_t *)p)[0] = (int16_t)prop_int(&g, lo, hi); ((int16_t *)p)[1] = (int16_t)prop_int(&g, 0, 11); break;
         case PK_RANGE: {
             struct seed_values *v = (struct seed_values *)p;
             if ((w->flags & PR_DEF) && prop_chance(&g, 30)) {
@@ -220,6 +221,17 @@ static int map_shape_reads(const struct pg_row *w)
         || (w->base == PB_SHARED && (w->off == offsetof(struct seed_shared, map_x) || w->off == offsetof(struct seed_shared, map_y)));
 }
 
+/* TURG value sources with another SOURCE read RHYTHM's TURING knobs, hidden then (pages.c; as SHAPE = MAP
+ * reads MAP's) */
+static int turg_reads(const struct pg_row *w)
+{
+    if (r.src == SEED_SRC_TURING || !seed_turing_used(&r) || w->base != PB_RECIPE)
+        return 0;
+    return w->off == offsetof(struct seed_recipe, tur_flav) || w->off == offsetof(struct seed_recipe, tur_loop)
+        || w->off == offsetof(struct seed_recipe, tur_amt) || w->off == offsetof(struct seed_recipe, tur_bias)
+        || w->off == offsetof(struct seed_recipe, tur_strt);
+}
+
 static int count(const struct seed_track *t)
 {
     int i, n = 0;
@@ -300,7 +312,7 @@ static void test_case(void)
             const struct pg_row *w = &pg_rows[i];
             if (w->page > PG_TIME || w->base == PB_UI || w->base == PB_TOOL || (w->base != PB_LANE && lane))
                 continue;
-            if (pg_row_shown(&c, w) || storage_shown(w, lane) || map_shape_reads(w))
+            if (pg_row_shown(&c, w) || storage_shown(w, lane) || map_shape_reads(w) || turg_reads(w))
                 continue;
             set_random(&c, w, 1);
             rc = render(&out);
