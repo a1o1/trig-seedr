@@ -97,6 +97,7 @@ void seed_recipe_defaults(struct seed_recipe *r, const struct seed_caps *caps)
     r->tur_strt = SEED_TURS_SEED;
     r->scale = SEED_SCALE_OFF;
     r->root = 0;
+    r->spare = 0;
 }
 
 void seed_recipe_init(struct seed_recipe *r, const struct seed_track *t, const struct seed_recipe *last,

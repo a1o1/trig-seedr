@@ -224,6 +224,8 @@ struct seed_recipe {
     int16_t tur_strt;                 /* enum seed_turs: the first pass from random cells or the original */
     int16_t scale;                    /* enum seed_scale (NOTE) */
     int16_t root;                     /* 0..11, C..B: the scale's root */
+    int16_t spare;                    /* 0: keeps the size a multiple of 4, so the host's and ColdFire's agree
+                                       * (the host aligns the struct to seed's 4 bytes, ColdFire to 2) */
 };
 
 /* settings shared by a pattern's tracks (A1) */
