@@ -14,7 +14,9 @@
 #include <stdint.h>
 #include "../lib/seed.h"
 
-enum pg_page { PG_TAKE, PG_RHYTHM, PG_PLACE, PG_DYN, PG_NOTE, PG_LOCK, PG_TRIG, PG_TIME, PG_VIEW, PG_TOOLS, PG_N };
+enum pg_page { PG_TAKE, PG_RHYTHM, PG_PLACE, PG_DYN, PG_NOTE, PG_LOCK, PG_TRIG, PG_TIME, PG_VIEW, PG_TOOLS,
+               PG_TURING,             /* the live machine (0.9, design-turing.md TD1): the ring's end */
+               PG_N };
 
 /* where a row's value lives */
 enum pg_base {
@@ -59,6 +61,7 @@ enum pg_fmt {
 #define PR_KEEP  0x10                 /* not part of the take: a turn does not count for YES's next seed */
 #define PR_SENSE 0x20                 /* shown only while it can change the take: a rule in pages.c that
                                          reads other settings or the track's length (task M2.1) */
+#define PR_LIVE  0x40                 /* shown only when the device can run TURING live (pg_ctx.live, L8) */
 
 #define PG_ANY 0                      /* `when_mask` 0: always */
 #define PG_V(v) (1u << (v))           /* `when_mask` bit for value v */
@@ -101,6 +104,7 @@ struct pg_ctx {
     int length;                       /* the track's length */
     int ngrooves;
     const char *(*track_name)(int t); /* PF_TRACK */
+    int live;                         /* 1 when the device gives the playhead (TURING's live page, L8) */
 };
 
 extern const struct pg_row pg_rows[];

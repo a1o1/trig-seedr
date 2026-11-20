@@ -6,7 +6,7 @@
 #include "pages.h"
 
 const char *const pg_names[PG_N] = {
-    "TAKE", "RHYTHM", "PLACE", "DYNAMICS", "NOTE", "LOCK", "TRIG", "TIME", "VIEW", "TOOLS"
+    "TAKE", "RHYTHM", "PLACE", "DYNAMICS", "NOTE", "LOCK", "TRIG", "TIME", "VIEW", "TOOLS", "TURING"
 };
 
 /* ---- choices ---- */
@@ -15,6 +15,8 @@ static const struct pg_choice c_src[SEED_SRC_N] = {
     { "TRACK", 0, 0 }, { "RAND", &seed_have_random, 0 }, { "EUCLID", &seed_have_euclid, 0 },
     { "MAP", &seed_have_map, 0 }, { "COPY", &seed_have_copy, 0 }, { "TURG", &seed_have_turing, 0 }
 };
+/* TURING's flavours (0.9, TD3, TD5) */
+static const struct pg_choice c_turf[SEED_TURF_N] = { { "DJVU", 0, 0 }, { "CRPT", 0, 0 }, { "SHFT", 0, 0 } };
 static const struct pg_choice c_role[SEED_ROLE_N] = {
     { "METER", 0, 0 }, { "KICK", 0, 0 }, { "BACK", 0, 0 }, { "HAT", 0, 0 }, { "PERC", 0, 0 }
 };
@@ -167,6 +169,12 @@ const struct pg_row pg_rows[] = {
     /* YOLO (0.7): a recipe rolled for this track; WILD how far, ROLL which (YES with ROLL unturned: the next) */
     { PG_TOOLS, 1, "WILD", TOOL(wild), PK_INT, PF_PCT, 0, 100, 0, PR_KEEP, &seed_have_yolo, 0, TWHEN(tool, PG_V(SEED_TOOL_YOLO)), 0 },
     { PG_TOOLS, 2, "ROLL", TOOL(roll), PK_INT, PF_NUM, 0, 9999, 0, PR_KEEP, &seed_have_yolo, 0, TWHEN(tool, PG_V(SEED_TOOL_YOLO)), 0 },
+    /* TURING, the live page (0.9, T3; design-turing.md L6, L7): the track's own TURING knobs, read by
+     * the machine while it runs; shown only on a device that gives the playhead (PR_LIVE) */
+    { PG_TURING, 0, "FLAV", REC(tur_flav), PK_CHOICE, PF_NUM, 0, SEED_TURF_N - 1, 0, PR_LIVE, &seed_have_turing, 0, ALWAYS, c_turf },
+    { PG_TURING, 1, "LOOP", REC(tur_loop), PK_INT, PF_NUM, 1, SEED_TUR_LOOP, 0, PR_LIVE, &seed_have_turing, 0, ALWAYS, 0 },
+    { PG_TURING, 2, "AMT", REC(tur_amt), PK_INT, PF_NUM, 0, 100, 0, PR_LIVE, &seed_have_turing, 0, ALWAYS, 0 },
+    { PG_TURING, 3, "BIAS", REC(tur_bias), PK_INT, PF_PCT, 0, 100, 0, PR_LIVE, &seed_have_turing, 0, ALWAYS, 0 },
 };
 const int pg_nrows = (int)(sizeof pg_rows / sizeof pg_rows[0]);
 
@@ -264,6 +272,8 @@ int pg_row_shown(const struct pg_ctx *c, const struct pg_row *w)
     if (!pg_built(w->have) || (c->fields & w->field) != w->field)
         return 0;
     if ((w->flags & PR_SENSE) && !sense(c, w))
+        return 0;
+    if ((w->flags & PR_LIVE) && !c->live)
         return 0;
     if ((w->flags & PR_LANES) && (!c->caps || c->lane >= c->caps->lanes || !c->caps->nparams))
         return 0;

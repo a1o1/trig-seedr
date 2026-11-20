@@ -57,6 +57,9 @@ static void ctx(struct pg_ctx *c)
     c->length = 16;
     c->ngrooves = 5;
     c->track_name = names;
+#ifndef PAGES_DEVICE_ST
+    c->live = 1;                    /* the Rytm gives the playhead: TURING's live page (T3) */
+#endif
 }
 
 static void fresh(void)
@@ -525,6 +528,24 @@ static void test_st_fields(void)
 }
 #endif
 
+/* TURING's live page (T3): the ring's last page, shown only when the device gives the playhead; its
+ * four knobs are the track's own TURING settings */
+static void test_turing_page(void)
+{
+    struct pg_ctx c;
+    ctx(&c);
+    fresh();
+    c.live = 1;
+    CHECK(pg_page_shown(&c, PG_TURING), "TURING shown with a playhead");
+    CHECK(pg_page_step(&c, PG_TOOLS, 1) == PG_TURING, "RIGHT from TOOLS: TURING");
+    CHECK(pg_page_step(&c, PG_TURING, 1) == PG_TAKE, "RIGHT from TURING: TAKE");
+    CHECK(row(&c, PG_TURING, "FLAV") && row(&c, PG_TURING, "LOOP") && row(&c, PG_TURING, "AMT")
+          && row(&c, PG_TURING, "BIAS"), "TURING: FLAV, LOOP, AMT, BIAS");
+    c.live = 0;
+    CHECK(!pg_page_shown(&c, PG_TURING), "TURING hidden without a playhead");
+    CHECK(pg_page_step(&c, PG_TOOLS, 1) == PG_TAKE, "no playhead: RIGHT from TOOLS wraps to TAKE");
+}
+
 int main(void)
 {
     test_one_row_a_knob();
@@ -535,6 +556,7 @@ int main(void)
     test_reachable();
     test_text();
     test_fld_fields();
+    test_turing_page();
 #ifdef PAGES_DEVICE_ST
     test_st_fields();
     printf("test_pages (Syntakt): %d checks, %d failed\n", checks, failed);

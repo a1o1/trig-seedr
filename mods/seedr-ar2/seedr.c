@@ -11,6 +11,7 @@
 #include "analog-rytm-mk2/store.h"
 #include "analog-rytm-mk2/load.h"
 #include "../../device/rytm_ar2.h"
+#define SD_LIVE 1                       /* TURING's live page (0.9, T3): sd_playhead, sd_write_one below */
 #include "../../frame/frame.h"
 /* the groove tables: tools/groove2h.py. grooves-live.h (from your own Ableton Live grooves) is
  * kept out of the repository; without it the swing-only grooves-swing.h is used */
@@ -178,6 +179,18 @@ static int sd_text_width(const char *s)
 static int sd_font_height(void)
 {
     return core_font_height(CORE_FONT_MAIN);
+}
+
+/* TURING's live page (0.9, T3): the playhead from core-ar2's sequencer getters, polled from the
+ * tick, and one-step writes behind it (device/rytm_ar2.h, docs/status/T0a.md) */
+static int sd_playhead(int t, int *len)
+{
+    return rt_playhead(t, len);
+}
+
+static int sd_write_one(int t, const int16_t *parm, const struct seed_track *take, int i)
+{
+    return rt_seed_write_one(t, parm, take, i);
 }
 
 #include "../../frame/frame.c"
