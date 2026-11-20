@@ -55,6 +55,11 @@
 /* a stock parameter id's lock slot: byte +7 of its entry in the parameter table (505 entries of 52
  * bytes at 0x4022d83c; S0.5); 255 for a parameter stock does not lock */
 #define ST_SLOT(id)       ((id) < 505 ? ((const uint8_t *)0x4022d843)[52 * (id)] : 255)
+/* the sequencer's state, written by its interrupt (0x4008c924), a byte per track 0..12 (task T0b; firmware
+ * notes section 9; Synfact's docs/MACHINE-REFERENCE.md section 9 gives OS 1.41's, 0x1000 lower): 1 while
+ * the sequencer runs (0 after STOP); the step each track played last (STOP sets it to 0) */
+#define ST_SEQ_RUNNING    ((volatile const uint8_t *)0x43bd83bf)
+#define ST_SEQ_LAST       ((volatile const uint8_t *)0x43bd8416)
 #else
 unsigned st_host_app(void);
 unsigned st_host_active_pattern(unsigned app);
@@ -86,6 +91,9 @@ int st_host_slot(int id);
 #define ST_LOCK_SET       st_host_lock_set
 #define ST_LOCK_CLEAR     st_host_lock_clear
 #define ST_SLOT(id)       st_host_slot(id)
+extern uint8_t st_host_seq_running, st_host_seq_last[13];
+#define ST_SEQ_RUNNING    (&st_host_seq_running)
+#define ST_SEQ_LAST       (st_host_seq_last)
 #endif
 
 #define ST_RECORD_SIZE 0x499
@@ -698,8 +706,10 @@ static inline int st_seed_room(int track, const int16_t *parm, const struct seed
 }
 
 /* write: the settings first (nothing is written when one is refused), then each step below the
- * track's length that differs */
-static inline int st_seed_write(int track, const int16_t *parm, const struct seed_track *t)
+ * track's length that differs; with a mask (a bit per step, bit i of byte i / 8), only the steps it names
+ * (TURING's live page writes the steps the playhead has passed: task T0b) */
+static inline int st_seed_write_steps(int track, const int16_t *parm, const struct seed_track *t,
+                                      const uint8_t *mask)
 {
     struct st_seed_state *st = st_seed_state();
     unsigned obj;
@@ -716,12 +726,55 @@ static inline int st_seed_write(int track, const int16_t *parm, const struct see
     e = st_seed_room_src(track, obj, parm, t);
     if (e == SEED_OK)
         for (i = 0; i < n; i++) {
+            if (mask && !(mask[i >> 3] >> (i & 7) & 1))
+                continue;
             st_seed_target(&w, src, track, parm, &t->s[i], i);
             changed += st_apply(obj, i, &w, t->s[i].origin < 0);
         }
     st_seed_source_done(track);
     st->written = changed;
     return e;
+}
+
+static inline int st_seed_write(int track, const int16_t *parm, const struct seed_track *t)
+{
+    return st_seed_write_steps(track, parm, t, 0);
+}
+
+/* the playhead (task T0b): the step track t played last, 0..63, or -1 while the sequencer is stopped. Polled
+ * from the UI tick; the sequencer prepares a step's trig a step ahead (at the step before's tick 0), so a step
+ * at or behind this one is heard again only on the next loop. Each track counts its own length and speed. */
+static inline int st_playhead(int t)
+{
+    int s;
+    if (t < 0 || t >= ST_TRACKS || !*ST_SEQ_RUNNING)
+        return -1;
+    s = ST_SEQ_LAST[t];
+    return s < SEED_STEPS ? s : -1;
+}
+
+/* the steps a track's playhead passed between two reads (from, exclusive, to, inclusive) on a track of len
+ * steps, as a mask (bit i of byte i / 8); from -1: only `to`; from == to: none (it has not moved). Returns how
+ * many. Polled at the UI tick, several steps can pass between reads (300 BPM at speed 2x is a step every 25 ms);
+ * a 1-step track never changes its step, so its loops cannot be seen this way (status/T0b.md). */
+static inline int st_steps_passed(int from, int to, int len, uint8_t *mask)
+{
+    int i, n = 0;
+    for (i = 0; i < SEED_STEPS / 8; i++)
+        mask[i] = 0;
+    if (to < 0 || len < 1 || len > SEED_STEPS || to >= len)
+        return 0;
+    if (from == to)
+        return 0;
+    if (from < 0 || from >= len)
+        from = (to + len - 1) % len;
+    for (i = (from + 1) % len;; i = (i + 1) % len) {
+        mask[i >> 3] |= (uint8_t)(1 << (i & 7));
+        n++;
+        if (i == to || n >= len)
+            break;
+    }
+    return n;
 }
 
 static inline int st_seed_current(void)

@@ -24,6 +24,7 @@ static uint8_t rec[ST_TRACKS][ST_RECORD_SIZE], lks[ST_TRACKS][ST_LOCKS_SIZE];
 static int len[ST_TRACKS], cur = 0, calls, notices, grid;
 
 static int T(unsigned obj) { return (int)((obj - PAT) / ST_PAT_STRIDE) - 1; }
+uint8_t st_host_seq_running, st_host_seq_last[13];
 unsigned st_host_app(void) { return 1; }
 unsigned st_host_active_pattern(unsigned app) { (void)app; return PAT; }
 unsigned st_host_active_track(unsigned app) { (void)app; return st_track_obj(PAT, cur); }
@@ -526,6 +527,97 @@ static void test_rotate(void)
     CHECK(st_seed_rotate(3, 5) == 0 && same());
 }
 
+/* the playhead (task T0b): -1 while stopped or for a track out of range; the step played last while running */
+static void test_playhead(void)
+{
+    int t;
+    st_host_seq_running = 0;
+    for (t = 0; t < ST_TRACKS; t++)
+        st_host_seq_last[t] = (uint8_t)(t * 3);
+    CHECK(st_playhead(2) == -1);
+    st_host_seq_running = 1;
+    for (t = 0, checks++; t < ST_TRACKS; t++)
+        if (st_playhead(t) != t * 3) { fails++; printf("FAIL playhead %d\n", t); break; }
+    CHECK(st_playhead(-1) == -1 && st_playhead(ST_TRACKS) == -1);
+    st_host_seq_last[4] = 64;
+    CHECK(st_playhead(4) == -1);
+    st_host_seq_running = 0;
+}
+
+/* the steps passed between two reads, as a mask */
+static void test_steps_passed(void)
+{
+    uint8_t m[SEED_STEPS / 8];
+    int len, from, to, i, n, ok;
+    CHECK(st_steps_passed(3, 3, 16, m) == 0);
+    CHECK(st_steps_passed(-1, 5, 16, m) == 1 && m[0] == 0x20 && m[1] == 0);
+    CHECK(st_steps_passed(14, 1, 16, m) == 3 && m[0] == 0x03 && m[1] == 0x80);
+    CHECK(st_steps_passed(2, 20, 16, m) == 0);
+    for (len = 1, ok = 1; len <= SEED_STEPS; len++)
+        for (from = -1; from < len; from++)
+            for (to = 0; to < len; to++) {
+                int want = from < 0 ? 1 : from == to ? 0 : (to - from + len) % len;
+                n = st_steps_passed(from, to, len, m);
+                ok &= n == want;
+                for (i = 0; i < SEED_STEPS; i++) {
+                    int in = from < 0 ? i == to : from != to && (i - from + len) % len >= 1 &&
+                             (i - from + len) % len <= (to - from + len) % len && i < len;
+                    ok &= ((m[i >> 3] >> (i & 7)) & 1) == in;
+                }
+            }
+    CHECK(ok);
+}
+
+/* a masked write changes only the steps it names, and each as the whole write would; restore while it runs is
+ * byte-identical (TURING's live page writes behind the playhead) */
+static void test_write_steps(int cases)
+{
+    uint8_t m[SEED_STEPS / 8], recw[ST_TRACKS][ST_RECORD_SIZE], lksw[ST_TRACKS][ST_LOCKS_SIZE];
+    int c, t, n, i, k, ok;
+    for (c = 0; c < cases; c++) {
+        fixture_n(5000 + (uint32_t)c);
+        t = rnd(ST_TRACKS);
+        n = 1 + rnd(64);
+        len[t] = n;
+        lanes[0] = (int16_t)rnd(10);
+        lanes[1] = (int16_t)(rnd(10) + 10);
+        save();
+        CHECK(dev->snapshot((uint16_t)(1u << t)) == SEED_OK);
+        CHECK(dev->read(t, lanes, &a) == SEED_OK);
+        b = a;
+        random_take(&b, n);
+        /* the whole write, kept as the reference, then back to the original */
+        if (dev->write(t, lanes, &b) != SEED_OK) {
+            dev->drop();
+            continue;
+        }
+        memcpy(recw, rec, sizeof rec);
+        memcpy(lksw, lks, sizeof lks);
+        dev->restore();
+        CHECK(same());
+        /* the masked writes, a few steps at a time in playhead order, then the whole track is the reference */
+        for (i = 0; i < SEED_STEPS / 8; i++)
+            m[i] = 0;
+        for (i = 0, ok = 1; i < n; i += k) {
+            k = 1 + rnd(3);
+            if (n > 1 && k >= n)
+                k = n - 1;   /* a whole loop between two reads cannot be told from no move */
+            /* from the step before, in loop order (step n - 1 comes before step 0; one step alone: -1) */
+            st_steps_passed(i > 0 ? i - 1 : n > 1 ? n - 1 : -1, i + k - 1 < n ? i + k - 1 : n - 1, n, m);
+            if (st_seed_write_steps(t, lanes, &b, m) != SEED_OK) { ok = 0; break; }
+        }
+        CHECK(ok);
+        CHECK(!memcmp(recw[t], rec[t], sizeof rec[t]) && !memcmp(lksw[t], lks[t], sizeof lks[t]));
+        for (i = 0, ok = 1; i < ST_TRACKS; i++)
+            if (i != t)
+                ok &= same_track(i);
+        CHECK(ok);
+        dev->restore();
+        CHECK(same());
+        dev->drop();
+    }
+}
+
 int main(void)
 {
     int cases = getenv("DEV_FUZZ") ? atoi(getenv("DEV_FUZZ")) : 2000;
@@ -542,6 +634,9 @@ int main(void)
     test_snapshot();
     test_context();
     test_rotate();
+    test_playhead();
+    test_steps_passed();
+    test_write_steps(500);
     test_fuzz(cases);
     printf("  test_syntakt_st: %d checks, %d failed\n", checks, fails);
     return fails != 0;
