@@ -32,7 +32,9 @@ enum pg_kind {
     PK_RANGE,                         /* a struct seed_values' lo / hi; FUNC + knob: the low end */
     PK_SEED,                          /* the uint32_t seed, lo..hi; FUNC + knob: 100 a step */
     PK_GRID,                          /* an int16_t, 1, 2, 4 or 8 */
-    PK_CURSOR                         /* PB_UI's int, 0 .. the track's length - 1 */
+    PK_CURSOR,                        /* PB_UI's int, 0 .. the track's length - 1 */
+    PK_SCALE                          /* NOTE's SCALE (an index into `names`) and the int16_t after it, ROOT 0..11:
+                                       * the knob turns SCALE; FUNC + knob turns ROOT, while SCALE is not OFF */
 };
 
 /* how a value reads */

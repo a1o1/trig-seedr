@@ -149,13 +149,15 @@ static void test_turns(void)
                 break;
             default:
                 lo_b = (w->base == PB_LANE ? offsetof(struct seed_recipe, lane) + lane * sizeof(struct seed_lane) : 0) + w->off;
-                hi_b = lo_b + (w->kind == PK_RANGE ? 2 * sizeof(int16_t) : w->kind == PK_SEED ? sizeof(uint32_t) : sizeof(int16_t));
+                hi_b = lo_b + (w->kind == PK_RANGE || w->kind == PK_SCALE ? 2 * sizeof(int16_t) : w->kind == PK_SEED ? sizeof(uint32_t) : sizeof(int16_t));
                 CHECK(memcmp(&r, &before, lo_b) == 0 && memcmp((uint8_t *)&r + hi_b, (uint8_t *)&before + hi_b, sizeof r - hi_b) == 0,
                       "%s (lane %d): touched bytes outside its value", w->label, lane);
                 CHECK(memcmp(&sh, &sh0, sizeof sh) == 0 && memcmp(&tool, &t0, sizeof tool) == 0, "%s: touched another struct", w->label);
                 break;
             }
             /* inside the limits */
+            if (w->kind == PK_SCALE)
+                CHECK(r.scale >= w->lo && r.scale <= w->hi && r.root >= 0 && r.root < 12, "SCALE %d ROOT %d", r.scale, r.root);
             if (w->kind == PK_INT || w->kind == PK_CHOICE || w->kind == PK_GRID) {
                 int16_t v = *(int16_t *)((w->base == PB_LANE ? (uint8_t *)&r.lane[lane] : w->base == PB_SHARED ? (uint8_t *)&sh :
                                           w->base == PB_TOOL ? (uint8_t *)&tool : (uint8_t *)&r) + w->off);
