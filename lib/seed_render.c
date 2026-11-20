@@ -89,6 +89,14 @@ void seed_recipe_defaults(struct seed_recipe *r, const struct seed_caps *caps)
     r->rand = 0;
     r->drft = 0;
     r->shft = 0;
+    /* TURING and SCALE (0.9): used only when SOURCE is TURING or a value source TURG; SCALE OFF */
+    r->tur_flav = SEED_TURF_DJVU;
+    r->tur_loop = 8;
+    r->tur_amt = 25;
+    r->tur_bias = 50;
+    r->tur_strt = SEED_TURS_SEED;
+    r->scale = SEED_SCALE_OFF;
+    r->root = 0;
 }
 
 void seed_recipe_init(struct seed_recipe *r, const struct seed_track *t, const struct seed_recipe *last,
@@ -187,6 +195,7 @@ static int place(struct seed_track *t, const struct seed_track *orig, const stru
         case SEED_SRC_EUCLID: STAGE(1, seed_src_euclid); break;
         case SEED_SRC_MAP:    STAGE(1, seed_src_map); break;
         case SEED_SRC_COPY:   STAGE(1, seed_src_copy); break;
+        case SEED_SRC_TURING: STAGE(1, seed_src_turing); break;
         default: return SEED_E_ARG;
         }
     }
@@ -218,8 +227,23 @@ static int dress(struct seed_track *t, const struct seed_recipe *r, const struct
  * candidate's numbers differ from candidate 0's only in RHYTHM and PLACE (seed_rng.c) and no
  * later layer moves a trig, so each candidate runs to the end of PLACE and is scored there; the
  * later layers then run once, on the winner. */
+/* TURING (0.9): the take's run, once per candidate, before anything reads it (k->tur) */
+static int turing(struct seed_take *k, const struct seed_track *orig, const struct seed_recipe *r, struct seed_tur *tur)
+{
+    int rc;
+    if (!seed_turing_used(r))
+        return SEED_OK;
+    if (!seed_have_turing)
+        return SEED_E_NA;
+    rc = seed_turing_run(tur, orig, r, k);
+    if (rc < 0)
+        return rc;
+    k->tur = tur;
+    return SEED_OK;
+}
+
 static int best(struct seed_track *t, const struct seed_track *orig, const struct seed_recipe *r,
-                const struct seed_ctx *c, uint32_t n, struct seed_track *scratch)
+                const struct seed_ctx *c, uint32_t n, struct seed_track *scratch, struct seed_tur *tur)
 {
     struct seed_take k;
     int rc, q = clamp(r->qual, 1, 8), top = 0, win = 0, i;
@@ -228,6 +252,9 @@ static int best(struct seed_track *t, const struct seed_track *orig, const struc
         int s;
         seed_take_init(&k, n, (uint32_t)c->track, r->vary, i);
         k.length = clamp(orig->length, 1, SEED_STEPS);      /* NOISE wraps there */
+        rc = turing(&k, orig, r, tur);
+        if (rc < 0)
+            return rc;
         rc = place(u, orig, r, c, &k);
         if (rc < 0)
             return rc;
@@ -245,6 +272,9 @@ static int best(struct seed_track *t, const struct seed_track *orig, const struc
     }
     seed_take_init(&k, n, (uint32_t)c->track, r->vary, win);
     k.length = clamp(orig->length, 1, SEED_STEPS);
+    rc = turing(&k, orig, r, tur);                          /* the winner's run, for the values */
+    if (rc < 0)
+        return rc;
     return dress(t, r, c, &k);
 }
 
@@ -254,10 +284,10 @@ static int take(struct seed_track *t, const struct seed_track *orig, const struc
 {
     int rc;
     if (r->cvar == SEED_CVAR_OFF)
-        return best(t, orig, r, c, n, &w->c);
-    rc = best(&w->a, orig, r, c, n, &w->c);
+        return best(t, orig, r, c, n, &w->c, &w->tur);
+    rc = best(&w->a, orig, r, c, n, &w->c, &w->tur);
     if (rc >= 0)
-        rc = best(&w->b, orig, r, c, n + 1u, &w->c);
+        rc = best(&w->b, orig, r, c, n + 1u, &w->c, &w->tur);
     if (rc >= 0)
         rc = seed_cvar_merge(t, &w->a, &w->b, r);
     return rc;

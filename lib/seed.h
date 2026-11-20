@@ -99,7 +99,9 @@ struct seed_track {
 
 #define SEED_DEF (-32768)
 
-enum seed_src     { SEED_SRC_TRACK, SEED_SRC_RANDOM, SEED_SRC_EUCLID, SEED_SRC_MAP, SEED_SRC_COPY, SEED_SRC_N };
+enum seed_src     { SEED_SRC_TRACK, SEED_SRC_RANDOM, SEED_SRC_EUCLID, SEED_SRC_MAP, SEED_SRC_COPY,
+                    SEED_SRC_TURING,            /* TURING (0.9, design-turing.md): the machine's trig bits */
+                    SEED_SRC_N };
 enum seed_role    { SEED_ROLE_METER, SEED_ROLE_KICK, SEED_ROLE_BACK, SEED_ROLE_HAT, SEED_ROLE_PERC, SEED_ROLE_N };
 enum seed_metr    { SEED_METR_4_4, SEED_METR_3_4, SEED_METR_6_8, SEED_METR_12_16, SEED_METR_5_8, SEED_METR_7_8, SEED_METR_N };
 enum seed_phrs    { SEED_PHRS_OFF, SEED_PHRS_AAAA, SEED_PHRS_AAAB, SEED_PHRS_ABAB, SEED_PHRS_ABAC, SEED_PHRS_ABCD, SEED_PHRS_N };
@@ -122,11 +124,22 @@ enum seed_amod    { SEED_AMOD_RAND, SEED_AMOD_TOP, SEED_AMOD_N };
 enum seed_lmod    { SEED_LMOD_RANGE, SEED_LMOD_LEGATO, SEED_LMOD_N };
 /* where a per-trig value comes from (V9: every value field takes the same sources; note pools
  * and pattern lists are later values of this enum) */
-enum seed_vsrc    { SEED_VSRC_RANGE, SEED_VSRC_LIST, SEED_VSRC_NOISE, SEED_VSRC_N };
+enum seed_vsrc    { SEED_VSRC_RANGE, SEED_VSRC_LIST, SEED_VSRC_NOISE,
+                    SEED_VSRC_TURG,             /* TURING's cell values, step by step (0.9, L3) */
+                    SEED_VSRC_N };
 enum seed_order   { SEED_ORDR_UP, SEED_ORDR_DOWN, SEED_ORDR_PING, SEED_ORDR_PNG2, SEED_ORDR_ODD, SEED_ORDR_RAND,
                     SEED_ORDR_N };
 enum seed_ctyp    { SEED_CTYP_PROB, SEED_CTYP_AB, SEED_CTYP_1ST, SEED_CTYP_FILL, SEED_CTYP_MIX, SEED_CTYP_N };
 enum seed_tool_id { SEED_TOOL_ROTATE_ALL, SEED_TOOL_YOLO, SEED_TOOL_N };
+/* TURING (0.9, docs/design-turing.md): the flavour (TD3) and the first pass (L5) */
+enum seed_turf    { SEED_TURF_DJVU, SEED_TURF_CRPT, SEED_TURF_SHFT, SEED_TURF_N };
+enum seed_turs    { SEED_TURS_SEED, SEED_TURS_TRACK, SEED_TURS_N };
+/* NOTE's SCALE (0.9, L9): OFF leaves every note as the value source gives it */
+enum seed_scale   { SEED_SCALE_OFF, SEED_SCALE_CHR, SEED_SCALE_MAJ, SEED_SCALE_MIN, SEED_SCALE_DOR, SEED_SCALE_PHR,
+                    SEED_SCALE_LYD, SEED_SCALE_MIX, SEED_SCALE_LOC, SEED_SCALE_HMIN, SEED_SCALE_MMIN, SEED_SCALE_PMAJ,
+                    SEED_SCALE_PMIN, SEED_SCALE_WHOLE, SEED_SCALE_DIM, SEED_SCALE_HIRA, SEED_SCALE_7SUS4,
+                    SEED_SCALE_MAJ7, SEED_SCALE_MIN7, SEED_SCALE_N };
+#define SEED_TUR_LOOP 16            /* TURING's longest loop, in cells */
 
 #define SEED_LIST_MAX 16            /* the longest value list */
 
@@ -202,6 +215,15 @@ struct seed_recipe {
     int16_t rand;                     /* 0..100 % of the device's micro-timing range, random */
     int16_t drft;                     /* 0..100: correlated drift */
     int16_t shft;                     /* the groove moved this many steps later (negative: earlier) */
+    /* TURING and SCALE (0.9, design-turing.md L10): at the end, so every earlier field keeps its place.
+     * Their defaults change nothing: SOURCE is not TURING, no value source is TURG, SCALE is OFF. */
+    int16_t tur_flav;                 /* enum seed_turf */
+    int16_t tur_loop;                 /* cells in the loop, 1..SEED_TUR_LOOP (SHFT: 2..) */
+    int16_t tur_amt;                  /* 0..100: the flavour's one knob (L4) */
+    int16_t tur_bias;                 /* 0..100 %: the chance a new cell's trig is on */
+    int16_t tur_strt;                 /* enum seed_turs: the first pass from random cells or the original */
+    int16_t scale;                    /* enum seed_scale (NOTE) */
+    int16_t root;                     /* 0..11, C..B: the scale's root */
 };
 
 /* settings shared by a pattern's tracks (A1) */
@@ -318,6 +340,7 @@ enum seed_purpose {
     SEED_P_UTIME,                     /* TIME: RAND */
     SEED_P_GROOVE,                    /* TIME: the groove's random part */
     SEED_P_DRIFT,                     /* TIME: DRFT */
+    SEED_P_TURING,                    /* RHYTHM: TURING, index = draw << 12 | step count (src_turing.c) */
     SEED_P_N
 };
 
@@ -327,6 +350,14 @@ enum seed_purpose {
 /* how far back a slot looks for its latest re-roll (design section 3) */
 #define SEED_VARY_WALK 64
 
+/* TURING's output for one take, step by step (src_turing.c): the cell's trig bit and value
+ * 0..65535 at each step; seed_render fills it when the recipe uses TURING and hands it on in
+ * seed_take.tur, so the source and every value source read the same run */
+struct seed_tur {
+    uint8_t bit[SEED_STEPS];
+    uint16_t val[SEED_STEPS];
+};
+
 /* a take: (seed n, recipe) plus what is mixed into every number */
 struct seed_take {
     uint32_t seed;                    /* n */
@@ -334,6 +365,7 @@ struct seed_take {
     int vary;                         /* 0..100 */
     int cand;                         /* QUAL's candidate, 0 .. qual - 1 */
     int length;                       /* the track's length, 1..64 (seed_render sets it; NOISE wraps at it) */
+    const struct seed_tur *tur;       /* TURING's run for this take, or NULL (seed_take_init) */
 };
 
 void seed_take_init(struct seed_take *k, uint32_t seed, uint32_t salt, int vary, int cand);
@@ -366,6 +398,7 @@ int seed_share(int pct, int n);
 /* scratch for seed_render, so the device can keep it out of the stack */
 struct seed_work {
     struct seed_track a, b, c, page;
+    struct seed_tur tur;              /* TURING's run for the take being rendered */
 };
 
 /* A recipe at its defaults: every layer at 0, SOURCE = TRACK. */
@@ -412,6 +445,7 @@ seed_stage seed_src_random;           /* src_random.c (0.2): GRID, DENS, BIAS, R
 seed_stage seed_src_euclid;           /* src_euclid.c (F2) */
 seed_stage seed_src_map;              /* src_map.c (F3) */
 seed_stage seed_src_copy;             /* src_copy.c (F4) */
+seed_stage seed_src_turing;           /* src_turing.c (0.9): the trig bits of the take's TURING run */
 
 /* PLACE, in this order. Moves carry the whole step, origin included; swing stays. */
 seed_stage seed_place_rot;            /* place.c (0.2) */
@@ -462,6 +496,34 @@ int seed_len_legato(const struct seed_track *t, int step);
 /* noise.c (F7): integer value noise at x with `zoom` steps per cell, 0..255 */
 int seed_noise(uint32_t seed, int x, int zoom);
 
+/* ---- TURING (src_turing.c, 0.9; docs/design-turing.md) ----
+ * The machine: a loop of `loop` cells, each a trig bit and a value. One step plays the cell at
+ * `pos` and the flavour's rule mutates the loop (§2). The offline source runs it for the track's
+ * steps from the take's numbers; the live page (TURING) keeps a machine and steps it once per
+ * sequencer step with its own take and a running count, so both hear the same rules.
+ *   seed_turing_init: the first pass (STRT: random cells with BIAS, or the original's first steps)
+ *   seed_turing_step: plays one step: returns the trig bit and puts the value in *val; `count`
+ *     picks this step's random numbers (12 bits are used: a caller running longer changes k->seed)
+ *   seed_turing_run:  the offline run over orig's length into out; SEED_OK or SEED_E_ARG
+ * The flavour's knobs are read from the machine, so the live page can turn AMT while it runs. */
+struct seed_turing {
+    int16_t flav, loop, amt, bias;    /* as the recipe's tur_* */
+    int16_t pos;                      /* the cell the next step plays */
+    uint8_t bit[SEED_TUR_LOOP];
+    uint16_t val[SEED_TUR_LOOP];
+};
+int seed_turing_init(struct seed_turing *m, const struct seed_recipe *r, const struct seed_track *orig,
+                     const struct seed_take *k);
+int seed_turing_step(struct seed_turing *m, const struct seed_take *k, int count, uint16_t *val);
+int seed_turing_run(struct seed_tur *out, const struct seed_track *orig, const struct seed_recipe *r,
+                    const struct seed_take *k);
+/* 1 when the recipe uses TURING: SOURCE = TURING or any value source TURG */
+int seed_turing_used(const struct seed_recipe *r);
+
+/* scale.c (0.9, L9): the note of `scale` with `root` (0..11) nearest to `note` (ties: the lower);
+ * OFF and CHR return note; SEED_E_ARG for a scale or root out of range */
+int seed_scale_note(int note, int scale, int root);
+
 /* trig.c (0.2): the condition code for A:B */
 int seed_cond_ab(int a, int b);
 
@@ -502,5 +564,7 @@ extern const uint8_t seed_have_drift;   /* timing_drift.c (F8) */
 extern const uint8_t seed_have_vary;    /* vary.c (F9): PHRS, CVAR */
 extern const uint8_t seed_have_score;   /* score.c (F11): QUAL */
 extern const uint8_t seed_have_yolo;    /* yolo.c (0.7): TOOLS YOLO */
+extern const uint8_t seed_have_turing;  /* src_turing.c (0.9): SOURCE = TURING, VSRC = TURG */
+extern const uint8_t seed_have_scale;   /* scale.c (0.9): NOTE SCALE, ROOT */
 
 #endif

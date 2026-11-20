@@ -430,7 +430,7 @@ static void test_sense(void)
     CHECK(find(&c, PG_TAKE, "PHRS") != 0, "PHRS not shown on 17 steps");
     c.length = 64;
     for (s = 0; s < SEED_SRC_N; s++) {
-        int want = s == SEED_SRC_RANDOM;
+        int want = s == SEED_SRC_RANDOM || s == SEED_SRC_TURING;    /* TURING's positions are seeded (0.9) */
         r.src = (int16_t)s;
         r.sync = 0;
         sh.map_chaos = 3;

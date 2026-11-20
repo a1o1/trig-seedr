@@ -13,7 +13,7 @@ const char *const pg_names[PG_N] = {
 
 static const struct pg_choice c_src[SEED_SRC_N] = {
     { "TRACK", 0, 0 }, { "RAND", &seed_have_random, 0 }, { "EUCLID", &seed_have_euclid, 0 },
-    { "MAP", &seed_have_map, 0 }, { "COPY", &seed_have_copy, 0 }
+    { "MAP", &seed_have_map, 0 }, { "COPY", &seed_have_copy, 0 }, { "TURG", &seed_have_turing, 0 }
 };
 static const struct pg_choice c_role[SEED_ROLE_N] = {
     { "METER", 0, 0 }, { "KICK", 0, 0 }, { "BACK", 0, 0 }, { "HAT", 0, 0 }, { "PERC", 0, 0 }
@@ -40,7 +40,7 @@ static const struct pg_choice c_shape[SEED_SHAPE_N] = {
 static const struct pg_choice c_amod[SEED_AMOD_N] = { { "RAND", 0, 0 }, { "TOP", &seed_have_rank, 0 } };
 static const struct pg_choice c_lmod[SEED_LMOD_N] = { { "RANGE", 0, 0 }, { "LEGATO", &seed_have_list, 0 } };
 static const struct pg_choice c_vsrc[SEED_VSRC_N] = {
-    { "RANGE", 0, 0 }, { "LIST", &seed_have_list, 0 }, { "NOISE", &seed_have_noise, 0 }
+    { "RANGE", 0, 0 }, { "LIST", &seed_have_list, 0 }, { "NOISE", &seed_have_noise, 0 }, { "TURG", &seed_have_turing, 0 }
 };
 static const struct pg_choice c_order[SEED_ORDR_N] = {
     { "UP", 0, 0 }, { "DOWN", 0, 0 }, { "PING", 0, 0 }, { "PNG2", 0, 0 }, { "ODD", 0, 0 }, { "RAND", 0, 0 }
@@ -220,7 +220,7 @@ static int choices_built(const struct pg_ctx *c, const struct pg_row *w)
  * Each rule holds exactly when the engine ignores the value, so a hidden value is harmless (the
  * host test frame/test_interplay.c renders it both ways):
  *   PHRS        the track is longer than a page (seed_render: a page or less is one phrase)
- *   CVAR, QUAL  the trig positions draw random numbers: SRC = RAND, MAP with CHAOS 4 or more
+ *   CVAR, QUAL  the trig positions draw random numbers: SRC = RAND, MAP with CHAOS 4 or more, TURING
  *               (seed_map_lift), or SYNC above 0. Otherwise takes n and n + 1, and every
  *               candidate, have the same trigs, and CVAR and QUAL work only on where trigs are.
  *   ROLE        BIAS is not 0 (the rank table is only read through BIAS)
@@ -239,7 +239,7 @@ static int sense(const struct pg_ctx *c, const struct pg_row *w)
     case offsetof(struct seed_recipe, cvar):
     case offsetof(struct seed_recipe, qual):
         return r->src == SEED_SRC_RANDOM || (r->src == SEED_SRC_MAP && c->shared && c->shared->map_chaos >= 4)
-            || r->sync > 0;
+            || r->src == SEED_SRC_TURING || r->sync > 0;
     case offsetof(struct seed_recipe, role):
         return r->bias != 0;
     case offsetof(struct seed_recipe, amod):
