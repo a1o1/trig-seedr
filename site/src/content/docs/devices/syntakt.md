@@ -63,6 +63,11 @@ The TURG source and the live page as on the Rytm ([TURING](../../manual/turing/)
 Syntakt's playhead each screen refresh; a step takes about 0.3 ms to write. FUNC + the SCALE knob (ROOT) has not been
 tried on a Syntakt yet: the emulator cannot hold FUNC there.
 
+## Grooves
+
+TIME's GRV offers the swing grooves on the Syntakt. A build with your own Live grooves (`grooves-live.h`) does not
+fit the Syntakt's OS file from 0.9.0, so the Syntakt's build leaves them out; the Rytm keeps them.
+
 ## TOOLS
 
 ROTATE ALL moves whole steps with their locks, on every track within its length. A track in stock's Euclidean mode

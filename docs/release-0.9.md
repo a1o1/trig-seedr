@@ -44,6 +44,9 @@ change with the rhythm. The manual's page: TURING.
 - The Rytm and the Syntakt write one step at a time behind the playhead (`rt_seed_write_one`,
   `st_seed_write_steps`), and read their playheads (`rt_playhead`, `st_playhead`).
 - YOLO does not roll TURING yet.
+- **The Syntakt builds with the swing grooves only** (TIME's GRV): with TURING's code and the Live groove tables
+  (`grooves-live.h`, local to your checkout) its unit file no longer fits, so `mods/seedr-st` leaves them out
+  (`ST_LIVE_GROOVES` brings them back once the mod is smaller). The Rytm keeps them when they are there.
 - 0.8.0's and 0.9.0's Rytm builds have not had a hardware pass yet (0.7.1 is the last that has).
 
 ### Upstream used to build
