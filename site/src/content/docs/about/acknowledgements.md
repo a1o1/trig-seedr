@@ -19,6 +19,7 @@ Trig Seedr builds on, and learned from, these open source projects:
 | [modwerk](https://github.com/repeat98/modwerk) | mixed (Elastic-2.0 and others) | firmware modding research |
 | [Capstone](https://www.capstone-engine.org/), [Unicorn](https://www.unicorn-engine.org/) | BSD-3 / GPL-2.0 | disassembly and function-level emulation in `tools/` |
 | [Mutable Instruments' Eurorack modules](https://github.com/pichenettes/eurorack): Grids by Emilie Gillet | GPL-3.0-or-later | the MAP source: its map of drum patterns is Grids' (`lib/map_data.c`, copied with its licence notice), and X / Y, DENS, CHAOS and the accents follow Grids' code; `tools/tests/23-map.sh` and `32-map-accents.sh` compare the two |
+| [Mutable Instruments' Eurorack modules](https://github.com/pichenettes/eurorack): Marbles by Emilie Gillet | MIT | TURING's DJVU (0.9): the déjà vu loop of Marbles' random sequence (`marbles/random/random_sequence.h`): its chance (2 DÉJÀ VU − 1)² of a new value below noon and of a jump inside the loop above it; `lib/src_turing.c` is written for trig-seedr from that description |
 | [Astro Starlight](https://starlight.astro.build/) | MIT | this website |
 
 Methods taken from research:
@@ -28,6 +29,8 @@ Methods taken from research:
 | Clarence Barlow, "Two Essays on Theory", *Computer Music Journal* 11(1), 1987 | indispensability: the rank of each step in a meter (BIAS, ROLE, SHAPE = RANK, AMOD = TOP), and the basic orders for the primes 2 to 13 |
 | [hmt](https://gitlab.com/rd--/hmt) by Rohan Drape, `Music.Theory.Meter.Barlow_1987` (GPL-3.0) | the reference trig-seedr's ranks were checked against: Barlow's formula as code, and its tables of values |
 | George Sioros and Carlos Guedes, their work on syncopation transformations | SYNC: anticipation, an onset moved onto the preceding weaker pulse, which leaves the stronger one silent |
+| Moog Music, the Labyrinth owner's manual | TURING's CRPT (0.9): CORRUPT in two stages (values up to 25 % below noon, then bits flipping up to about 50 %), the loop length, BIT SHIFT, BUFFER, the quantizer's scales (SCALE's HIRA, 7SUS4, MAJ7, MIN7) |
+| Tom Whitwell, the [Music Thing Modular Turing Machine](https://github.com/TomWhitwell/TuringMachine) | TURING's SHFT (0.9): a looping shift register whose bit is kept or inverted by a probability knob, locked at both ends, and its notes from the register's bits |
 
 Apart from Grids' map data in `lib/map_data.c`, no code or data from the projects under other licences is included;
 each is credited for what it documented or made possible.
