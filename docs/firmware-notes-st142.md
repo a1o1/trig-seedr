@@ -166,3 +166,34 @@ layer translates `lib/seed.h`'s codes.
 - The flag bits 0x4 / 0x8 / 0x20 / 0x8000 and the switch bits named by analogy, not measured.
 - The lock value scale per id; the meaning of the per-track id bytes.
 - The power-off trigger in analog-emu.
+
+## 9. The sequencer's playhead (task T0b, 2026-11-20)
+
+The sequencer runs in an interrupt (`0x4008c924`) and keeps a byte per track 0..12 (12 the FX track). Synfact's
+`docs/MACHINE-REFERENCE.md` section 9 (GPL-2.0-or-later) gives OS 1.41's addresses; on OS 1.42 every one is
+**0x1000 higher** [measured in analog-emu: snapshots 9M instructions apart while PLAY runs, and STOP]:
+
+| Address (1.42) | Per track t | |
+|---|---|---|
+| `0x43bd83bf` | (one byte) the sequencer runs: 1 while playing, 0 after STOP | measured |
+| `0x43bd83cb + 4t` | a byte per track, 1 while playing, 0 after STOP (the low byte of a word per track) | measured |
+| `0x43bd83fc + t` | the step the track plays next | measured |
+| `0x43bd8416 + t` | the step it played last: **the playhead** (STOP sets it to 0) | measured |
+| `0x43bd853c + t` | its count towards the bar | measured |
+| `0x444e3370 + t`, `0x444e337d + t` | the UI's copies of last and next, made every tick (live recording reads the first) | measured |
+
+- **Each track counts its own length and speed.** The step advances when the step's ticks are over: last = step,
+  step + 1, 0 at the length (the track's when the pattern's per-track mode is set, else the pattern's) [Synfact,
+  `0x4008d0e4`]. In the default project track 1 runs 64 steps and track 12 wraps at 16 [measured].
+- **A step's trig is prepared one step ahead** (at the step before's tick 0, queued with its micro timing)
+  [Synfact]. So a step written at or behind the playhead is heard on the next loop, never this one: measured by
+  `tools/tests-st/45-live.sh`, whose first onset falls on the second loop.
+- **Polling from the UI tick works** (`st_playhead()` in `device/syntakt_st.h`): the tick runs at 30 Hz [measured:
+  90 ticks in 600M instructions, analog-emu's 200M a second]. At 135 BPM a 16th is 111 ms, so at most one or two
+  steps pass between reads; at 300 BPM with a track at speed 2x a step is 25 ms, so up to two. A 1-step track never
+  changes its playhead byte, so its loops cannot be seen by polling.
+- **Cost of a step write** through `st_seed_write_steps`, every field and the trig changing (the worst case):
+  about 57,000 instructions of emulated time a step, interrupts included [measured: 16 and 32 rewrites of 64 steps
+  in one tick took 58M and 117M instructions], about 0.3 ms at 200M a second; two steps a tick are under 2 % of a
+  tick. More than about 20,000 step writes in one tick stall the UI task (not cleared after 600M instructions; the
+  change notices each write posts, presumably) [measured]; a live page writes a few a tick.
