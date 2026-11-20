@@ -1,0 +1,27 @@
+{
+ "id": "livetest-st",
+ "version": "0.1",
+ "title": "live write test (Syntakt)",
+ "category": "Test",
+ "license": "GPL-2.0-or-later",
+ "author": "trig-seedr",
+ "description": "Test build only (tools/tests-st/45-live.sh): writes the steps the playhead has passed (task T0b).",
+ "device": "syntakt",
+ "os": "1.42",
+ "sources": [
+  "livetest.c"
+ ],
+ "subscribe": [
+  {
+   "event": "ev_tick",
+   "fn": "livetest_tick",
+   "order": 40
+  }
+ ],
+ "requires": [
+  "core"
+ ],
+ "cflags": [
+  "-fno-tree-loop-distribute-patterns"
+ ]
+}
