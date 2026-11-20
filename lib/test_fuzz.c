@@ -75,7 +75,8 @@ static const struct { const char *name; size_t off; } keys[] = {
     K("lane2.parm", lane[1].parm), K("lane2.pct", lane[1].pct), KV("lane2", lane[1].val),
     K("cond", cond), K("ctyp", ctyp), KV("cval", cval), K("rtrg", rtrg), KV("rate", rate), K("rcur", rcur),
     K("grv", grv), K("timing", timing), K("gvel", gvel), K("quant", quant), K("rand", rand), K("drft", drft),
-    K("shft", shft),
+    K("shft", shft), K("tur_flav", tur_flav), K("tur_loop", tur_loop), K("tur_amt", tur_amt), K("tur_bias", tur_bias),
+    K("tur_strt", tur_strt), K("scale", scale), K("root", root),
 };
 #define NKEYS ((int)(sizeof keys / sizeof keys[0]))
 

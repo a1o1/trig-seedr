@@ -153,3 +153,20 @@ cvar-12 src=random dens=50 cvar=1:2
 cvar-aaab src=random dens=50 cvar=aaab
 cvar-12-vary src=random dens=50 cvar=1:2 vary=70 vel=60:120
 cvar-phrs-64 src=random dens=40 length=64 phrs=abab cvar=aaab vary=50
+# TURING and SCALE (0.9, task T1; design-turing.md)
+turing-djvu-locked src=turing tur_flav=djvu tur_loop=5 tur_amt=50 length=32
+turing-djvu-new src=turing tur_flav=djvu tur_loop=8 tur_amt=0 length=64
+turing-djvu-25 src=turing tur_flav=djvu tur_loop=8 tur_amt=25 tur_bias=70 seed=3 length=64
+turing-djvu-shuffle src=turing tur_flav=djvu tur_loop=6 tur_amt=90 length=32
+turing-crpt-0-track orig=orig-a.txt src=turing tur_flav=crpt tur_loop=7 tur_amt=0 tur_strt=track
+turing-crpt-40 src=turing tur_flav=crpt tur_loop=8 tur_amt=40 length=64
+turing-crpt-100 src=turing tur_flav=crpt tur_loop=16 tur_amt=100 seed=9 length=64
+turing-shft-0 src=turing tur_flav=shft tur_loop=5 tur_amt=0 length=40
+turing-shft-50 src=turing tur_flav=shft tur_loop=8 tur_amt=50 seed=2 length=64
+turing-shft-100 src=turing tur_flav=shft tur_loop=12 tur_amt=100 length=64
+turing-notes-pmin src=turing tur_flav=djvu tur_loop=8 tur_amt=20 note=-12:12 note.src=turg scale=pmin root=a length=32
+turing-vel-lane src=turing tur_flav=crpt tur_amt=60 vel=40:120 vel.src=turg lane1.pct=100 lane1=1:8 lane1.src=turg length=32
+turing-turg-random src=random dens=60 tur_flav=shft tur_loop=4 note=-24:24 note.src=turg length=32
+scale-maj-c orig=orig-a.txt src=random dens=60 note=-24:24 scale=maj
+scale-hira-e src=random dens=60 note=-24:24 scale=hira root=e seed=4
+scale-off-a orig=orig-a.txt src=random dens=60 note=-24:24 scale=off

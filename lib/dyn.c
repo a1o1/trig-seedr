@@ -81,7 +81,7 @@ static int shape_level(const struct seed_recipe *r, const struct seed_take *k, c
 static int vsrc_ok(const struct seed_values *v)
 {
     return v->src == SEED_VSRC_RANGE || (v->src == SEED_VSRC_LIST && seed_have_list)
-        || (v->src == SEED_VSRC_NOISE && seed_have_noise);
+        || (v->src == SEED_VSRC_NOISE && seed_have_noise) || (v->src == SEED_VSRC_TURG && seed_have_turing);
 }
 
 /* the top pct % of the trigs by their keys from slot (P2): chosen[i] = 1 */

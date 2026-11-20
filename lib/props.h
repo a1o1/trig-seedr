@@ -167,7 +167,7 @@ static inline void prop_values(struct seed_values *v, struct prop_rng *g, int lo
  * zoom; now and then one value; DEF about def % of the time */
 static inline void prop_vsrc(struct seed_values *v, struct prop_rng *g, int lo, int hi, int def)
 {
-    int src = prop_int(g, 0, 2);
+    int src = prop_int(g, 0, 3);
     prop_values(v, g, lo, hi);
     if (prop_chance(g, 15))
         v->hi = v->lo;
@@ -176,6 +176,8 @@ static inline void prop_vsrc(struct seed_values *v, struct prop_rng *g, int lo, 
         v->src = SEED_VSRC_LIST;
     if (src == 2 && seed_have_noise)
         v->src = SEED_VSRC_NOISE;
+    if (src == 3 && seed_have_turing)
+        v->src = SEED_VSRC_TURG;
     v->order = (int16_t)prop_int(g, 0, SEED_ORDR_N - 1);
     v->len = (int16_t)prop_int(g, 1, SEED_LIST_MAX);
     v->zoom = (int16_t)(prop_chance(g, 30) ? prop_int(g, 1, 4) : prop_int(g, 1, SEED_STEPS));
@@ -228,8 +230,14 @@ static inline void prop_layer(struct seed_recipe *r, struct prop_rng *g, enum se
         r->map_part = (int16_t)prop_int(g, 0, 2);
         r->map_dens = (int16_t)prop_int(g, 0, 255);
         r->copy_trk = (int16_t)prop_int(g, 0, prop_cap->tracks - 1);
+        /* TURING's knobs (0.9), so TURG value sources have a machine to read */
+        r->tur_flav = (int16_t)prop_int(g, 0, SEED_TURF_N - 1);
+        r->tur_loop = (int16_t)prop_int(g, 1, SEED_TUR_LOOP);
+        r->tur_amt = (int16_t)(prop_chance(g, 20) ? (prop_chance(g, 50) ? 0 : 100) : prop_int(g, 0, 100));
+        r->tur_bias = (int16_t)prop_int(g, 0, 100);
+        r->tur_strt = (int16_t)prop_int(g, 0, SEED_TURS_N - 1);
         if ((src == SEED_SRC_EUCLID && !seed_have_euclid) || (src == SEED_SRC_MAP && !seed_have_map)
-            || (src == SEED_SRC_COPY && !seed_have_copy))
+            || (src == SEED_SRC_COPY && !seed_have_copy) || (src == SEED_SRC_TURING && !seed_have_turing))
             src = SEED_SRC_RANDOM;
         if (src != SEED_SRC_RANDOM || seed_have_random)
             r->src = (int16_t)src;
@@ -266,6 +274,10 @@ static inline void prop_layer(struct seed_recipe *r, struct prop_rng *g, enum se
         if (on && seed_have_values) {
             if (prop_chance(g, 50)) prop_vsrc(&r->len, g, 0, 127, 0);
             if (prop_chance(g, 50)) prop_vsrc(&r->note, g, -24, 24, 0);
+            if (seed_have_scale && prop_chance(g, 40)) {      /* SCALE and ROOT (0.9) */
+                r->scale = (int16_t)prop_int(g, 0, SEED_SCALE_N - 1);
+                r->root = (int16_t)prop_int(g, 0, 11);
+            }
             if (seed_have_list && prop_chance(g, 20))
                 r->lmod = SEED_LMOD_LEGATO;
         }

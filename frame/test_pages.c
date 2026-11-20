@@ -298,10 +298,15 @@ static void test_choices(void)
     CHECK(r.src == SEED_SRC_EUCLID && row(&c, PG_RHYTHM, "PULS") && !row(&c, PG_RHYTHM, "GRID"), "EUCLID's knobs replace RANDOM's");
     pg_turn(&c, w, 1, 0);
     pg_turn(&c, w, 1, 0);
-    pg_turn(&c, w, 1, 0);
-    CHECK(r.src == SEED_SRC_COPY, "SRC stops at the last value: %d", r.src);
+    CHECK(r.src == SEED_SRC_COPY, "SRC -> COPY: %d", r.src);
     w = row(&c, PG_RHYTHM, "TRK");
-    CHECK(!strcmp(text(&c, w, 0), "BD"), "COPY TRK reads a track name: %s", text(&c, w, 0));
+    CHECK(w && !strcmp(text(&c, w, 0), "BD"), "COPY TRK reads a track name: %s", w ? text(&c, w, 0) : "-");
+    w = row(&c, PG_RHYTHM, "SRC");
+    pg_turn(&c, w, 1, 0);
+    pg_turn(&c, w, 1, 0);
+    CHECK(r.src == SEED_SRC_TURING && !strcmp(text(&c, w, 0), "TURG"), "SRC stops at the last value, TURING (0.9): %d", r.src);
+    pg_turn(&c, w, -1, 0);
+    w = row(&c, PG_RHYTHM, "TRK");
     {
         int j;
         for (j = 0; j < 40; j++)

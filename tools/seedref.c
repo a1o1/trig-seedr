@@ -46,6 +46,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include "../lib/seed.h"
 #include "../device/rytm_params.h"
 /* the Syntakt's tables are made from your own stock file (tools/st_params.sh) and never committed: without
@@ -57,7 +58,7 @@
 #define HAVE_ST_PARAMS 0
 #endif
 
-static const char *const n_src[] = { "track", "random", "euclid", "map", "copy", 0 };
+static const char *const n_src[] = { "track", "random", "euclid", "map", "copy", "turing", 0 };
 static const char *const n_role[] = { "meter", "kick", "back", "hat", "perc", 0 };
 static const char *const n_metr[] = { "4/4", "3/4", "6/8", "12/16", "5/8", "7/8", 0 };
 static const char *const n_phrs[] = { "off", "aaaa", "aaab", "abab", "abac", "abcd", 0 };
@@ -70,7 +71,12 @@ static const char *const n_shape[] = { "flat", "strong", "weak", "off", "not1", 
                                        "map", 0 };
 static const char *const n_amod[] = { "rand", "top", 0 };
 static const char *const n_lmod[] = { "range", "legato", 0 };
-static const char *const n_vsrc[] = { "range", "list", "noise", 0 };
+static const char *const n_vsrc[] = { "range", "list", "noise", "turg", 0 };
+static const char *const n_turf[] = { "djvu", "crpt", "shft", 0 };
+static const char *const n_turs[] = { "seed", "track", 0 };
+static const char *const n_scale[] = { "off", "chr", "maj", "min", "dor", "phr", "lyd", "mix", "loc", "hmin", "mmin",
+                                       "pmaj", "pmin", "whole", "dim", "hira", "7sus4", "maj7", "min7", 0 };
+static const char *const n_root[] = { "c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b", 0 };
 static const char *const n_order[] = { "up", "down", "ping", "png2", "odd", "rand", 0 };
 static const char *const n_ctyp[] = { "prob", "ab", "1st", "fill", "mix", 0 };
 
@@ -102,6 +108,8 @@ static const struct key keys[] = {
     F("rcur", rcur, NULL),
     F("grv", grv, NULL), F("timing", timing, NULL), F("gvel", gvel, NULL), F("quant", quant, NULL),
     F("rand", rand, NULL), F("drft", drft, NULL), F("shft", shft, NULL),
+    F("tur_flav", tur_flav, n_turf), F("tur_loop", tur_loop, NULL), F("tur_amt", tur_amt, NULL),
+    F("tur_bias", tur_bias, NULL), F("tur_strt", tur_strt, n_turs), F("scale", scale, n_scale), F("root", root, n_root),
 };
 #define NKEYS ((int)(sizeof keys / sizeof keys[0]))
 
@@ -193,7 +201,7 @@ static int value(const struct key *k, const char *s)
     int i;
     if (k && k->names)
         for (i = 0; k->names[i]; i++)
-            if (!strcmp(s, k->names[i]))
+            if (!strcasecmp(s, k->names[i]))     /* root=C or root=c */
                 return i;
     if (!strcmp(s, "def"))
         return SEED_DEF;
