@@ -64,7 +64,7 @@ emu_knob NOTE H:scale:one 2
 emu_yes
 emu_shot note-scale
 check_take "SCALE MAJ (ROOT C)" seed=2 $TU $N scale=maj root=0 "$K"
-emu_run -s 300M --nudge 7:1:F@+600M                   # FUNC + SCALE: ROOT one up
+emu_run -s 300M --press FUNC@+500M:200M --nudge 7:1@+600M   # FUNC + SCALE: ROOT one up
 emu_check "FUNC + SCALE: ROOT C#" 1 "$(emu_get 'recipe[0].root')"
 emu_yes
 emu_shot note-scale-root
