@@ -112,9 +112,13 @@ def plan(clock, settle, args):
         def absolute(m):
             nonlocal last
             t = clock + num(m.group(1))
-            last = max(last, t)
-            return '@%d' % t
-        out.append(re.sub(r'@\+([0-9.]+[kMG]?)', absolute, a))
+            if m.group(2):                       # xN/I: N events, I apart; the run covers the last
+                t_last = t + (int(m.group(2)) - 1) * num(m.group(3))
+            else:
+                t_last = t
+            last = max(last, t_last)
+            return '@%d' % t + (m.group(0)[m.group(0).index('x'):] if m.group(2) else '')
+        out.append(re.sub(r'@\+([0-9.]+[kMG]?)(?:x([0-9]+)/([0-9.]+[kMG]?))?', absolute, a))
     return [str(last - clock + settle)] + out
 
 
