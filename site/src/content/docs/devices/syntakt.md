@@ -6,7 +6,7 @@ sidebar: { order: 3 }
 
 :::note[Ready for testing]
 Trig Seedr for the Syntakt (OS 1.42) is ready for testing, as a beta. Every release is tested in full in an
-emulator running the stock Syntakt OS 1.42, and it passed a first hardware pass on one unit (0.7.1, 2026-11-19).
+emulator running the stock Syntakt OS 1.42, and it has passed hardware passes on one unit (0.7.1, 2026-11-19; 0.9.0, 2026-11-24).
 How to build and flash it, the way back to stock and the first checks: [Flashing a Syntakt](../../getting-started/flashing-syntakt/).
 :::
 

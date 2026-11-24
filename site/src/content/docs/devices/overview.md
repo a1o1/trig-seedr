@@ -9,8 +9,8 @@ of its stock OS, and its own page for what differs.
 
 | Device | OS | Status | Hardware passes | Build | Flash |
 |---|---|---|---|---|---|
-| [Analog Rytm MKII](../analog-rytm-mk2/) | 1.74 | beta | 0.5.1, 0.6.0, 0.7.1 ([list](../../getting-started/flashing/#tested-on-hardware)) | `sh tools/build_release.sh` → `trig-seedr-<version>-os1.74.syx` | [Flashing a Rytm MKII](../../getting-started/flashing/) |
-| [Syntakt](../syntakt/) | 1.42 | ready for testing (beta) | 0.7.1 on one unit ([list](../../getting-started/flashing-syntakt/#tested-on-hardware)) | `sh tools/build_release_st.sh` → `trig-seedr-<version>-st-os1.42.syx` | [Flashing a Syntakt](../../getting-started/flashing-syntakt/) |
+| [Analog Rytm MKII](../analog-rytm-mk2/) | 1.74 | beta | 0.5.1, 0.6.0, 0.7.1, 0.9.0 ([list](../../getting-started/flashing/#tested-on-hardware)) | `sh tools/build_release.sh` → `trig-seedr-<version>-os1.74.syx` | [Flashing a Rytm MKII](../../getting-started/flashing/) |
+| [Syntakt](../syntakt/) | 1.42 | ready for testing (beta) | 0.7.1, 0.9.0 on one unit ([list](../../getting-started/flashing-syntakt/#tested-on-hardware)) | `sh tools/build_release_st.sh` → `trig-seedr-<version>-st-os1.42.syx` | [Flashing a Syntakt](../../getting-started/flashing-syntakt/) |
 
 Each build runs on that device and that OS only: a file is refused for any other stock file. Every release is
 tested in full in an emulator on each device; the hardware passes are listed on each device's flashing page.

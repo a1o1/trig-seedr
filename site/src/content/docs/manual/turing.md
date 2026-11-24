@@ -4,7 +4,7 @@ description: "A Turing machine for a track: a loop that changes a little each ti
 sidebar: { order: 12 }
 ---
 
-New in 0.9, a candidate for testing on a unit. A Turing machine here is a loop of LOOP steps. Each step of the loop
+New in 0.9. A Turing machine here is a loop of LOOP steps. Each step of the loop
 holds a trig (on or off) and a value. Each time the loop comes round it changes a little, by an amount AMT sets and
 in a way FLAV sets; the values can drive notes, velocities and parameter locks, so pitch and sound change with the
 rhythm. Trig Seedr has it in two forms:
