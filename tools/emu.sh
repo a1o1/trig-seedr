@@ -289,7 +289,7 @@ emu_struct() {
 
 emu_pages() {
     case $EMU_PROFILE in
-    v1) echo TAKE RHYTHM PLACE DYNAMICS NOTE LOCK TRIG TIME VIEW TOOLS ;;
+    v1) echo TAKE RHYTHM PLACE DYNAMICS NOTE LOCK TRIG TIME VIEW TOOLS TURING ;;
     esac
 }
 
@@ -361,9 +361,15 @@ emu_knob() {
         # A new dtboot takes every knob as asleep and sends two wake-up turns first; the mod (its
         # state is in the snapshot) keeps a knob awake 2 s (400M) after its last turn, and would take
         # those as steps. So the turns start 600M in, when the mod has let the knob sleep too.
-        if [ -n "$_knob_one" ]; then _knob_a="--nudge $_knob_enc:$_knob_dir$_knob_f@+600M"
-        elif [ $_knob_d -ge 8 ] && [ -z "$_knob_f" ]; then _knob_a="--nudge $_knob_enc:$_knob_dir:8@+600Mx$((_knob_d / 8))/50M"
-        else _knob_a="--nudge $_knob_enc:$_knob_dir$_knob_f@+600Mx$_knob_d/80M"
+        # FUNC is held by a press of its own, from 100M before the first turn to 100M after the last:
+        # dtboot's :F lets FUNC go 5M after a turn's last counts, and the Rytm takes turns once a UI
+        # frame (10M), so the mod could see the turn with FUNC already up, as the frame fell (46-turing).
+        if [ -n "$_knob_f" ]; then
+            [ -n "$_knob_one" ] && _knob_d=1
+            _knob_a="--press FUNC@+500M:$((200 + (_knob_d - 1) * 80))M --nudge $_knob_enc:$_knob_dir@+600Mx$_knob_d/80M"
+        elif [ -n "$_knob_one" ]; then _knob_a="--nudge $_knob_enc:$_knob_dir@+600M"
+        elif [ $_knob_d -ge 8 ]; then _knob_a="--nudge $_knob_enc:$_knob_dir:8@+600Mx$((_knob_d / 8))/50M"
+        else _knob_a="--nudge $_knob_enc:$_knob_dir@+600Mx$_knob_d/80M"
         fi
         # shellcheck disable=SC2086
         emu_run -s 300M $_knob_a

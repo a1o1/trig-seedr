@@ -12,7 +12,7 @@ unit: if not, see Flashing a [Rytm MKII](../flashing/) or a [Syntakt](../flashin
 
 ## 1. Check the version
 
-While the unit starts, the boot screen shows the version: **TS08** for 0.8.0.
+While the unit starts, the boot screen shows the version: **TS09** for 0.9.0.
 
 ## 2. Open Trig Seedr on an empty track
 

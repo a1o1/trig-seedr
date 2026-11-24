@@ -18,7 +18,7 @@ you have backed up. For the Syntakt, see [Flashing a Syntakt](https://a1o1.githu
 
 ```sh
 sh tools/run_tests.sh           # every file should pass
-sh tools/build_release.sh       # -> build/trig-seedr-0.8.0-os1.74.syx, OS version field TS08
+sh tools/build_release.sh       # -> build/trig-seedr-0.9.0-os1.74.syx, OS version field TS09
 ```
 
 `build_release.sh` builds core-ar2 and seedr, patches them into your stock OS and has elekloader verify the result
@@ -31,7 +31,7 @@ As for any OS update:
 
 1. Connect the Rytm over USB and open Elektron Transfer.
 2. Select the Rytm and **Connect**.
-3. Drag `trig-seedr-0.8.0-os1.74.syx` onto **Drop files here**.
+3. Drag `trig-seedr-0.9.0-os1.74.syx` onto **Drop files here**.
 4. Press **YES** on the Rytm. Don't turn it off until the update is done and it has restarted.
 
 ## First checks on the unit
@@ -45,13 +45,14 @@ what has run on a real unit.
 
 | Version | Date | Unit | OS | Result |
 |---|---|---|---|---|
+| 0.9.0 (TS09; `trig-seedr-0.9.0-os1.74.syx`, sha256 `55ed5df2…`, built from commit `7a24b64`) | 2026-11-24 | Analog Rytm MKII | 1.74 | passed: checks 1 to 25, including TURING's (16 to 25): TURG, SCALE and ROOT, the live page |
 | 0.7.1 | 2026-11-17 | Analog Rytm MKII | 1.74 | passed: checks 1 to 15, including 0.7's range knobs, YES after a revert, the pending dot and YOLO |
 | 0.6.0 | 2026-11-16 | Analog Rytm MKII | 1.74 | played in use: works; UX notes became 0.7's range knobs, YES after a revert and the pending dot |
 | 0.5.1 | 2026-11-16 | Analog Rytm MKII | 1.74 | first pass: every feature worked as expected; its notes became 0.5.1's generate and apply |
 
-0.8.0's Rytm build has passed the emulator suites but not yet a hardware pass: 0.8.0 reorganises the code into a frame shared with the Syntakt, with the same golden vectors and the same full emulator suite. 0.7.1 is the last Rytm build with a hardware pass. 0.7.0 has not had one. Checks 13 to 15 below are new in 0.7.
+0.9.0 adds TURING (checks 16 onwards) and is the first Rytm build with a hardware pass since 0.7.1. 0.8.0's Rytm build passed the emulator suites but has not had a hardware pass: it reorganised the code into a frame shared with the Syntakt, with the same golden vectors and the same full emulator suite; 0.9.0's pass covers that frame. 0.7.0 has not had one. Checks 13 to 15 below are new in 0.7.
 
-1. The boot screen shows the version (**TS08** for 0.8.0, **T071** for 0.7.1, **TS07** for 0.7.0; a minor release shows TSxy, a patch release Txyz) while the Rytm starts (OS 1.74 has no menu that shows it;
+1. The boot screen shows the version (**TS09** for 0.9.0, **TS08** for 0.8.0, **T071** for 0.7.1, **TS07** for 0.7.0; a minor release shows TSxy, a patch release Txyz) while the Rytm starts (OS 1.74 has no menu that shows it;
    GLOBAL > SYSTEM > OS UPGRADE shows only WAITING FOR SYSEX).
 2. The Rytm plays as before: load a project, play a pattern, turn some knobs.
 3. **TRIG**, **TRIG** (EUCLIDEAN), **TRIG**: trig-seedr's page. **TRIG** again: back to stock's TRIG page.
@@ -77,6 +78,29 @@ what has run on a real unit.
 15. TOOLS, TOOL = YOLO, RECORD on: YES rolls a recipe and plays it (ROLL n on the strip), YES again the next; NO puts
     the track and every page's settings back; a roll, then FUNC + YES, keeps it. Try BD, SD and CH: each should
     sound like its part (kick, backbeat, hats).
+
+### TURING (0.9.0)
+
+16. **TURG, the source:** on an empty track, RECORD on, RHYTHM SRC = TURG, FLAV DJVU, LOOP 8, AMT 25: YES writes a
+    take whose 8-step loop drifts pass by pass down the track. AMT 50: the loop repeats exactly. AMT 100: the same
+    steps in a shuffled order.
+17. FLAV CRPT: AMT 0 repeats exactly; AMT 40 keeps the rhythm while values (with NOTE's NSRC = TURG, the notes)
+    drift; AMT 100 flips trigs too. FLAV SHFT: AMT 100 repeats, AMT 0 inverts each pass (it repeats every two),
+    AMT 50 is a coin flip.
+18. **STRT = TRACK** on a track with trigs: the first pass is the track's own first LOOP steps, and later passes
+    drift from them.
+19. **SCALE and ROOT** (NOTE, knob H): NSRC = TURG, a NOTE range of −12…+12, SCALE MAJ: every note is in C major.
+    FUNC + the SCALE knob turns ROOT (C … B) while a scale is on; the cell shows it (`C# MAJ`). With ROOT C#, the notes are in C# major. SCALE OFF: the notes are as before.
+20. **The live page:** RIGHT from TOOLS reaches TURING. RECORD on, PLAY, YES: the strip shows LIVE and the step;
+    the steps change as the playhead passes them, heard on the next loop. Turning AMT while it runs changes how much.
+21. FUNC + YES keeps the track as it stands and stops (APPLIED). Start again, then NO: the original is back.
+22. Start, FUNC + UP (REMEMBERED), let it drift, FUNC + DOWN (RECALLED): the remembered loop is back.
+23. With the live page running: close Trig Seedr (TRIG), change track, or turn RECORD off: the original is back
+    (NOT APPLIED).
+24. On the FX track YES says NOT ON THE FX TRACK and nothing is written.
+25. **Note what you hear:** the live page at slow and fast tempos (up to 300 BPM if you can), on drums and on a
+    melodic track, with each flavour; whether the screen and keys stay responsive; a pattern change while it runs;
+    a track at another speed or scale. These have not been tried on a unit.
 
 Please note what you saw, good or bad, in a
 [hardware report](https://github.com/a1o1/trig-seedr/issues/new?template=hardware-report.yml): the version from the

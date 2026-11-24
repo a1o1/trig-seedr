@@ -1,6 +1,6 @@
 {
  "id": "seedr",
- "version": "0.8.0",
+ "version": "0.9.0",
  "title": "trig-seedr",
  "category": "Sequencer",
  "license": "GPL-3.0-or-later",
@@ -19,7 +19,7 @@
   "../../lib/src_euclid.c",
   "../../lib/src_map.c",
   "../../lib/map_data.c",
-  "../../lib/src_copy.c",
+  "../../lib/src_copy.c", "../../lib/src_turing.c", "../../lib/scale.c",
   "../../lib/place.c",
   "../../lib/place_sync.c",
   "../../lib/place_mask.c",

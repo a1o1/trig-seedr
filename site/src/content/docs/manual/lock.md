@@ -16,7 +16,7 @@ On the Syntakt, the lanes follow the track's machine: see [Syntakt](../../device
 | A | PARM | the lockable parameters (below) | lane 1 SMP, lane 2 FRQ | always |
 | B | % | 0–100 % | 0 % | always |
 | C | RNGE | a range inside the parameter's values (SMP: the slot, 0 = OFF) | 1–8 | always |
-| D | SRC | RANGE, LIST, NOISE | RANGE | always |
+| D | SRC | RANGE, LIST, NOISE, TURG | RANGE | always |
 | E | ORDR | UP, DOWN, PING, PNG2, ODD, RAND | UP | while SRC is LIST |
 | F | LLEN | 1–16 | 4 | while SRC is LIST |
 | G | ZOOM | 1–64 | 4 | while SRC is NOISE |

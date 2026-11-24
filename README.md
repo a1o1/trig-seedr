@@ -1,8 +1,8 @@
 # trig-seedr
 
 [![License: GPL v2+](https://img.shields.io/badge/License-GPL%20v2%2B-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-v0.8.0-blue.svg)](https://github.com/a1o1/trig-seedr/releases)
-[![Status](https://img.shields.io/badge/Status-0.8%20beta-yellow.svg)](#status)
+[![Version](https://img.shields.io/badge/Version-v0.9.0-blue.svg)](https://github.com/a1o1/trig-seedr/releases)
+[![Status](https://img.shields.io/badge/Status-0.9%20beta-yellow.svg)](#status)
 [![Device](https://img.shields.io/badge/Analog%20Rytm%20MKII-OS%201.74-black.svg)](docs/firmware-notes-os174.md)
 [![Device](https://img.shields.io/badge/Syntakt-OS%201.42-black.svg)](docs/firmware-notes-st142.md)
 [![elekloader](https://img.shields.io/badge/elekloader-core--ar2%200.13-purple.svg)](https://github.com/elekloader/elekloader)
@@ -22,8 +22,8 @@ trigs, as an [elekloader](https://github.com/elekloader/elekloader) mod:
 
 | Device | OS | Status | Build | Flash |
 |---|---|---|---|---|
-| Analog Rytm MKII | 1.74 | beta; hardware-tested 0.5.1, 0.6.0, 0.7.1 | `sh tools/build_release.sh` | [docs/flashing.md](docs/flashing.md) |
-| Syntakt | 1.42 | ready for testing (beta); a first hardware pass, 0.7.1 on one unit | `sh tools/build_release_st.sh` | [docs/flashing-st.md](docs/flashing-st.md) |
+| Analog Rytm MKII | 1.74 | beta; hardware-tested 0.5.1, 0.6.0, 0.7.1, 0.9.0 | `sh tools/build_release.sh` | [docs/flashing.md](docs/flashing.md) |
+| Syntakt | 1.42 | ready for testing (beta); hardware-tested 0.7.1, 0.9.0 on one unit | `sh tools/build_release_st.sh` | [docs/flashing-st.md](docs/flashing-st.md) |
 
 The Analog Four MKII and Digitone II are planned ([adding a device](docs/adding-a-device.md)). Each track has a recipe: a source of trigs
 (the track's own, random with roles, Euclidean, a map of drum patterns, or another track's), then pages that place
@@ -32,9 +32,9 @@ from a groove. YES writes a take so you hear it, FUNC + YES keeps it, NO puts yo
 is ordinary pattern data: it plays, saves and reloads on a stock OS. What differs between devices:
 [Devices](https://a1o1.github.io/trig-seedr/devices/overview/).
 
-<a id="status"></a>**Status: 0.8 is a beta.** Version 1's design is built, but not final: beta feedback decides what changes before 1.0. Every release passes the full set of
-checks in an emulator (analog-emu) on each device; 0.5.1, 0.6.0 and 0.7.1 also passed tests on an Analog Rytm MKII
-with OS 1.74 ([Tested on hardware](docs/flashing.md#tested-on-hardware)), and 0.7.1 passed a first hardware pass on a
+<a id="status"></a>**Status: 0.9 is a beta;** 0.9.0 adds TURING, a Turing machine for a track. Version 1's design is built, but not final: beta feedback decides what changes before 1.0. Every release passes the full set of
+checks in an emulator (analog-emu) on each device; 0.5.1, 0.6.0, 0.7.1 and 0.9.0 also passed tests on an Analog Rytm MKII
+with OS 1.74 ([Tested on hardware](docs/flashing.md#tested-on-hardware)), and 0.7.1 and 0.9.0 passed hardware passes on a
 Syntakt with OS 1.42 ([Tested on hardware](docs/flashing-st.md#tested-on-hardware)). Use it on projects you
 have backed up, keep the stock OS and a DIN MIDI interface at hand to go back, and tell us what you find: [what beta
 means](https://a1o1.github.io/trig-seedr/beta/beta/), [feedback](https://a1o1.github.io/trig-seedr/beta/feedback/).
@@ -71,7 +71,7 @@ compiler (`ELEKLOADER_CROSS=m68k-elf-`).
 sh tools/doctor.sh                        # the environment
 make -C lib test coldfire                 # the engine: host tests (sanitizers) and a ColdFire build check
 sh tools/run_tests.sh                     # every check: host, then the emulator (NAME... for some)
-sh tools/build_release.sh                 # the firmware to flash: build/trig-seedr-0.8.0-os1.74.syx
+sh tools/build_release.sh                 # the firmware to flash: build/trig-seedr-0.9.0-os1.74.syx
 ```
 
 For the Syntakt: the stock OS in `Official Firmwares/Syntakt OS 1.42/Syntakt OS/Syntakt_OS1.42.syx` (or set

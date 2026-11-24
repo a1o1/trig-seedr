@@ -57,6 +57,9 @@ static void ctx(struct pg_ctx *c)
     c->length = 16;
     c->ngrooves = 5;
     c->track_name = names;
+#ifndef PAGES_DEVICE_ST
+    c->live = 1;                    /* the Rytm gives the playhead: TURING's live page (T3) */
+#endif
 }
 
 static void fresh(void)
@@ -149,13 +152,15 @@ static void test_turns(void)
                 break;
             default:
                 lo_b = (w->base == PB_LANE ? offsetof(struct seed_recipe, lane) + lane * sizeof(struct seed_lane) : 0) + w->off;
-                hi_b = lo_b + (w->kind == PK_RANGE ? 2 * sizeof(int16_t) : w->kind == PK_SEED ? sizeof(uint32_t) : sizeof(int16_t));
+                hi_b = lo_b + (w->kind == PK_RANGE || w->kind == PK_SCALE ? 2 * sizeof(int16_t) : w->kind == PK_SEED ? sizeof(uint32_t) : sizeof(int16_t));
                 CHECK(memcmp(&r, &before, lo_b) == 0 && memcmp((uint8_t *)&r + hi_b, (uint8_t *)&before + hi_b, sizeof r - hi_b) == 0,
                       "%s (lane %d): touched bytes outside its value", w->label, lane);
                 CHECK(memcmp(&sh, &sh0, sizeof sh) == 0 && memcmp(&tool, &t0, sizeof tool) == 0, "%s: touched another struct", w->label);
                 break;
             }
             /* inside the limits */
+            if (w->kind == PK_SCALE)
+                CHECK(r.scale >= w->lo && r.scale <= w->hi && r.root >= 0 && r.root < 12, "SCALE %d ROOT %d", r.scale, r.root);
             if (w->kind == PK_INT || w->kind == PK_CHOICE || w->kind == PK_GRID) {
                 int16_t v = *(int16_t *)((w->base == PB_LANE ? (uint8_t *)&r.lane[lane] : w->base == PB_SHARED ? (uint8_t *)&sh :
                                           w->base == PB_TOOL ? (uint8_t *)&tool : (uint8_t *)&r) + w->off);
@@ -298,10 +303,15 @@ static void test_choices(void)
     CHECK(r.src == SEED_SRC_EUCLID && row(&c, PG_RHYTHM, "PULS") && !row(&c, PG_RHYTHM, "GRID"), "EUCLID's knobs replace RANDOM's");
     pg_turn(&c, w, 1, 0);
     pg_turn(&c, w, 1, 0);
-    pg_turn(&c, w, 1, 0);
-    CHECK(r.src == SEED_SRC_COPY, "SRC stops at the last value: %d", r.src);
+    CHECK(r.src == SEED_SRC_COPY, "SRC -> COPY: %d", r.src);
     w = row(&c, PG_RHYTHM, "TRK");
-    CHECK(!strcmp(text(&c, w, 0), "BD"), "COPY TRK reads a track name: %s", text(&c, w, 0));
+    CHECK(w && !strcmp(text(&c, w, 0), "BD"), "COPY TRK reads a track name: %s", w ? text(&c, w, 0) : "-");
+    w = row(&c, PG_RHYTHM, "SRC");
+    pg_turn(&c, w, 1, 0);
+    pg_turn(&c, w, 1, 0);
+    CHECK(r.src == SEED_SRC_TURING && !strcmp(text(&c, w, 0), "TURG"), "SRC stops at the last value, TURING (0.9): %d", r.src);
+    pg_turn(&c, w, -1, 0);
+    w = row(&c, PG_RHYTHM, "TRK");
     {
         int j;
         for (j = 0; j < 40; j++)
@@ -520,6 +530,24 @@ static void test_st_fields(void)
 }
 #endif
 
+/* TURING's live page (T3): the ring's last page, shown only when the device gives the playhead; its
+ * four knobs are the track's own TURING settings */
+static void test_turing_page(void)
+{
+    struct pg_ctx c;
+    ctx(&c);
+    fresh();
+    c.live = 1;
+    CHECK(pg_page_shown(&c, PG_TURING), "TURING shown with a playhead");
+    CHECK(pg_page_step(&c, PG_TOOLS, 1) == PG_TURING, "RIGHT from TOOLS: TURING");
+    CHECK(pg_page_step(&c, PG_TURING, 1) == PG_TAKE, "RIGHT from TURING: TAKE");
+    CHECK(row(&c, PG_TURING, "FLAV") && row(&c, PG_TURING, "LOOP") && row(&c, PG_TURING, "AMT")
+          && row(&c, PG_TURING, "BIAS"), "TURING: FLAV, LOOP, AMT, BIAS");
+    c.live = 0;
+    CHECK(!pg_page_shown(&c, PG_TURING), "TURING hidden without a playhead");
+    CHECK(pg_page_step(&c, PG_TOOLS, 1) == PG_TAKE, "no playhead: RIGHT from TOOLS wraps to TAKE");
+}
+
 int main(void)
 {
     test_one_row_a_knob();
@@ -530,6 +558,7 @@ int main(void)
     test_reachable();
     test_text();
     test_fld_fields();
+    test_turing_page();
 #ifdef PAGES_DEVICE_ST
     test_st_fields();
     printf("test_pages (Syntakt): %d checks, %d failed\n", checks, failed);

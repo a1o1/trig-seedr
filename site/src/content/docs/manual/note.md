@@ -14,10 +14,11 @@ NOTE sets each trig's length and note. Notes come from one of three value source
 | A | LEN | DEF, or a range of lengths 1/128 … INF | DEF | always |
 | B | LMOD | RANGE, LEGATO | RANGE | always |
 | C | NOTE | DEF, or a range −24…+24 semitones | DEF | always |
-| D | NSRC | RANGE, LIST, NOISE | RANGE | always |
+| D | NSRC | RANGE, LIST, NOISE, TURG | RANGE | always |
 | E | ORDR | UP, DOWN, PING, PNG2, ODD, RAND | UP | while NSRC is LIST |
 | F | NLEN | 1–16 | 4 | while NSRC is LIST |
 | G | ZOOM | 1–64 | 4 | while NSRC is NOISE |
+| H | SCALE | OFF, CHR, MAJ, MIN, DOR, PHR, LYD, MIX, LOC, HMIN, MMIN, PMAJ, PMIN, WHOLE, DIM, HIRA, 7SUS4, MAJ7, MIN7; FUNC + knob: ROOT C…B | OFF | always |
 
 ## LEN and LMOD
 
@@ -89,3 +90,14 @@ SHAPE = NOISE, with N as its ZOOM).
 - **SEED and VARY.** Each random level is one of the take's random numbers: with VARY at k %, the next seed keeps
   about k % of the levels. NOTE, each LOCK lane and DYNAMICS' shape draw different contours from the same take, so
   turning one does not change another.
+
+## TURG and SCALE
+
+**NSRC = TURG** takes each trig's note from the RHYTHM page's Turing machine (SRC = TURG there): the value the
+machine holds for that step, spread over NOTE's range. As the loop changes, the melody changes with it. See [TURING](../turing/).
+
+**SCALE** fits every note NOTE writes to a scale on **ROOT** (FUNC + the SCALE knob turns ROOT, C … B, while a
+scale is on): the nearest note of the scale, the lower one on a tie. OFF leaves notes as they are. SCALE works with
+every value source, and changes nothing while NOTE is DEF.
+
+![NOTE with the machine's notes (NSRC = TURG) in A minor](../../../assets/screens/scale.png)

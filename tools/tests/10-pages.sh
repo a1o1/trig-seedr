@@ -70,20 +70,21 @@ same "$(tled $W/k0.snap)" "$(tled $W/k2.snap)" "seedr open: the TRIG keys' LEDs 
 same "$(DTEMU_FW=$FW python3 $T/emu.py title $W/k1.snap)" "$(DTEMU_FW=$FW python3 $T/emu.py title $W/k2.snap)" \
     "seedr's screen stays up"
 
-# 2. LEFT / RIGHT: with 0.2's layers every page is built: RIGHT visits ten different pages and
-#    wraps to TAKE; LEFT from TAKE is TOOLS
+# 2. LEFT / RIGHT: with 0.2's layers every page is built: RIGHT visits eleven different pages (TURING,
+#    0.9, the ring's end) and wraps to TAKE; LEFT from TAKE is TURING
 prev=$W/k2.snap; seen=""; pg=0
-for name in take rhythm place dynamics note lock trig time view tools; do   # (not i: run() sets i)
+for name in take rhythm place dynamics note lock trig time view tools turing; do   # (not i: run() sets i)
     pg=$((pg + 1)); png $prev seedr-$name
     key $prev $W/p$pg.snap RIGHT; seen="$seen $(screen $prev)"; prev=$W/p$pg.snap
 done
-same 10 "$(echo $seen | tr ' ' '\n' | sort -u | wc -l | tr -d ' ')" "RIGHT: ten different pages"
-same "$(screen $W/k2.snap)" "$(screen $W/p10.snap)" "RIGHT x10: back on TAKE"
-key $W/p10.snap $W/p4.snap LEFT
-same "$(screen $W/p9.snap)" "$(screen $W/p4.snap)" "LEFT from TAKE: TOOLS"
+same 11 "$(echo $seen | tr ' ' '\n' | sort -u | wc -l | tr -d ' ')" "RIGHT: eleven different pages"
+same "$(screen $W/k2.snap)" "$(screen $W/p11.snap)" "RIGHT x11: back on TAKE"
+key $W/p11.snap $W/p4.snap LEFT
+same "$(screen $W/p10.snap)" "$(screen $W/p4.snap)" "LEFT from TAKE: TURING"
 
 # 3. VIEW: knob A moves the step cursor
-key $W/p4.snap $W/v0.snap LEFT
+key $W/p4.snap $W/p4t.snap LEFT                      # TOOLS
+key $W/p4t.snap $W/v0.snap LEFT
 from $W/v0.snap; run $W/v0.snap $W/v1.snap 600 --nudge 0:1@$(at 100) --nudge 0:1@$(at 300)
 png $W/v1.snap seedr-view-cursor
 differ "$(screen $W/v0.snap)" "$(screen $W/v1.snap)" "VIEW: knob A moves the cursor"
@@ -92,7 +93,8 @@ same "$(bytes $W/v0.snap)" "$(bytes $W/v1.snap)" "VIEW: the track is not touched
 # 4. YES with SOURCE = TRACK and every layer at 0: byte-identical (I1 through the device), an audition;
 #    NO; YES again (the next seed); FUNC + YES keeps; NO closes
 key $W/v1.snap $W/y0.snap RIGHT                      # TOOLS
-key $W/y0.snap $W/ya.snap RIGHT                      # TAKE
+key $W/y0.snap $W/y0t.snap RIGHT                     # TURING
+key $W/y0t.snap $W/ya.snap RIGHT                     # TAKE
 key $W/ya.snap $W/yb.snap RIGHT                      # RHYTHM
 # BD's recipe was made when seedr opened on the empty BD (section 1), so it is RANDOM (V6), and it
 # stays so after the trigs were recorded: SOURCE = TRACK by hand
@@ -126,7 +128,8 @@ differ "$c5" "$(screen $W/c6.snap)" "SRC closes seedr"
 
 # 6. TOOLS, ROTATE ALL +1 over every track: BD 1 5 17 25 -> 2 6 18 26; NO puts it back; FUNC + YES keeps
 open_ $W/y7.snap $W/r0.snap
-key $W/r0.snap $W/r1.snap LEFT                       # TOOLS, from TAKE (the page stays across closing)
+key $W/r0.snap $W/r0t.snap LEFT                      # TURING, from TAKE (the page stays across closing)
+key $W/r0t.snap $W/r1.snap LEFT                      # TOOLS
 png $W/r1.snap seedr-tools
 key $W/r1.snap $W/r2.snap YES; png $W/r2.snap seedr-tools-rotated
 want=$(python3 -c "import sys; v=sys.argv[1].split(); print(' '.join(v[(i-1)%32] for i in range(32))+' ')" "$(steps $W/r1.snap)")
@@ -142,14 +145,14 @@ FW=$FW_ALL MAP=$MAP_ALL
 boot $W/a0.snap
 open_ $W/a0.snap $W/a1.snap
 prev=$W/a1.snap; seen=""
-for name in take rhythm place dynamics note lock trig time view tools; do
+for name in take rhythm place dynamics note lock trig time view tools turing; do
     png $prev all-$name
     seen="$seen $(screen $prev)"
     key $prev $W/a-$name.snap RIGHT
     prev=$W/a-$name.snap
 done
 uniq=$(echo $seen | tr ' ' '\n' | sort -u | wc -l | tr -d ' ')
-same 10 "$uniq" "SHOW_ALL: RIGHT visits ten different pages"
+same 11 "$uniq" "SHOW_ALL: RIGHT visits eleven different pages"
 same "$(screen $W/a1.snap)" "$(screen $prev)" "SHOW_ALL: and wraps to TAKE"
 # (Until M1 ended, a layer not built yet was turned on here and YES checked to write nothing and say
 # NOT AVAILABLE YET. Every layer is built since F9; a refused YES is checked by 06-norows.)

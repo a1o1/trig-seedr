@@ -16,7 +16,7 @@ static int clamp(int v, int lo, int hi)
 static int vsrc_ok(const struct seed_values *v)
 {
     return v->src == SEED_VSRC_RANGE || (v->src == SEED_VSRC_LIST && seed_have_list)
-        || (v->src == SEED_VSRC_NOISE && seed_have_noise);
+        || (v->src == SEED_VSRC_NOISE && seed_have_noise) || (v->src == SEED_VSRC_TURG && seed_have_turing);
 }
 
 /* the top pct % of the trigs by their keys from slot (P2): chosen[i] = 1 */
@@ -35,12 +35,22 @@ static void pick(uint8_t *chosen, const struct seed_track *t, const struct seed_
         chosen[order[i]] = 1;
 }
 
+/* TURG (0.9): the take's TURING value at the step, 0..65535, over the range lo..hi (either order) */
+static int turg(const struct seed_values *v, const struct seed_take *k, int step)
+{
+    int lo = v->lo < v->hi ? v->lo : v->hi, span = (v->lo < v->hi ? v->hi - v->lo : v->lo - v->hi) + 1;
+    if (!k->tur || step < 0 || step >= SEED_STEPS)
+        return lo;
+    return lo + (int)(((uint32_t)k->tur->val[step] * (uint32_t)span) >> 16);
+}
+
 int seed_value(const struct seed_values *v, const struct seed_take *k, uint32_t slot, int step, int index)
 {
     switch (v->src) {
     case SEED_VSRC_RANGE: return seed_rand_range(k, slot + (uint32_t)step, v->lo, v->hi);
     case SEED_VSRC_LIST:  return seed_value_list(v, k, slot, index);
     case SEED_VSRC_NOISE: return seed_value_noise(v, k, slot, step);
+    case SEED_VSRC_TURG:  return turg(v, k, step);
     default:              return SEED_E_ARG;
     }
 }
@@ -53,6 +63,10 @@ int seed_note(struct seed_track *t, const struct seed_recipe *r, const struct se
 
     if (r->lmod < 0 || r->lmod >= SEED_LMOD_N)
         return SEED_E_ARG;
+    if (note_on && r->scale != SEED_SCALE_OFF && (r->scale < 0 || r->scale >= SEED_SCALE_N || r->root < 0 || r->root > 11))
+        return SEED_E_ARG;
+    if (note_on && r->scale != SEED_SCALE_OFF && !seed_have_scale)
+        return SEED_E_NA;
     if ((len_on && !legato && !vsrc_ok(&r->len)) || (note_on && !vsrc_ok(&r->note)) || (legato && !seed_have_list))
         return SEED_E_NA;
     if (!(t->fields & SEED_F_LEN))
@@ -74,7 +88,10 @@ int seed_note(struct seed_track *t, const struct seed_recipe *r, const struct se
         }
         if (note_on) {
             int off = clamp(seed_value(&r->note, k, SEED_SLOT(SEED_L_NOTE, SEED_P_NOTE, 0), i, idx), -24, 24);
-            s->note = (uint8_t)clamp(t->default_note + off, 0, 126);
+            int note = t->default_note + off;
+            if (r->scale != SEED_SCALE_OFF)       /* SCALE (0.9): the nearest note of the scale on ROOT */
+                note = seed_scale_note(note, r->scale, r->root);
+            s->note = (uint8_t)clamp(note, 0, 126);
         }
         idx++;
     }
@@ -116,8 +133,9 @@ int seed_lock(struct seed_track *t, const struct seed_recipe *r, const struct se
             plo = caps->params[ln->parm].lo;
             phi = caps->params[ln->parm].hi;
         }
-        if (v.lo == SEED_DEF) {                /* DEF: the parameter's whole range */
-            v.src = SEED_VSRC_RANGE;
+        if (v.lo == SEED_DEF) {                /* DEF: the parameter's whole range (TURG keeps its source) */
+            if (v.src != SEED_VSRC_TURG)
+                v.src = SEED_VSRC_RANGE;
             v.lo = (int16_t)plo;
             v.hi = (int16_t)phi;
         }

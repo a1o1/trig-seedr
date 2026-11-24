@@ -1,0 +1,20 @@
+{
+ "id": "livetest",
+ "version": "0.1",
+ "title": "live rewrite test",
+ "category": "Test",
+ "license": "GPL-2.0-or-later",
+ "author": "trig-seedr",
+ "description": "Test build only (tools/tests/45-live.sh): rewrites the steps the playhead has passed while the pattern plays, and checks in the sequencer's interrupt that each step plays what the track holds.",
+ "device": "analog-rytm-mk2",
+ "os": "1.74",
+ "sources": ["livetest.c"],
+ "subscribe": [
+  {"event": "ev_key", "fn": "lt_key", "order": 40},
+  {"event": "ev_tick", "fn": "lt_tick", "order": 40},
+  {"event": "ev_seq_step", "fn": "lt_seq_step", "order": 40}
+ ],
+ "cflags": ["-fno-store-merging", "-Werror=return-type"],
+ "resources": {"core": "0.13"},
+ "requires": ["core"]
+}

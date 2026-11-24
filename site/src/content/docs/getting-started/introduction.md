@@ -35,9 +35,9 @@ original back. With RECORD off, YES writes nothing, so looking around is always 
 
 ## Status
 
-Version 0.8 is a **beta**: on the Analog Rytm MKII, and on the Syntakt, ready for testing. Every release passes the
+Version 0.9 is a **beta**: on the Analog Rytm MKII, and on the Syntakt, ready for testing. Every release passes the
 full set of checks in [analog-emu](https://github.com/trigcondition/analog-emu), a whole-device emulator running the
-stock OS, on each device. Versions 0.5.1, 0.6.0 and 0.7.1 passed tests on a Rytm MKII with OS 1.74, and 0.7.1 passed
-a first hardware pass on a Syntakt with OS 1.42. The hardware passes are listed on each flashing page:
+stock OS, on each device. Versions 0.5.1, 0.6.0, 0.7.1 and 0.9.0 passed tests on a Rytm MKII with OS 1.74, and 0.7.1 and
+0.9.0 passed hardware passes on a Syntakt with OS 1.42. The hardware passes are listed on each flashing page:
 [Rytm MKII](../flashing/#tested-on-hardware), [Syntakt](../flashing-syntakt/#tested-on-hardware). What beta means for
 you, and how to report what you find: [Beta](../../beta/beta/).
