@@ -22,8 +22,8 @@ trigs, as an [elekloader](https://github.com/elekloader/elekloader) mod:
 
 | Device | OS | Status | Build | Flash |
 |---|---|---|---|---|
-| Analog Rytm MKII | 1.74 | beta; hardware-tested 0.5.1, 0.6.0, 0.7.1 | `sh tools/build_release.sh` | [docs/flashing.md](docs/flashing.md) |
-| Syntakt | 1.42 | ready for testing (beta); a first hardware pass, 0.7.1 on one unit | `sh tools/build_release_st.sh` | [docs/flashing-st.md](docs/flashing-st.md) |
+| Analog Rytm MKII | 1.74 | beta; hardware-tested 0.5.1, 0.6.0, 0.7.1, 0.9.0 | `sh tools/build_release.sh` | [docs/flashing.md](docs/flashing.md) |
+| Syntakt | 1.42 | ready for testing (beta); hardware-tested 0.7.1, 0.9.0 on one unit | `sh tools/build_release_st.sh` | [docs/flashing-st.md](docs/flashing-st.md) |
 
 The Analog Four MKII and Digitone II are planned ([adding a device](docs/adding-a-device.md)). Each track has a recipe: a source of trigs
 (the track's own, random with roles, Euclidean, a map of drum patterns, or another track's), then pages that place
@@ -32,9 +32,9 @@ from a groove. YES writes a take so you hear it, FUNC + YES keeps it, NO puts yo
 is ordinary pattern data: it plays, saves and reloads on a stock OS. What differs between devices:
 [Devices](https://a1o1.github.io/trig-seedr/devices/overview/).
 
-<a id="status"></a>**Status: 0.9 is a beta;** 0.9.0 is a candidate for testing on units (TURING). Version 1's design is built, but not final: beta feedback decides what changes before 1.0. Every release passes the full set of
-checks in an emulator (analog-emu) on each device; 0.5.1, 0.6.0 and 0.7.1 also passed tests on an Analog Rytm MKII
-with OS 1.74 ([Tested on hardware](docs/flashing.md#tested-on-hardware)), and 0.7.1 passed a first hardware pass on a
+<a id="status"></a>**Status: 0.9 is a beta;** 0.9.0 adds TURING, a Turing machine for a track. Version 1's design is built, but not final: beta feedback decides what changes before 1.0. Every release passes the full set of
+checks in an emulator (analog-emu) on each device; 0.5.1, 0.6.0, 0.7.1 and 0.9.0 also passed tests on an Analog Rytm MKII
+with OS 1.74 ([Tested on hardware](docs/flashing.md#tested-on-hardware)), and 0.7.1 and 0.9.0 passed hardware passes on a
 Syntakt with OS 1.42 ([Tested on hardware](docs/flashing-st.md#tested-on-hardware)). Use it on projects you
 have backed up, keep the stock OS and a DIN MIDI interface at hand to go back, and tell us what you find: [what beta
 means](https://a1o1.github.io/trig-seedr/beta/beta/), [feedback](https://a1o1.github.io/trig-seedr/beta/feedback/).

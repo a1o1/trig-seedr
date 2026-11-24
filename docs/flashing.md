@@ -45,11 +45,12 @@ what has run on a real unit.
 
 | Version | Date | Unit | OS | Result |
 |---|---|---|---|---|
+| 0.9.0 (TS09; `trig-seedr-0.9.0-os1.74.syx`, sha256 `55ed5df2…`, built from commit `7a24b64`) | 2026-11-24 | Analog Rytm MKII | 1.74 | passed: checks 1 to 25, including TURING's (16 to 25): TURG, SCALE and ROOT, the live page |
 | 0.7.1 | 2026-11-17 | Analog Rytm MKII | 1.74 | passed: checks 1 to 15, including 0.7's range knobs, YES after a revert, the pending dot and YOLO |
 | 0.6.0 | 2026-11-16 | Analog Rytm MKII | 1.74 | played in use: works; UX notes became 0.7's range knobs, YES after a revert and the pending dot |
 | 0.5.1 | 2026-11-16 | Analog Rytm MKII | 1.74 | first pass: every feature worked as expected; its notes became 0.5.1's generate and apply |
 
-0.9.0 is a candidate for testing on units: it adds TURING (checks 16 onwards). 0.8.0's and 0.9.0's Rytm builds have passed the emulator suites but not yet a hardware pass: 0.8.0 reorganised the code into a frame shared with the Syntakt, with the same golden vectors and the same full emulator suite. 0.7.1 is the last Rytm build with a hardware pass. 0.7.0 has not had one. Checks 13 to 15 below are new in 0.7.
+0.9.0 adds TURING (checks 16 onwards) and is the first Rytm build with a hardware pass since 0.7.1. 0.8.0's Rytm build passed the emulator suites but has not had a hardware pass: it reorganised the code into a frame shared with the Syntakt, with the same golden vectors and the same full emulator suite; 0.9.0's pass covers that frame. 0.7.0 has not had one. Checks 13 to 15 below are new in 0.7.
 
 1. The boot screen shows the version (**TS09** for 0.9.0, **TS08** for 0.8.0, **T071** for 0.7.1, **TS07** for 0.7.0; a minor release shows TSxy, a patch release Txyz) while the Rytm starts (OS 1.74 has no menu that shows it;
    GLOBAL > SYSTEM > OS UPGRADE shows only WAITING FOR SYSEX).

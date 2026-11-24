@@ -26,7 +26,7 @@ Testing on units decides what changes.
 | L9 | **SCALE** (OFF, CHR, MAJ, MIN, DOR, PHR, LYD, MIX, LOC, HMIN, MMIN, PMAJ, PMIN, WHOLE, DIM, plus Labyrinth's set where different: HIRA, 7SUS4, MAJ7, MIN7) and **ROOT** (C..B) on NOTE; they quantize every note value source, not only TURG. OFF is the default, so every existing recipe and golden vector stays the same | lead |
 | L10 | **New recipe fields** at the end of `struct seed_recipe` (`tur_flav`, `tur_loop`, `tur_amt`, `tur_bias`, `tur_strt`, `scale`, `root`), defaults that change nothing; `lib/seed.h` changes by the lead's request in this document | lead |
 | L11 | SHFT's notes are the register's weighted sum (8 bits, as an 8-bit DAC) through SCALE; its trigs are bit 0 | lead |
-| L12 | Version 0.9.0 (TS09) for both devices; the candidate is built for on-device testing before any release | lead |
+| L12 | Version 0.9.0 (TS09) for both devices; the candidate is built for on-device testing before any release. **Released 2026-11-24** after checks 1–25 passed on a unit of each | lead |
 | L13 | **Live, the machine is anchored to the playhead** (T3): a live step plays the cell at step % LOOP, as the Labyrinth's write head sits on the step it plays; the live run renders the recipe with SOURCE = TURING, PHRS and CVAR off and QUAL 1 | lead |
 
 ## 2. The flavours

@@ -1,7 +1,7 @@
 # Flashing trig-seedr to a Syntakt
 
 trig-seedr for the Syntakt is **ready for testing** (beta, [what that means](https://a1o1.github.io/trig-seedr/beta/beta/)).
-It is tested in full in analog-emu, and it passed a first hardware pass on one unit (below, under
+It is tested in full in analog-emu, and it has passed hardware passes on one unit, the latest 0.9.0 (below, under
 [Tested on hardware](#tested-on-hardware)). Flash it when a failed flash would not cost you anything, with the way
 back to stock ready, and work on projects you have backed up. What differs from the Analog Rytm MKII:
 [the Syntakt](https://a1o1.github.io/trig-seedr/devices/syntakt/).
@@ -113,4 +113,5 @@ happened ([Feedback](https://a1o1.github.io/trig-seedr/beta/feedback/)).
 
 | Version | Date | Unit | OS | Steps | Result |
 |---|---|---|---|---|---|
+| 0.9.0 (TS09; `trig-seedr-0.9.0-st-os1.42.syx`, sha256 `3a7475c7…`, built from commit `7a24b64`) | 2026-11-24 | Syntakt | 1.42 | first checks 1–25, including TURING's (16–25): TURG, SCALE and ROOT, the live page | passed |
 | 0.7.1 (T071; `trig-seedr-0.7.1-st-os1.42.syx`, sha256 `6f7444cc…`, built from commit `48691f5`) | 2026-11-19 | Syntakt | 1.42 | 1–4 above: the way back to stock (STARTUP menu, TRIG 4 = OS UPGRADE), the round-tripped stock file, the canary with all 64 sample slots loaded (OK), and first checks 1–15 | passed |

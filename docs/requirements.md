@@ -164,8 +164,8 @@ What each level covers and what is not tested: [`testing.md`](testing.md).
 
 ## On the Syntakt
 
-trig-seedr for the Syntakt (OS 1.42) is ready for testing: it is tested in full in an emulator, and 0.7.1 passed a
-first hardware pass on one unit ([`flashing-st.md`](flashing-st.md); [`plan-syntakt.md`](plan-syntakt.md)). The requirements above are written for the Rytm; this table says how each
+trig-seedr for the Syntakt (OS 1.42) is ready for testing: it is tested in full in an emulator, and 0.7.1 and 0.9.0 passed
+hardware passes on one unit ([`flashing-st.md`](flashing-st.md); [`plan-syntakt.md`](plan-syntakt.md)). The requirements above are written for the Rytm; this table says how each
 applies to the Syntakt and which test covers it there. `stNN` is `tools/tests-st/NN-*.sh` (`sh
 tools/st_run_tests.sh`); `s3`, `s3b` are `tools/st_s3.sh`, `tools/st_s3b.sh`; `test_syntakt_st` is the device layer's
 host test; "Syntakt profile" is a `lib/` or interplay test built with `-DPROP_DEVICE_ST`; "st hw *n*" is check *n* of

@@ -1,10 +1,11 @@
 # trig-seedr 0.9
 
-## 0.9.0 (candidate, not released)
+## 0.9.0 (2026-11-24)
 
-**A candidate for testing on units, not a release.** 0.9.0 adds TURING, a Turing machine for a track, on the
-Analog Rytm MKII and the Syntakt. Every check below is from the emulators; the candidate goes to units before it is
-released, and testing there decides what changes. The boot screen shows **TS09** on both devices.
+0.9.0 adds TURING, a Turing machine for a track, on the Analog Rytm MKII and the Syntakt. It passed the full
+emulator suites on both devices (Rytm 34 files, 558 checks; Syntakt 11 files, 165) and a hardware pass on a unit of
+each: `flashing.md`'s and `flashing-st.md`'s checks 1 to 25, on 2026-11-24. The boot screen shows **TS09** on both
+devices.
 
 ### TURING
 
@@ -26,7 +27,7 @@ change with the rhythm. The manual's page: TURING.
   FUNC + UP remembers the loop, FUNC + DOWN brings it back. Closing Trig Seedr, changing track or pattern, or RECORD
   off puts the original back (NOT APPLIED), as for any take not yet applied.
 
-### What testing on a unit should look at
+### What to tell us
 
 - How each flavour and AMT feel, offline and live.
 - The live page at slow and fast tempos (the emulators ran 300 BPM: a step takes about 2 ms to write on the Rytm,
@@ -37,7 +38,6 @@ change with the rhythm. The manual's page: TURING.
 - Track speeds other than 1x, and pattern changes while the page runs (not tried in the emulators).
 - What YES while running should do (now: every step rewritten from the loop as it stands).
 - On a Syntakt: FUNC + the SCALE knob for ROOT (the emulator cannot hold FUNC there).
-- The checks: `docs/flashing.md` and `docs/flashing-st.md`, checks 16 to 25.
 
 ### Also
 
@@ -47,7 +47,7 @@ change with the rhythm. The manual's page: TURING.
 - **The Syntakt builds with the swing grooves only** (TIME's GRV): with TURING's code and the Live groove tables
   (`grooves-live.h`, local to your checkout) its unit file no longer fits, so `mods/seedr-st` leaves them out
   (`ST_LIVE_GROOVES` brings them back once the mod is smaller). The Rytm keeps them when they are there.
-- 0.8.0's and 0.9.0's Rytm builds have not had a hardware pass yet (0.7.1 is the last that has).
+- 0.9.0 is the first Rytm build with a hardware pass since 0.7.1; it covers 0.8.0's frame shared with the Syntakt.
 
 ### Upstream used to build
 
