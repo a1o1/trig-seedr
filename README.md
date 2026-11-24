@@ -57,6 +57,7 @@ Screens, from the emulator:
 <tr><td align="center"><img src="docs/screens/note.png" width="384" alt="NOTE"><br>NOTE</td><td align="center"><img src="docs/screens/lock.png" width="384" alt="LOCK"><br>LOCK</td></tr>
 <tr><td align="center"><img src="docs/screens/trig.png" width="384" alt="TRIG"><br>TRIG</td><td align="center"><img src="docs/screens/time.png" width="384" alt="TIME"><br>TIME</td></tr>
 <tr><td align="center"><img src="docs/screens/view.png" width="384" alt="VIEW"><br>VIEW</td><td align="center"><img src="docs/screens/tools.png" width="384" alt="TOOLS"><br>TOOLS</td></tr>
+<tr><td align="center"><img src="docs/screens/turing.png" width="384" alt="TURING"><br>TURING (0.9), the live page</td><td align="center"><img src="docs/screens/turg.png" width="384" alt="RHYTHM with SRC = TURG"><br>RHYTHM with SRC = TURG</td></tr>
 </table>
 
 ## Build and flash

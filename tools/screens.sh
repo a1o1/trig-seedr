@@ -3,7 +3,8 @@
 # pages (<page>.png), TOOLS with a YOLO roll pending (yolo.png), and four for the manual: RHYTHM with
 # SRC = RAND (random.png), the same take pending, the dot in the title bar (pending.png), SRC = EUCLID
 # (euclid.png), YES with RECORD off (record.png), and TURING (0.9): RHYTHM with SRC = TURG (turg.png), NOTE with
-# notes from the machine through SCALE (scale.png), and the live page while the pattern plays (turing.png).
+# notes from the machine through SCALE (scale.png), and the live page while the pattern plays
+# (turing.png: CRPT; turing-djvu.png, turing-shft.png: the other two flavours).
 #     sh tools/screens.sh             writes them to build/emu/screens/ to look at
 #     sh tools/screens.sh --install   also copies them into docs/screens/
 # One rich example, so every page shows real values and the strip's bars (velocity) vary: A01 BD made
@@ -81,8 +82,26 @@ emu_run -s 2400M
 emu_shot turing
 emu_keys STOP
 emu_no
+emu_run -s 2400M                                # past BACK TO THE ORIGINAL
+# the live page in the other two flavours: DJVU over a loop of 16 at AMT 30 (new steps come in), and SHFT
+# over a loop of 8 at AMT 50 (a coin flip for each step)
+for f in djvu:16:30:7 shft:8:50:9; do
+    IFS=: read -r fl lp am sd <<EOT
+$f
+EOT
+    emu_recipe 0 src=turing tur_flav=$fl tur_loop=$lp tur_amt=$am tur_bias=50 note=-12:12 note.src=turg \
+        vel=40:127 vel.src=turg scale=min root=9 seed=$sd
+    emu_page TURING
+    emu_keys YES
+    emu_keys PLAY
+    emu_run -s 2400M
+    emu_shot "turing-$fl"
+    emu_keys STOP
+    emu_no
+    emu_run -s 2400M
+done
 echo "screens: $D"
 if [ "$1" = --install ]; then
-    for p in take rhythm place dynamics note lock trig time view tools yolo random pending euclid record turg scale turing; do cp "$D/$p.png" "$R/docs/screens/$p.png"; done
+    for p in take rhythm place dynamics note lock trig time view tools yolo random pending euclid record turg scale turing turing-djvu turing-shft; do cp "$D/$p.png" "$R/docs/screens/$p.png"; done
     echo "copied into docs/screens/"
 fi
