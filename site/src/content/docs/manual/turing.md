@@ -47,6 +47,13 @@ either page changes both. While the page runs they can be turned, and the next s
 - **SHFT** is a shift register: each step comes round again, kept or inverted. Its value is the newest eight
   steps read as a number.
 
+The live page in each flavour, a few loops in: DJVU over a loop of 16 at AMT 30, new steps coming in; SHFT over a
+loop of 8 at AMT 50, a coin flip for each step. CRPT is under [The live page](#the-live-page).
+
+![TURING running DJVU: a loop of 16, AMT 30](../../../assets/screens/turing-djvu.png)
+
+![TURING running SHFT: a loop of 8, AMT 50](../../../assets/screens/turing-shft.png)
+
 ## Notes: SCALE and ROOT
 
 A value becomes a note through NOTE's range and its **SCALE** (NOTE, knob H), on **ROOT** (FUNC + the SCALE knob,
